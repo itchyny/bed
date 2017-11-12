@@ -1,0 +1,11 @@
+sudo: false
+
+language: go
+
+go:
+  - 1.9
+
+env: PATH=/home/travis/gopath/bin:$PATH
+
+script:
+  - make test
