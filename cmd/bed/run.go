@@ -21,5 +21,9 @@ func run(args []string) int {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return 1
 	}
+	if err := editor.Start(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
+		return 1
+	}
 	return 0
 }
