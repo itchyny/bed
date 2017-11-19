@@ -10,15 +10,35 @@ import (
 type Editor struct {
 	ui     UI
 	buffer *Buffer
+	line   int
+	height int
+	width  int
 }
 
 // NewEditor creates a new Editor.
 func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui, buffer: nil}
+	return &Editor{ui: ui, line: 0, width: 16}
 }
 
 func (e *Editor) Init() error {
-	return e.ui.Init()
+	ch := make(chan Event)
+	if err := e.ui.Init(ch); err != nil {
+		return err
+	}
+	go func() {
+		for {
+			select {
+			case c := <-ch:
+				switch c.(type) {
+				case ScrollDown:
+					e.ScrollDown()
+				case ScrollUp:
+					e.ScrollUp()
+				}
+			}
+		}
+	}()
+	return nil
 }
 
 func (e *Editor) Close() error {
@@ -36,32 +56,49 @@ func (e *Editor) Open(filename string) error {
 
 func (e *Editor) Start() error {
 	return e.ui.Start(func(height, _ int) error {
-		width := 16
-		b := make([]byte, height*width)
-		n, err := e.buffer.Read(b)
-		if err != nil {
-			return err
-		}
-		for i := 0; i < height; i++ {
-			w := new(bytes.Buffer)
-			fmt.Fprintf(w, "%08x:", i*width)
-			buf := make([]byte, width)
-			for j := 0; j < width; j++ {
-				k := i*width + j
-				if k >= n {
-					break
-				}
-				fmt.Fprintf(w, " %02x", b[k])
-				buf[j] = prettyByte(b[k])
-			}
-			fmt.Fprintf(w, "  %s\n", buf)
-			e.ui.SetLine(i, w.String())
-			if (i+1)*width >= n {
+		e.height = height
+		return e.Redraw()
+	})
+}
+
+func (e *Editor) ScrollUp() error {
+	if e.line > 0 {
+		e.line = e.line - 1
+	}
+	return e.Redraw()
+}
+
+func (e *Editor) ScrollDown() error {
+	e.line = e.line + 1
+	return e.Redraw()
+}
+
+func (e *Editor) Redraw() error {
+	width := e.width
+	b := make([]byte, e.height*width)
+	n, err := e.buffer.Read(int64(e.line)*int64(width), b)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < e.height; i++ {
+		w := new(bytes.Buffer)
+		fmt.Fprintf(w, "%08x:", (e.line+i)*width)
+		buf := make([]byte, width)
+		for j := 0; j < width; j++ {
+			k := i*width + j
+			if k >= n {
 				break
 			}
+			fmt.Fprintf(w, " %02x", b[k])
+			buf[j] = prettyByte(b[k])
 		}
-		return nil
-	})
+		fmt.Fprintf(w, "  %s\n", buf)
+		e.ui.SetLine(i, w.String())
+		if (i+1)*width >= n {
+			break
+		}
+	}
+	return nil
 }
 
 func prettyByte(b byte) byte {

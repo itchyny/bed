@@ -8,13 +8,15 @@ import (
 type Tui struct {
 	width  int
 	height int
+	ch     chan<- Event
 }
 
 func NewTui() *Tui {
 	return &Tui{}
 }
 
-func (ui *Tui) Init() error {
+func (ui *Tui) Init(ch chan<- Event) error {
+	ui.ch = ch
 	return termbox.Init()
 }
 
@@ -32,10 +34,16 @@ func (ui *Tui) Start(cb func(int, int) error) error {
 loop:
 	for {
 		select {
-		case event := <-events:
-			if event.Type == termbox.EventKey {
-				if event.Ch == 'q' || event.Key == termbox.KeyCtrlC || event.Key == termbox.KeyCtrlD {
+		case e := <-events:
+			if e.Type == termbox.EventKey {
+				if e.Ch == 'q' || e.Key == termbox.KeyCtrlC || e.Key == termbox.KeyCtrlD {
 					break loop
+				}
+				if e.Key == termbox.KeyCtrlE {
+					ui.ch <- ScrollDown{}
+				}
+				if e.Key == termbox.KeyCtrlY {
+					ui.ch <- ScrollUp{}
 				}
 			}
 		}
