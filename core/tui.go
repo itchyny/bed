@@ -40,10 +40,16 @@ loop:
 					break loop
 				}
 				if e.Key == termbox.KeyCtrlE {
-					ui.ch <- ScrollDown{}
+					ui.ch <- ScrollDown
 				}
 				if e.Key == termbox.KeyCtrlY {
-					ui.ch <- ScrollUp{}
+					ui.ch <- ScrollUp
+				}
+				if e.Key == termbox.KeyCtrlF {
+					ui.ch <- PageDown
+				}
+				if e.Key == termbox.KeyCtrlB {
+					ui.ch <- PageUp
 				}
 			}
 		}
@@ -61,5 +67,6 @@ func (ui *Tui) SetLine(line int, str string) error {
 
 func (ui *Tui) Close() error {
 	termbox.Close()
+	close(ui.ch)
 	return nil
 }

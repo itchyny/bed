@@ -29,11 +29,15 @@ func (e *Editor) Init() error {
 		for {
 			select {
 			case c := <-ch:
-				switch c.(type) {
+				switch c {
 				case ScrollDown:
 					e.ScrollDown()
 				case ScrollUp:
 					e.ScrollUp()
+				case PageUp:
+					e.PageUp()
+				case PageDown:
+					e.PageDown()
 				}
 			}
 		}
@@ -70,6 +74,19 @@ func (e *Editor) ScrollUp() error {
 
 func (e *Editor) ScrollDown() error {
 	e.line = e.line + 1
+	return e.Redraw()
+}
+
+func (e *Editor) PageUp() error {
+	e.line = e.line - e.height + 2
+	if e.line < 0 {
+		e.line = 0
+	}
+	return e.Redraw()
+}
+
+func (e *Editor) PageDown() error {
+	e.line = e.line + e.height - 2
 	return e.Redraw()
 }
 
