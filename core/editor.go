@@ -1,16 +1,28 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 )
 
+// Editor is the main struct for this command.
 type Editor struct {
+	ui     UI
 	buffer *Buffer
 }
 
-func NewEditor() *Editor {
-	return &Editor{}
+// NewEditor creates a new Editor.
+func NewEditor(ui UI) *Editor {
+	return &Editor{ui: ui, buffer: nil}
+}
+
+func (e *Editor) Init() error {
+	return e.ui.Init()
+}
+
+func (e *Editor) Close() error {
+	return e.ui.Close()
 }
 
 func (e *Editor) Open(filename string) error {
@@ -23,30 +35,33 @@ func (e *Editor) Open(filename string) error {
 }
 
 func (e *Editor) Start() error {
-	height, width := 30, 16
-	w := os.Stdout
-	b := make([]byte, height*width)
-	n, err := e.buffer.Read(b)
-	if err != nil {
-		return err
-	}
-	for i := 0; i < height; i++ {
-		fmt.Fprintf(w, "%08x:", i*width)
-		buf := make([]byte, width)
-		for j := 0; j < width; j++ {
-			k := i*width + j
-			if k >= n {
+	return e.ui.Start(func(height, _ int) error {
+		width := 16
+		b := make([]byte, height*width)
+		n, err := e.buffer.Read(b)
+		if err != nil {
+			return err
+		}
+		for i := 0; i < height; i++ {
+			w := new(bytes.Buffer)
+			fmt.Fprintf(w, "%08x:", i*width)
+			buf := make([]byte, width)
+			for j := 0; j < width; j++ {
+				k := i*width + j
+				if k >= n {
+					break
+				}
+				fmt.Fprintf(w, " %02x", b[k])
+				buf[j] = prettyByte(b[k])
+			}
+			fmt.Fprintf(w, "  %s\n", buf)
+			e.ui.SetLine(i, w.String())
+			if (i+1)*width >= n {
 				break
 			}
-			fmt.Fprintf(w, " %02x", b[k])
-			buf[j] = prettyByte(b[k])
 		}
-		fmt.Fprintf(w, "  %s\n", buf)
-		if (i+1)*width >= n {
-			break
-		}
-	}
-	return nil
+		return nil
+	})
 }
 
 func prettyByte(b byte) byte {
