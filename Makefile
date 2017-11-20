@@ -1,6 +1,6 @@
 BIN = bed
 
-all: clean test build
+all: clean lint build test
 
 build: deps
 	go build -o build/$(BIN) ./cmd/...
@@ -14,6 +14,13 @@ deps:
 
 test: build
 	go test -v ./...
+
+lint: lintdeps build
+	golint -set_exit_status $$(go list ./... | grep -v /vendor/)
+
+lintdeps:
+	go get -d -v -t ./...
+	go get -u github.com/golang/lint/golint
 
 clean:
 	rm -rf build
