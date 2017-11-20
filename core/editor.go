@@ -12,11 +12,12 @@ type Editor struct {
 	ui     UI
 	buffer *Buffer
 	line   int
+	cursor Position
 }
 
 // NewEditor creates a new editor.
 func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui, line: 0}
+	return &Editor{ui: ui}
 }
 
 // Init initializes the editor.
@@ -165,6 +166,7 @@ func (e *Editor) redraw() error {
 		fmt.Fprintf(w, "  %s\n", buf)
 		e.ui.SetLine(i, w.String())
 	}
+	e.ui.SetCursor(e.cursor)
 	return nil
 }
 

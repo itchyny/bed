@@ -74,6 +74,12 @@ func (ui *Tui) SetLine(line int, str string) error {
 	for i, c := range str {
 		termbox.SetCell(i, line, c, fg, bg)
 	}
+	return nil
+}
+
+// SetCursor sets the cursor position.
+func (ui *Tui) SetCursor(cursor Position) error {
+	termbox.SetCursor(3*cursor.X+10, cursor.Y)
 	return termbox.Flush()
 }
 
