@@ -18,3 +18,11 @@ func (b *Buffer) Read(offset int64, p []byte) (n int, err error) {
 	}
 	return b.r.Read(p)
 }
+
+func (b *Buffer) Offset() (int64, error) {
+	return b.r.Seek(0, io.SeekCurrent)
+}
+
+func (b *Buffer) Len() (int64, error) {
+	return b.r.Seek(0, io.SeekEnd)
+}

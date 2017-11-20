@@ -1,5 +1,6 @@
 package core
 
+// Event represents the event emitted by UI.
 type Event int
 
 const (
@@ -7,4 +8,6 @@ const (
 	ScrollUp
 	PageDown
 	PageUp
+	PageTop
+	PageLast
 )

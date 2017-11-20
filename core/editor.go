@@ -38,6 +38,10 @@ func (e *Editor) Init() error {
 					e.PageUp()
 				case PageDown:
 					e.PageDown()
+				case PageTop:
+					e.PageTop()
+				case PageLast:
+					e.PageLast()
 				}
 			}
 		}
@@ -90,6 +94,23 @@ func (e *Editor) PageDown() error {
 	return e.Redraw()
 }
 
+func (e *Editor) PageTop() error {
+	e.line = 0
+	return e.Redraw()
+}
+
+func (e *Editor) PageLast() error {
+	len, err := e.buffer.Len()
+	if err != nil {
+		return err
+	}
+	e.line = int((len+int64(e.width)-1)/int64(e.width)) - e.height
+	if e.line < 0 {
+		e.line = 0
+	}
+	return e.Redraw()
+}
+
 func (e *Editor) Redraw() error {
 	width := e.width
 	b := make([]byte, e.height*width)
@@ -99,7 +120,7 @@ func (e *Editor) Redraw() error {
 	}
 	for i := 0; i < e.height; i++ {
 		w := new(bytes.Buffer)
-		fmt.Fprintf(w, "%08x:", (e.line+i)*width)
+		fmt.Fprintf(w, "%08x:", int64(e.line+i)*int64(width))
 		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
 			k := i*width + j

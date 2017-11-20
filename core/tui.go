@@ -51,6 +51,12 @@ loop:
 				if e.Key == termbox.KeyCtrlB {
 					ui.ch <- PageUp
 				}
+				if e.Ch == 'g' {
+					ui.ch <- PageTop
+				}
+				if e.Ch == 'G' {
+					ui.ch <- PageLast
+				}
 			}
 		}
 	}
