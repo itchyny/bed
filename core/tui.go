@@ -20,17 +20,13 @@ func (ui *Tui) Init(ch chan<- Event) error {
 	return termbox.Init()
 }
 
-func (ui *Tui) Start(cb func(int, int) error) error {
-	ui.width, ui.height = termbox.Size()
+func (ui *Tui) Start() error {
 	events := make(chan termbox.Event)
 	go func() {
 		for {
 			events <- termbox.PollEvent()
 		}
 	}()
-	if err := cb(ui.height, ui.width); err != nil {
-		return err
-	}
 loop:
 	for {
 		select {
@@ -61,6 +57,12 @@ loop:
 		}
 	}
 	return nil
+}
+
+// Height returns the height for the hex view.
+func (ui *Tui) Height() int {
+	_, height := termbox.Size()
+	return height
 }
 
 func (ui *Tui) SetLine(line int, str string) error {

@@ -12,13 +12,11 @@ type Editor struct {
 	ui     UI
 	buffer *Buffer
 	line   int
-	height int
-	width  int
 }
 
 // NewEditor creates a new Editor.
 func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui, line: 0, width: 16}
+	return &Editor{ui: ui, line: 0}
 }
 
 func (e *Editor) Init() error {
@@ -64,10 +62,10 @@ func (e *Editor) Open(filename string) error {
 }
 
 func (e *Editor) Start() error {
-	return e.ui.Start(func(height, _ int) error {
-		e.height = height
-		return e.Redraw()
-	})
+	if err := e.Redraw(); err != nil {
+		return err
+	}
+	return e.ui.Start()
 }
 
 func (e *Editor) ScrollUp() error {
@@ -90,7 +88,7 @@ func (e *Editor) ScrollDown() error {
 }
 
 func (e *Editor) PageUp() error {
-	e.line = e.line - e.height + 2
+	e.line = e.line - e.ui.Height() + 2
 	if e.line < 0 {
 		e.line = 0
 	}
@@ -102,7 +100,7 @@ func (e *Editor) PageDown() error {
 	if err != nil {
 		return err
 	}
-	e.line = e.line + e.height - 2
+	e.line = e.line + e.ui.Height() - 2
 	if e.line > line {
 		e.line = line
 	}
@@ -128,7 +126,8 @@ func (e *Editor) lastLine() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	line := int((len+int64(e.width)-1)/int64(e.width)) - e.height
+	width := 16
+	line := int((len+int64(width)-1)/int64(width)) - e.ui.Height()
 	if line < 0 {
 		line = 0
 	}
@@ -136,13 +135,13 @@ func (e *Editor) lastLine() (int, error) {
 }
 
 func (e *Editor) Redraw() error {
-	width := e.width
-	b := make([]byte, e.height*width)
+	height, width := e.ui.Height(), 16
+	b := make([]byte, height*width)
 	n, err := e.buffer.Read(int64(e.line)*int64(width), b)
 	if err != nil {
 		return err
 	}
-	for i := 0; i < e.height; i++ {
+	for i := 0; i < height; i++ {
 		if i*width >= n {
 			e.ui.SetLine(i, strings.Repeat(" ", 75))
 			continue
