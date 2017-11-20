@@ -11,15 +11,18 @@ type Tui struct {
 	ch     chan<- Event
 }
 
+// NewTui creates a new Tui.
 func NewTui() *Tui {
 	return &Tui{}
 }
 
+// Init initializes the Tui.
 func (ui *Tui) Init(ch chan<- Event) error {
 	ui.ch = ch
 	return termbox.Init()
 }
 
+// Start starts the Tui.
 func (ui *Tui) Start() error {
 	events := make(chan termbox.Event)
 	go func() {
@@ -65,6 +68,7 @@ func (ui *Tui) Height() int {
 	return height
 }
 
+// SetLine sets the line.
 func (ui *Tui) SetLine(line int, str string) error {
 	fg, bg := termbox.ColorDefault, termbox.ColorDefault
 	for i, c := range str {
@@ -73,6 +77,7 @@ func (ui *Tui) SetLine(line int, str string) error {
 	return termbox.Flush()
 }
 
+// Close terminates the Tui.
 func (ui *Tui) Close() error {
 	termbox.Close()
 	close(ui.ch)

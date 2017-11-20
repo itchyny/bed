@@ -14,11 +14,12 @@ type Editor struct {
 	line   int
 }
 
-// NewEditor creates a new Editor.
+// NewEditor creates a new editor.
 func NewEditor(ui UI) *Editor {
 	return &Editor{ui: ui, line: 0}
 }
 
+// Init initializes the editor.
 func (e *Editor) Init() error {
 	ch := make(chan Event)
 	if err := e.ui.Init(ch); err != nil {
@@ -29,18 +30,18 @@ func (e *Editor) Init() error {
 			select {
 			case c := <-ch:
 				switch c {
-				case ScrollDown:
-					e.ScrollDown()
 				case ScrollUp:
-					e.ScrollUp()
+					e.scrollUp()
+				case ScrollDown:
+					e.scrollDown()
 				case PageUp:
-					e.PageUp()
+					e.pageUp()
 				case PageDown:
-					e.PageDown()
+					e.pageDown()
 				case PageTop:
-					e.PageTop()
+					e.pageTop()
 				case PageLast:
-					e.PageLast()
+					e.pageLast()
 				}
 			}
 		}
@@ -48,10 +49,12 @@ func (e *Editor) Init() error {
 	return nil
 }
 
+// Close terminates the editor.
 func (e *Editor) Close() error {
 	return e.ui.Close()
 }
 
+// Open opens a new file.
 func (e *Editor) Open(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -61,21 +64,22 @@ func (e *Editor) Open(filename string) error {
 	return nil
 }
 
+// Start starts the editor.
 func (e *Editor) Start() error {
-	if err := e.Redraw(); err != nil {
+	if err := e.redraw(); err != nil {
 		return err
 	}
 	return e.ui.Start()
 }
 
-func (e *Editor) ScrollUp() error {
+func (e *Editor) scrollUp() error {
 	if e.line > 0 {
 		e.line = e.line - 1
 	}
-	return e.Redraw()
+	return e.redraw()
 }
 
-func (e *Editor) ScrollDown() error {
+func (e *Editor) scrollDown() error {
 	line, err := e.lastLine()
 	if err != nil {
 		return err
@@ -84,18 +88,18 @@ func (e *Editor) ScrollDown() error {
 	if e.line > line {
 		e.line = line
 	}
-	return e.Redraw()
+	return e.redraw()
 }
 
-func (e *Editor) PageUp() error {
+func (e *Editor) pageUp() error {
 	e.line = e.line - e.ui.Height() + 2
 	if e.line < 0 {
 		e.line = 0
 	}
-	return e.Redraw()
+	return e.redraw()
 }
 
-func (e *Editor) PageDown() error {
+func (e *Editor) pageDown() error {
 	line, err := e.lastLine()
 	if err != nil {
 		return err
@@ -104,21 +108,21 @@ func (e *Editor) PageDown() error {
 	if e.line > line {
 		e.line = line
 	}
-	return e.Redraw()
+	return e.redraw()
 }
 
-func (e *Editor) PageTop() error {
+func (e *Editor) pageTop() error {
 	e.line = 0
-	return e.Redraw()
+	return e.redraw()
 }
 
-func (e *Editor) PageLast() error {
+func (e *Editor) pageLast() error {
 	line, err := e.lastLine()
 	if err != nil {
 		return err
 	}
 	e.line = line
-	return e.Redraw()
+	return e.redraw()
 }
 
 func (e *Editor) lastLine() (int, error) {
@@ -134,7 +138,7 @@ func (e *Editor) lastLine() (int, error) {
 	return line, nil
 }
 
-func (e *Editor) Redraw() error {
+func (e *Editor) redraw() error {
 	height, width := e.ui.Height(), 16
 	b := make([]byte, height*width)
 	n, err := e.buffer.Read(int64(e.line)*int64(width), b)
