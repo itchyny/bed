@@ -78,7 +78,14 @@ func (e *Editor) ScrollUp() error {
 }
 
 func (e *Editor) ScrollDown() error {
+	line, err := e.lastLine()
+	if err != nil {
+		return err
+	}
 	e.line = e.line + 1
+	if e.line > line {
+		e.line = line
+	}
 	return e.Redraw()
 }
 
@@ -91,7 +98,14 @@ func (e *Editor) PageUp() error {
 }
 
 func (e *Editor) PageDown() error {
+	line, err := e.lastLine()
+	if err != nil {
+		return err
+	}
 	e.line = e.line + e.height - 2
+	if e.line > line {
+		e.line = line
+	}
 	return e.Redraw()
 }
 
@@ -101,15 +115,24 @@ func (e *Editor) PageTop() error {
 }
 
 func (e *Editor) PageLast() error {
-	len, err := e.buffer.Len()
+	line, err := e.lastLine()
 	if err != nil {
 		return err
 	}
-	e.line = int((len+int64(e.width)-1)/int64(e.width)) - e.height
-	if e.line < 0 {
-		e.line = 0
-	}
+	e.line = line
 	return e.Redraw()
+}
+
+func (e *Editor) lastLine() (int, error) {
+	len, err := e.buffer.Len()
+	if err != nil {
+		return 0, err
+	}
+	line := int((len+int64(e.width)-1)/int64(e.width)) - e.height
+	if line < 0 {
+		line = 0
+	}
+	return line, nil
 }
 
 func (e *Editor) Redraw() error {
