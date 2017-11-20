@@ -38,17 +38,23 @@ loop:
 				if e.Ch == 'q' || e.Key == termbox.KeyCtrlC || e.Key == termbox.KeyCtrlD {
 					break loop
 				}
-				if e.Key == termbox.KeyCtrlE {
-					ui.ch <- ScrollDown
+				if e.Ch == 'k' {
+					ui.ch <- CursorUp
+				}
+				if e.Ch == 'j' {
+					ui.ch <- CursorDown
 				}
 				if e.Key == termbox.KeyCtrlY {
 					ui.ch <- ScrollUp
 				}
-				if e.Key == termbox.KeyCtrlF {
-					ui.ch <- PageDown
+				if e.Key == termbox.KeyCtrlE {
+					ui.ch <- ScrollDown
 				}
 				if e.Key == termbox.KeyCtrlB {
 					ui.ch <- PageUp
+				}
+				if e.Key == termbox.KeyCtrlF {
+					ui.ch <- PageDown
 				}
 				if e.Ch == 'g' {
 					ui.ch <- PageTop
@@ -78,8 +84,8 @@ func (ui *Tui) SetLine(line int, str string) error {
 }
 
 // SetCursor sets the cursor position.
-func (ui *Tui) SetCursor(cursor Position) error {
-	termbox.SetCursor(3*cursor.X+10, cursor.Y)
+func (ui *Tui) SetCursor(cursor *Position) error {
+	termbox.SetCursor(3*cursor.Y+10, cursor.X)
 	return termbox.Flush()
 }
 

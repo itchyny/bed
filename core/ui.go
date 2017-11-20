@@ -6,6 +6,6 @@ type UI interface {
 	Start() error
 	Height() int
 	SetLine(line int, str string) error
-	SetCursor(cursor Position) error
+	SetCursor(cursor *Position) error
 	Close() error
 }

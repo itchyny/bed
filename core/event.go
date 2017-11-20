@@ -5,7 +5,9 @@ type Event int
 
 // Events
 const (
-	ScrollUp = iota
+	CursorUp = iota
+	CursorDown
+	ScrollUp
 	ScrollDown
 	PageUp
 	PageDown

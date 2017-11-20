@@ -12,12 +12,12 @@ type Editor struct {
 	ui     UI
 	buffer *Buffer
 	line   int
-	cursor Position
+	cursor *Position
 }
 
 // NewEditor creates a new editor.
 func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui}
+	return &Editor{ui: ui, cursor: &Position{}}
 }
 
 // Init initializes the editor.
@@ -31,6 +31,10 @@ func (e *Editor) Init() error {
 			select {
 			case c := <-ch:
 				switch c {
+				case CursorUp:
+					e.cursorUp()
+				case CursorDown:
+					e.cursorDown()
 				case ScrollUp:
 					e.scrollUp()
 				case ScrollDown:
@@ -73,7 +77,31 @@ func (e *Editor) Start() error {
 	return e.ui.Start()
 }
 
+func (e *Editor) cursorUp() error {
+	e.cursor.Up()
+	if e.cursor.X < 0 {
+		e.cursor.Down()
+		if e.line > 0 {
+			e.line = e.line - 1
+		}
+	}
+	return e.redraw()
+}
+
+func (e *Editor) cursorDown() error {
+	e.cursor.Down()
+	if e.cursor.X >= e.ui.Height() {
+		return e.scrollDown()
+	} else {
+		return e.redraw()
+	}
+}
+
 func (e *Editor) scrollUp() error {
+	e.cursor.Down()
+	if e.cursor.X >= e.ui.Height() {
+		e.cursor.Up()
+	}
 	if e.line > 0 {
 		e.line = e.line - 1
 	}
@@ -81,6 +109,10 @@ func (e *Editor) scrollUp() error {
 }
 
 func (e *Editor) scrollDown() error {
+	e.cursor.Up()
+	if e.cursor.X < 0 {
+		e.cursor.Down()
+	}
 	line, err := e.lastLine()
 	if err != nil {
 		return err
