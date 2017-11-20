@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Editor is the main struct for this command.
@@ -119,22 +120,24 @@ func (e *Editor) Redraw() error {
 		return err
 	}
 	for i := 0; i < e.height; i++ {
+		if i*width >= n {
+			e.ui.SetLine(i, strings.Repeat(" ", 75))
+			continue
+		}
 		w := new(bytes.Buffer)
 		fmt.Fprintf(w, "%08x:", int64(e.line+i)*int64(width))
 		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
 			k := i*width + j
 			if k >= n {
-				break
+				fmt.Fprintf(w, "   ")
+				continue
 			}
 			fmt.Fprintf(w, " %02x", b[k])
 			buf[j] = prettyByte(b[k])
 		}
 		fmt.Fprintf(w, "  %s\n", buf)
 		e.ui.SetLine(i, w.String())
-		if (i+1)*width >= n {
-			break
-		}
 	}
 	return nil
 }
