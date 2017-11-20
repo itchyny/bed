@@ -35,6 +35,10 @@ func (e *Editor) Init() error {
 					e.cursorUp()
 				case CursorDown:
 					e.cursorDown()
+				case CursorLeft:
+					e.cursorLeft()
+				case CursorRight:
+					e.cursorRight()
 				case ScrollUp:
 					e.scrollUp()
 				case ScrollDown:
@@ -95,6 +99,22 @@ func (e *Editor) cursorDown() error {
 	} else {
 		return e.redraw()
 	}
+}
+
+func (e *Editor) cursorLeft() error {
+	e.cursor.Left()
+	if e.cursor.Y < 0 {
+		e.cursor.Right()
+	}
+	return e.redraw()
+}
+
+func (e *Editor) cursorRight() error {
+	e.cursor.Right()
+	if e.cursor.Y >= 16 {
+		e.cursor.Left()
+	}
+	return e.redraw()
 }
 
 func (e *Editor) scrollUp() error {

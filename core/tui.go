@@ -44,6 +44,12 @@ loop:
 				if e.Ch == 'j' {
 					ui.ch <- CursorDown
 				}
+				if e.Ch == 'h' {
+					ui.ch <- CursorLeft
+				}
+				if e.Ch == 'l' {
+					ui.ch <- CursorRight
+				}
 				if e.Key == termbox.KeyCtrlY {
 					ui.ch <- ScrollUp
 				}

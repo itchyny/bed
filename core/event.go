@@ -7,6 +7,8 @@ type Event int
 const (
 	CursorUp = iota
 	CursorDown
+	CursorLeft
+	CursorRight
 	ScrollUp
 	ScrollDown
 	PageUp
