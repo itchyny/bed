@@ -147,7 +147,7 @@ func (e *Editor) redraw() error {
 	}
 	for i := 0; i < height; i++ {
 		if i*width >= n {
-			e.ui.SetLine(i, strings.Repeat(" ", 75))
+			e.ui.SetLine(i, strings.Repeat(" ", 11+4*width))
 			continue
 		}
 		w := new(bytes.Buffer)
