@@ -85,20 +85,20 @@ func (ui *Tui) Height() int {
 	return height
 }
 
-func (ui *Tui) setLine(line int, str string) error {
+func (ui *Tui) setLine(line int, str string, attr termbox.Attribute) {
 	fg, bg := termbox.ColorDefault, termbox.ColorDefault
 	for i, c := range str {
-		termbox.SetCell(i, line, c, fg, bg)
+		termbox.SetCell(i, line, c, fg|attr, bg)
 	}
-	return nil
 }
 
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state core.State) error {
 	height, width := ui.Height(), 16
+	cursorLine := state.Cursor / width
 	for i := 0; i < height; i++ {
 		if i*width >= state.Size {
-			ui.setLine(i, strings.Repeat(" ", 11+4*width))
+			ui.setLine(i, strings.Repeat(" ", 11+4*width), 0)
 			continue
 		}
 		w := new(bytes.Buffer)
@@ -114,9 +114,10 @@ func (ui *Tui) Redraw(state core.State) error {
 			buf[j] = prettyByte(state.Bytes[k])
 		}
 		fmt.Fprintf(w, "  %s\n", buf)
-		ui.setLine(i, w.String())
+		ui.setLine(i, w.String(), 0)
 	}
-	termbox.SetCursor(3*(state.Cursor%width)+10, state.Cursor/width)
+	ui.setLine(cursorLine, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
+	termbox.SetCursor(3*(state.Cursor%width)+10, cursorLine)
 	return termbox.Flush()
 }
 
