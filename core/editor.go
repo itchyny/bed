@@ -197,6 +197,7 @@ func (e *Editor) pageDown() error {
 
 func (e *Editor) pageTop() error {
 	e.line = 0
+	e.cursor = 0
 	return e.redraw()
 }
 
@@ -205,7 +206,12 @@ func (e *Editor) pageLast() error {
 	if err != nil {
 		return err
 	}
+	len, err := e.buffer.Len()
+	if err != nil {
+		return err
+	}
 	e.line = line
+	e.cursor = int((len-e.line*int64(e.width))/int64(e.width)) * e.width
 	return e.redraw()
 }
 
