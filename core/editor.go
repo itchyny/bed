@@ -9,12 +9,13 @@ type Editor struct {
 	ui     UI
 	buffer *Buffer
 	line   int
-	cursor *Position
+	width  int
+	cursor int
 }
 
 // NewEditor creates a new editor.
 func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui, cursor: &Position{}}
+	return &Editor{ui: ui, width: 16}
 }
 
 // Init initializes the editor.
@@ -79,9 +80,9 @@ func (e *Editor) Start() error {
 }
 
 func (e *Editor) cursorUp() error {
-	e.cursor.Up()
-	if e.cursor.X < 0 {
-		e.cursor.Down()
+	e.cursor -= e.width
+	if e.cursor < 0 {
+		e.cursor += e.width
 		if e.line > 0 {
 			e.line = e.line - 1
 		}
@@ -90,33 +91,31 @@ func (e *Editor) cursorUp() error {
 }
 
 func (e *Editor) cursorDown() error {
-	e.cursor.Down()
-	if e.cursor.X >= e.ui.Height() {
+	e.cursor += e.width
+	if e.cursor >= e.ui.Height()*e.width {
 		return e.scrollDown()
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorLeft() error {
-	e.cursor.Left()
-	if e.cursor.Y < 0 {
-		e.cursor.Right()
+	if e.cursor%e.width > 0 {
+		e.cursor -= 1
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorRight() error {
-	e.cursor.Right()
-	if e.cursor.Y >= 16 {
-		e.cursor.Left()
+	if e.cursor%e.width < 15 {
+		e.cursor += 1
 	}
 	return e.redraw()
 }
 
 func (e *Editor) scrollUp() error {
-	e.cursor.Down()
-	if e.cursor.X >= e.ui.Height() {
-		e.cursor.Up()
+	e.cursor += e.width
+	if e.cursor >= e.ui.Height()*e.width {
+		e.cursor -= e.width
 	}
 	if e.line > 0 {
 		e.line = e.line - 1
@@ -125,13 +124,13 @@ func (e *Editor) scrollUp() error {
 }
 
 func (e *Editor) scrollDown() error {
-	e.cursor.Up()
-	if e.cursor.X < 0 {
-		e.cursor.Down()
-	}
 	line, err := e.lastLine()
 	if err != nil {
 		return err
+	}
+	e.cursor -= e.width
+	if e.cursor < 0 {
+		e.cursor += e.width
 	}
 	e.line = e.line + 1
 	if e.line > line {
@@ -194,5 +193,5 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
-	return e.ui.Redraw(State{Line: e.line, Cursor: *e.cursor, Bytes: b, Size: n})
+	return e.ui.Redraw(State{Line: e.line, Cursor: e.cursor, Bytes: b, Size: n})
 }

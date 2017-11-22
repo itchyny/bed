@@ -116,7 +116,7 @@ func (ui *Tui) Redraw(state core.State) error {
 		fmt.Fprintf(w, "  %s\n", buf)
 		ui.setLine(i, w.String())
 	}
-	termbox.SetCursor(3*state.Cursor.Y+10, state.Cursor.X)
+	termbox.SetCursor(3*(state.Cursor%width)+10, state.Cursor/width)
 	return termbox.Flush()
 }
 
