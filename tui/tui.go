@@ -102,7 +102,7 @@ func (ui *Tui) Redraw(state core.State) error {
 			continue
 		}
 		w := new(bytes.Buffer)
-		fmt.Fprintf(w, "%08x:", int64(state.Line+i)*int64(width))
+		fmt.Fprintf(w, "%08x:", (state.Line+int64(i))*int64(width))
 		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
 			k := i*width + j

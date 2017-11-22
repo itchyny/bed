@@ -8,7 +8,7 @@ import (
 type Editor struct {
 	ui     UI
 	buffer *Buffer
-	line   int
+	line   int64
 	width  int
 	cursor int
 }
@@ -140,7 +140,7 @@ func (e *Editor) scrollDown() error {
 }
 
 func (e *Editor) pageUp() error {
-	e.line = e.line - e.ui.Height() + 2
+	e.line = e.line - int64(e.ui.Height()) + 2
 	if e.line < 0 {
 		e.line = 0
 	}
@@ -152,7 +152,7 @@ func (e *Editor) pageDown() error {
 	if err != nil {
 		return err
 	}
-	e.line = e.line + e.ui.Height() - 2
+	e.line = e.line + int64(e.ui.Height()) - 2
 	if e.line > line {
 		e.line = line
 	}
@@ -173,13 +173,13 @@ func (e *Editor) pageLast() error {
 	return e.redraw()
 }
 
-func (e *Editor) lastLine() (int, error) {
+func (e *Editor) lastLine() (int64, error) {
 	len, err := e.buffer.Len()
 	if err != nil {
 		return 0, err
 	}
 	width := 16
-	line := int((len+int64(width)-1)/int64(width)) - e.ui.Height()
+	line := (len+int64(width)-1)/int64(width) - int64(e.ui.Height())
 	if line < 0 {
 		line = 0
 	}
