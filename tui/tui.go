@@ -88,7 +88,7 @@ loop:
 // Height returns the height for the hex view.
 func (ui *Tui) Height() int {
 	_, height := termbox.Size()
-	return height
+	return height - 1
 }
 
 func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute) {
@@ -102,9 +102,15 @@ func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute)
 func (ui *Tui) Redraw(state core.State) error {
 	height, width := ui.Height(), state.Width
 	cursorLine := state.Cursor / width
+	ui.setLine(0, 0, strings.Repeat(" ", 13+4*width), termbox.AttrUnderline)
+	for i := 0; i < width; i++ {
+		ui.setLine(0, 3*i+11, fmt.Sprintf("%02x", i), termbox.AttrUnderline)
+	}
+	ui.setLine(0, 9, "|", termbox.AttrUnderline)
+	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
 	for i := 0; i < height; i++ {
 		if i*width >= state.Size {
-			ui.setLine(i, 0, strings.Repeat(" ", 13+4*width), 0)
+			ui.setLine(i+1, 0, strings.Repeat(" ", 13+4*width), 0)
 			continue
 		}
 		w := new(bytes.Buffer)
@@ -120,12 +126,14 @@ func (ui *Tui) Redraw(state core.State) error {
 			buf[j] = prettyByte(state.Bytes[k])
 		}
 		fmt.Fprintf(w, " | %s\n", buf)
-		ui.setLine(i, 0, w.String(), 0)
+		ui.setLine(i+1, 0, w.String(), 0)
 	}
-	ui.setLine(cursorLine, 0, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
-	ui.setLine(cursorLine, 3*(state.Cursor%width)+11, fmt.Sprintf("%02x", state.Bytes[state.Cursor]), termbox.AttrReverse)
-	ui.setLine(cursorLine, 3*width+13+(state.Cursor%width), string([]byte{prettyByte(state.Bytes[state.Cursor])}), termbox.AttrBold)
-	termbox.SetCursor(3*(state.Cursor%width)+11, cursorLine)
+	i := state.Cursor % width
+	ui.setLine(0, 3*i+11, fmt.Sprintf("%02x", i), termbox.AttrBold|termbox.AttrUnderline)
+	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
+	ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[state.Cursor]), termbox.AttrReverse)
+	ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[state.Cursor])}), termbox.AttrBold)
+	termbox.SetCursor(3*i+11, cursorLine+1)
 	return termbox.Flush()
 }
 
