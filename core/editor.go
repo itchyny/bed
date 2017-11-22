@@ -211,7 +211,7 @@ func (e *Editor) pageLast() error {
 		return err
 	}
 	e.line = line
-	e.cursor = int((len-e.line*int64(e.width))/int64(e.width)) * e.width
+	e.cursor = int((len-e.line*int64(e.width)+int64(e.width)-1)/int64(e.width)-1) * e.width
 	return e.redraw()
 }
 
