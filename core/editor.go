@@ -178,8 +178,7 @@ func (e *Editor) lastLine() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	width := 16
-	line := (len+int64(width)-1)/int64(width) - int64(e.ui.Height())
+	line := (len+int64(e.width)-1)/int64(e.width) - int64(e.ui.Height())
 	if line < 0 {
 		line = 0
 	}
@@ -187,9 +186,8 @@ func (e *Editor) lastLine() (int64, error) {
 }
 
 func (e *Editor) redraw() error {
-	height, width := e.ui.Height(), 16
-	b := make([]byte, height*width)
-	n, err := e.buffer.Read(int64(e.line)*int64(width), b)
+	b := make([]byte, e.ui.Height()*e.width)
+	n, err := e.buffer.Read(e.line*int64(e.width), b)
 	if err != nil {
 		return err
 	}
