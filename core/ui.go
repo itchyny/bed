@@ -5,7 +5,6 @@ type UI interface {
 	Init(ch chan<- Event) error
 	Start() error
 	Height() int
-	SetLine(line int, str string) error
-	SetCursor(cursor *Position) error
+	Redraw(state State) error
 	Close() error
 }

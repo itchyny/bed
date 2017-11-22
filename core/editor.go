@@ -1,10 +1,7 @@
 package core
 
 import (
-	"bytes"
-	"fmt"
 	"os"
-	"strings"
 )
 
 // Editor is the main struct for this command.
@@ -96,9 +93,8 @@ func (e *Editor) cursorDown() error {
 	e.cursor.Down()
 	if e.cursor.X >= e.ui.Height() {
 		return e.scrollDown()
-	} else {
-		return e.redraw()
 	}
+	return e.redraw()
 }
 
 func (e *Editor) cursorLeft() error {
@@ -198,35 +194,5 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
-	for i := 0; i < height; i++ {
-		if i*width >= n {
-			e.ui.SetLine(i, strings.Repeat(" ", 11+4*width))
-			continue
-		}
-		w := new(bytes.Buffer)
-		fmt.Fprintf(w, "%08x:", int64(e.line+i)*int64(width))
-		buf := make([]byte, width)
-		for j := 0; j < width; j++ {
-			k := i*width + j
-			if k >= n {
-				fmt.Fprintf(w, "   ")
-				continue
-			}
-			fmt.Fprintf(w, " %02x", b[k])
-			buf[j] = prettyByte(b[k])
-		}
-		fmt.Fprintf(w, "  %s\n", buf)
-		e.ui.SetLine(i, w.String())
-	}
-	e.ui.SetCursor(e.cursor)
-	return nil
-}
-
-func prettyByte(b byte) byte {
-	switch {
-	case 0x20 <= b && b < 0x7f:
-		return b
-	default:
-		return 0x2e
-	}
+	return e.ui.Redraw(State{Line: e.line, Cursor: *e.cursor, Bytes: b, Size: n})
 }

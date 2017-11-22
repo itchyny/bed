@@ -1,6 +1,10 @@
 package tui
 
 import (
+	"bytes"
+	"fmt"
+	"strings"
+
 	"github.com/itchyny/bed/core"
 	termbox "github.com/nsf/termbox-go"
 )
@@ -90,10 +94,40 @@ func (ui *Tui) SetLine(line int, str string) error {
 	return nil
 }
 
-// SetCursor sets the cursor position.
-func (ui *Tui) SetCursor(cursor *core.Position) error {
-	termbox.SetCursor(3*cursor.Y+10, cursor.X)
+// Redraw redraws the state.
+func (ui *Tui) Redraw(state core.State) error {
+	height, width := ui.Height(), 16
+	for i := 0; i < height; i++ {
+		if i*width >= state.Size {
+			ui.SetLine(i, strings.Repeat(" ", 11+4*width))
+			continue
+		}
+		w := new(bytes.Buffer)
+		fmt.Fprintf(w, "%08x:", int64(state.Line+i)*int64(width))
+		buf := make([]byte, width)
+		for j := 0; j < width; j++ {
+			k := i*width + j
+			if k >= state.Size {
+				fmt.Fprintf(w, "   ")
+				continue
+			}
+			fmt.Fprintf(w, " %02x", state.Bytes[k])
+			buf[j] = prettyByte(state.Bytes[k])
+		}
+		fmt.Fprintf(w, "  %s\n", buf)
+		ui.SetLine(i, w.String())
+	}
+	termbox.SetCursor(3*state.Cursor.Y+10, state.Cursor.X)
 	return termbox.Flush()
+}
+
+func prettyByte(b byte) byte {
+	switch {
+	case 0x20 <= b && b < 0x7f:
+		return b
+	default:
+		return 0x2e
+	}
 }
 
 // Close terminates the Tui.
