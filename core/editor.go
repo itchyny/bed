@@ -233,5 +233,5 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
-	return e.ui.Redraw(State{Line: e.line, Cursor: e.cursor, Bytes: b, Size: n})
+	return e.ui.Redraw(State{Line: e.line, Width: e.width, Cursor: e.cursor, Bytes: b, Size: n})
 }

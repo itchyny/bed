@@ -100,7 +100,7 @@ func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute)
 
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state core.State) error {
-	height, width := ui.Height(), 16
+	height, width := ui.Height(), state.Width
 	cursorLine := state.Cursor / width
 	for i := 0; i < height; i++ {
 		if i*width >= state.Size {
