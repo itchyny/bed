@@ -4,7 +4,7 @@ package core
 type State struct {
 	Line   int64
 	Width  int
-	Cursor int
+	Cursor int64
 	Bytes  []byte
 	Size   int
 }

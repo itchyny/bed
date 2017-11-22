@@ -10,7 +10,7 @@ type Editor struct {
 	buffer *Buffer
 	line   int64
 	width  int
-	cursor int
+	cursor int64
 }
 
 // NewEditor creates a new editor.
@@ -84,10 +84,9 @@ func (e *Editor) Start() error {
 }
 
 func (e *Editor) cursorUp() error {
-	e.cursor -= e.width
-	if e.cursor < 0 {
-		e.cursor += e.width
-		if e.line > 0 {
+	if e.cursor >= int64(e.width) {
+		e.cursor -= int64(e.width)
+		if e.cursor < e.line*int64(e.width) {
 			e.line = e.line - 1
 		}
 	}
@@ -95,15 +94,15 @@ func (e *Editor) cursorUp() error {
 }
 
 func (e *Editor) cursorDown() error {
-	e.cursor += e.width
-	if e.cursor >= e.ui.Height()*e.width {
+	e.cursor += int64(e.width)
+	if e.cursor >= (e.line+int64(e.ui.Height()))*int64(e.width) {
 		return e.scrollDown()
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorLeft() error {
-	if e.cursor%e.width > 0 {
+	if e.cursor%int64(e.width) > 0 {
 		e.cursor -= 1
 	}
 	return e.redraw()
@@ -114,20 +113,17 @@ func (e *Editor) cursorRight() error {
 	if err != nil {
 		return err
 	}
-	if e.cursor < int(len-e.line*int64(e.width))-1 && e.cursor%e.width < 15 {
+	if e.cursor < len-1 && int(e.cursor%int64(e.width)) < e.width-1 {
 		e.cursor += 1
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorPrev() error {
-	e.cursor -= 1
-	if e.cursor < 0 {
-		if e.line > 0 {
-			e.cursor += e.width
+	if e.cursor > 0 {
+		e.cursor -= 1
+		if e.cursor < e.line*int64(e.width) {
 			e.line -= 1
-		} else {
-			e.cursor += 1
 		}
 	}
 	return e.redraw()
@@ -138,10 +134,9 @@ func (e *Editor) cursorNext() error {
 	if err != nil {
 		return err
 	}
-	if e.cursor < int(len-e.line*int64(e.width))-1 {
+	if e.cursor < len-1 {
 		e.cursor += 1
-		if e.cursor >= e.ui.Height()*e.width {
-			e.cursor -= e.width
+		if e.cursor >= (e.line+int64(e.ui.Height()))*int64(e.width) {
 			e.line += 1
 		}
 	}
@@ -149,12 +144,11 @@ func (e *Editor) cursorNext() error {
 }
 
 func (e *Editor) scrollUp() error {
-	e.cursor += e.width
-	if e.cursor >= e.ui.Height()*e.width {
-		e.cursor -= e.width
-	}
 	if e.line > 0 {
 		e.line = e.line - 1
+	}
+	if e.cursor > (e.line+int64(e.ui.Height()))*int64(e.width) {
+		e.cursor -= int64(e.width)
 	}
 	return e.redraw()
 }
@@ -164,13 +158,12 @@ func (e *Editor) scrollDown() error {
 	if err != nil {
 		return err
 	}
-	e.cursor -= e.width
-	if e.cursor < 0 {
-		e.cursor += e.width
-	}
 	e.line = e.line + 1
 	if e.line > line {
 		e.line = line
+	}
+	if e.cursor < e.line*int64(e.width) {
+		e.cursor += int64(e.width)
 	}
 	return e.redraw()
 }
@@ -180,6 +173,11 @@ func (e *Editor) pageUp() error {
 	if e.line < 0 {
 		e.line = 0
 	}
+	if e.line == 0 {
+		e.cursor = 0
+	} else if e.cursor >= (e.line+int64(e.ui.Height()))*int64(e.width) {
+		e.cursor = (e.line + int64(e.ui.Height()) - 1) * int64(e.width)
+	}
 	return e.redraw()
 }
 
@@ -188,9 +186,18 @@ func (e *Editor) pageDown() error {
 	if err != nil {
 		return err
 	}
+	len, err := e.buffer.Len()
+	if err != nil {
+		return err
+	}
 	e.line = e.line + int64(e.ui.Height()) - 2
 	if e.line > line {
 		e.line = line
+	}
+	if e.cursor < e.line*int64(e.width) {
+		e.cursor = e.line * int64(e.width)
+	} else if e.line == line {
+		e.cursor = ((len+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
 	}
 	return e.redraw()
 }
@@ -211,7 +218,7 @@ func (e *Editor) pageLast() error {
 		return err
 	}
 	e.line = line
-	e.cursor = int((len-e.line*int64(e.width)+int64(e.width)-1)/int64(e.width)-1) * e.width
+	e.cursor = ((len+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
 	return e.redraw()
 }
 
