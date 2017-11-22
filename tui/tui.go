@@ -104,7 +104,7 @@ func (ui *Tui) Redraw(state core.State) error {
 	cursorLine := state.Cursor / width
 	ui.setLine(0, 0, strings.Repeat(" ", 13+4*width), termbox.AttrUnderline)
 	for i := 0; i < width; i++ {
-		ui.setLine(0, 3*i+11, fmt.Sprintf("%02x", i), termbox.AttrUnderline)
+		ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrUnderline)
 	}
 	ui.setLine(0, 9, "|", termbox.AttrUnderline)
 	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
@@ -129,7 +129,7 @@ func (ui *Tui) Redraw(state core.State) error {
 		ui.setLine(i+1, 0, w.String(), 0)
 	}
 	i := state.Cursor % width
-	ui.setLine(0, 3*i+11, fmt.Sprintf("%02x", i), termbox.AttrBold|termbox.AttrUnderline)
+	ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrBold|termbox.AttrUnderline)
 	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
 	ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[state.Cursor]), termbox.AttrReverse)
 	ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[state.Cursor])}), termbox.AttrBold)

@@ -9,7 +9,7 @@ install: deps
 	go install ./...
 
 deps:
-	go get -u github.com/golang/dep/cmd/dep
+	command -v dep >/dev/null || go get -u github.com/golang/dep/cmd/dep
 	dep ensure
 
 test: build
