@@ -91,10 +91,10 @@ func (ui *Tui) Height() int {
 	return height
 }
 
-func (ui *Tui) setLine(line int, str string, attr termbox.Attribute) {
+func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute) {
 	fg, bg := termbox.ColorDefault, termbox.ColorDefault
 	for i, c := range str {
-		termbox.SetCell(i, line, c, fg|attr, bg)
+		termbox.SetCell(offset+i, line, c, fg|attr, bg)
 	}
 }
 
@@ -104,7 +104,7 @@ func (ui *Tui) Redraw(state core.State) error {
 	cursorLine := state.Cursor / width
 	for i := 0; i < height; i++ {
 		if i*width >= state.Size {
-			ui.setLine(i, strings.Repeat(" ", 13+4*width), 0)
+			ui.setLine(i, 0, strings.Repeat(" ", 13+4*width), 0)
 			continue
 		}
 		w := new(bytes.Buffer)
@@ -120,9 +120,11 @@ func (ui *Tui) Redraw(state core.State) error {
 			buf[j] = prettyByte(state.Bytes[k])
 		}
 		fmt.Fprintf(w, " | %s\n", buf)
-		ui.setLine(i, w.String(), 0)
+		ui.setLine(i, 0, w.String(), 0)
 	}
-	ui.setLine(cursorLine, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
+	ui.setLine(cursorLine, 0, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
+	ui.setLine(cursorLine, 3*(state.Cursor%width)+11, fmt.Sprintf("%02x", state.Bytes[state.Cursor]), termbox.AttrReverse)
+	ui.setLine(cursorLine, 3*width+13+(state.Cursor%width), string([]byte{prettyByte(state.Bytes[state.Cursor])}), termbox.AttrBold)
 	termbox.SetCursor(3*(state.Cursor%width)+11, cursorLine)
 	return termbox.Flush()
 }
