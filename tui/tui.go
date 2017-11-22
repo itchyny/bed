@@ -1,6 +1,7 @@
-package core
+package tui
 
 import (
+	"github.com/itchyny/bed/core"
 	termbox "github.com/nsf/termbox-go"
 )
 
@@ -8,7 +9,7 @@ import (
 type Tui struct {
 	width  int
 	height int
-	ch     chan<- Event
+	ch     chan<- core.Event
 }
 
 // NewTui creates a new Tui.
@@ -17,7 +18,7 @@ func NewTui() *Tui {
 }
 
 // Init initializes the Tui.
-func (ui *Tui) Init(ch chan<- Event) error {
+func (ui *Tui) Init(ch chan<- core.Event) error {
 	ui.ch = ch
 	return termbox.Init()
 }
@@ -39,34 +40,34 @@ loop:
 					break loop
 				}
 				if e.Ch == 'k' {
-					ui.ch <- CursorUp
+					ui.ch <- core.CursorUp
 				}
 				if e.Ch == 'j' {
-					ui.ch <- CursorDown
+					ui.ch <- core.CursorDown
 				}
 				if e.Ch == 'h' {
-					ui.ch <- CursorLeft
+					ui.ch <- core.CursorLeft
 				}
 				if e.Ch == 'l' {
-					ui.ch <- CursorRight
+					ui.ch <- core.CursorRight
 				}
 				if e.Key == termbox.KeyCtrlY {
-					ui.ch <- ScrollUp
+					ui.ch <- core.ScrollUp
 				}
 				if e.Key == termbox.KeyCtrlE {
-					ui.ch <- ScrollDown
+					ui.ch <- core.ScrollDown
 				}
 				if e.Key == termbox.KeyCtrlB {
-					ui.ch <- PageUp
+					ui.ch <- core.PageUp
 				}
 				if e.Key == termbox.KeyCtrlF {
-					ui.ch <- PageDown
+					ui.ch <- core.PageDown
 				}
 				if e.Ch == 'g' {
-					ui.ch <- PageTop
+					ui.ch <- core.PageTop
 				}
 				if e.Ch == 'G' {
-					ui.ch <- PageLast
+					ui.ch <- core.PageLast
 				}
 			}
 		}
@@ -90,7 +91,7 @@ func (ui *Tui) SetLine(line int, str string) error {
 }
 
 // SetCursor sets the cursor position.
-func (ui *Tui) SetCursor(cursor *Position) error {
+func (ui *Tui) SetCursor(cursor *core.Position) error {
 	termbox.SetCursor(3*cursor.Y+10, cursor.X)
 	return termbox.Flush()
 }
