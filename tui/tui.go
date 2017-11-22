@@ -104,11 +104,11 @@ func (ui *Tui) Redraw(state core.State) error {
 	cursorLine := state.Cursor / width
 	for i := 0; i < height; i++ {
 		if i*width >= state.Size {
-			ui.setLine(i, strings.Repeat(" ", 11+4*width), 0)
+			ui.setLine(i, strings.Repeat(" ", 13+4*width), 0)
 			continue
 		}
 		w := new(bytes.Buffer)
-		fmt.Fprintf(w, "%08x:", (state.Line+int64(i))*int64(width))
+		fmt.Fprintf(w, "%08x |", (state.Line+int64(i))*int64(width))
 		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
 			k := i*width + j
@@ -119,11 +119,11 @@ func (ui *Tui) Redraw(state core.State) error {
 			fmt.Fprintf(w, " %02x", state.Bytes[k])
 			buf[j] = prettyByte(state.Bytes[k])
 		}
-		fmt.Fprintf(w, "  %s\n", buf)
+		fmt.Fprintf(w, " | %s\n", buf)
 		ui.setLine(i, w.String(), 0)
 	}
 	ui.setLine(cursorLine, fmt.Sprintf("%08x", (state.Line+int64(cursorLine))*int64(width)), termbox.AttrBold)
-	termbox.SetCursor(3*(state.Cursor%width)+10, cursorLine)
+	termbox.SetCursor(3*(state.Cursor%width)+11, cursorLine)
 	return termbox.Flush()
 }
 
