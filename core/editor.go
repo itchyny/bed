@@ -37,6 +37,10 @@ func (e *Editor) Init() error {
 					e.cursorLeft()
 				case CursorRight:
 					e.cursorRight()
+				case CursorPrev:
+					e.cursorPrev()
+				case CursorNext:
+					e.cursorNext()
 				case ScrollUp:
 					e.scrollUp()
 				case ScrollDown:
@@ -106,8 +110,40 @@ func (e *Editor) cursorLeft() error {
 }
 
 func (e *Editor) cursorRight() error {
-	if e.cursor%e.width < 15 {
+	len, err := e.buffer.Len()
+	if err != nil {
+		return err
+	}
+	if e.cursor < int(len-e.line*int64(e.width))-1 && e.cursor%e.width < 15 {
 		e.cursor += 1
+	}
+	return e.redraw()
+}
+
+func (e *Editor) cursorPrev() error {
+	e.cursor -= 1
+	if e.cursor < 0 {
+		if e.line > 0 {
+			e.cursor += e.width
+			e.line -= 1
+		} else {
+			e.cursor += 1
+		}
+	}
+	return e.redraw()
+}
+
+func (e *Editor) cursorNext() error {
+	len, err := e.buffer.Len()
+	if err != nil {
+		return err
+	}
+	if e.cursor < int(len-e.line*int64(e.width))-1 {
+		e.cursor += 1
+		if e.cursor >= e.ui.Height()*e.width {
+			e.cursor -= e.width
+			e.line += 1
+		}
 	}
 	return e.redraw()
 }

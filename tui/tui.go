@@ -55,6 +55,12 @@ loop:
 				if e.Ch == 'l' {
 					ui.ch <- core.CursorRight
 				}
+				if e.Ch == 'b' {
+					ui.ch <- core.CursorPrev
+				}
+				if e.Ch == 'w' {
+					ui.ch <- core.CursorNext
+				}
 				if e.Key == termbox.KeyCtrlY {
 					ui.ch <- core.ScrollUp
 				}
