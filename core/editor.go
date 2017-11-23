@@ -110,6 +110,8 @@ func (e *Editor) cursorUp() error {
 func (e *Editor) cursorDown() error {
 	if e.cursor < e.length-e.width {
 		e.cursor += e.width
+	} else if e.cursor < ((util.MaxInt64(e.length, 1)+e.width-1)/e.width-1)*e.width {
+		e.cursor = e.length - 1
 	}
 	if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
 		return e.scrollDown()
