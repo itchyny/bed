@@ -237,5 +237,16 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
-	return e.ui.Redraw(State{Width: e.width, Offset: e.offset, Cursor: e.cursor, Bytes: b, Size: n})
+	len, err := e.buffer.Len()
+	if err != nil {
+		return err
+	}
+	return e.ui.Redraw(State{
+		Width:  e.width,
+		Offset: e.offset,
+		Cursor: e.cursor,
+		Bytes:  b,
+		Size:   n,
+		Len:    len,
+	})
 }

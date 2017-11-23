@@ -101,7 +101,7 @@ func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute)
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state core.State) error {
 	height, width := ui.Height(), state.Width
-	ui.setLine(0, 0, strings.Repeat(" ", 13+4*width), termbox.AttrUnderline)
+	ui.setLine(0, 0, strings.Repeat(" ", 4*width+15), termbox.AttrUnderline)
 	for i := 0; i < width; i++ {
 		ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrUnderline)
 	}
@@ -109,7 +109,7 @@ func (ui *Tui) Redraw(state core.State) error {
 	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
 	for i := 0; i < height; i++ {
 		if i*width >= state.Size {
-			ui.setLine(i+1, 0, strings.Repeat(" ", 13+4*width), 0)
+			ui.setLine(i+1, 0, strings.Repeat(" ", 4*width+13), 0)
 			continue
 		}
 		w := new(bytes.Buffer)
@@ -134,7 +134,29 @@ func (ui *Tui) Redraw(state core.State) error {
 	ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[j]), termbox.AttrReverse)
 	ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[j])}), termbox.AttrBold)
 	termbox.SetCursor(3*i+11, cursorLine+1)
+	ui.drawScrollBar(state, 4*width+14)
 	return termbox.Flush()
+}
+
+func (ui *Tui) drawScrollBar(state core.State, offset int) {
+	height := (state.Size + state.Width - 1) / state.Width
+	len := int((state.Len + int64(state.Width) - 1) / int64(state.Width))
+	size := (state.Size + state.Width - 1) / state.Width * height / len
+	if size < 1 {
+		size = 1
+	}
+	pad := height*height - len*size + len/2
+	if pad >= len {
+		pad = len - 1
+	}
+	top := (int(state.Offset/int64(state.Width))*height + pad) / len
+	for i := 0; i < height; i++ {
+		if top <= i && i < top+size {
+			ui.setLine(i+1, offset, " ", termbox.AttrReverse)
+		} else {
+			ui.setLine(i+1, offset, "|", 0)
+		}
+	}
 }
 
 func prettyByte(b byte) byte {

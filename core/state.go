@@ -7,4 +7,5 @@ type State struct {
 	Cursor int64
 	Bytes  []byte
 	Size   int
+	Len    int64
 }
