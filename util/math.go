@@ -1,5 +1,6 @@
 package util
 
+// MaxInt returns the larger of x or y.
 func MaxInt(x, y int) int {
 	if x > y {
 		return x
@@ -7,6 +8,7 @@ func MaxInt(x, y int) int {
 	return y
 }
 
+// MinInt returns the smaller of x or y.
 func MinInt(x, y int) int {
 	if x > y {
 		return y
@@ -14,6 +16,7 @@ func MinInt(x, y int) int {
 	return x
 }
 
+// MaxInt64 returns the larger of x or y.
 func MaxInt64(x, y int64) int64 {
 	if x > y {
 		return x
@@ -21,6 +24,7 @@ func MaxInt64(x, y int64) int64 {
 	return y
 }
 
+// MinInt64 returns the smaller of x or y.
 func MinInt64(x, y int64) int64 {
 	if x > y {
 		return y
