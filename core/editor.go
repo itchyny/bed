@@ -210,7 +210,11 @@ func (e *Editor) pageLast() error {
 
 func (e *Editor) redraw() error {
 	b := make([]byte, e.ui.Height()*int(e.width))
-	n, err := e.buffer.Read(e.offset, b)
+	_, err := e.buffer.Seek(e.offset, io.SeekStart)
+	if err != nil {
+		return err
+	}
+	n, err := e.buffer.Read(b)
 	if err != nil && err != io.EOF {
 		return err
 	}

@@ -14,11 +14,13 @@ func NewBuffer(r io.ReadSeeker) *Buffer {
 	return &Buffer{r}
 }
 
-// Read reads the bytes at the specified offset.
-func (b *Buffer) Read(offset int64, p []byte) (n int, err error) {
-	if _, err := b.r.Seek(offset, io.SeekStart); err != nil {
-		return 0, err
-	}
+// Seek sets the offset.
+func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
+	return b.r.Seek(offset, whence)
+}
+
+// Read reads the bytes.
+func (b *Buffer) Read(p []byte) (int, error) {
 	return b.r.Read(p)
 }
 
