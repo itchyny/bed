@@ -89,7 +89,7 @@ loop:
 // Height returns the height for the hex view.
 func (ui *Tui) Height() int {
 	_, height := termbox.Size()
-	return height - 1
+	return height - 2
 }
 
 func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute) {
@@ -108,10 +108,10 @@ func (ui *Tui) Redraw(state core.State) error {
 	}
 	ui.setLine(0, 9, "|", termbox.AttrUnderline)
 	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
+	var attr termbox.Attribute
 	for i := 0; i < height; i++ {
-		if i*width >= state.Size {
-			ui.setLine(i+1, 0, strings.Repeat(" ", 4*width+13), 0)
-			continue
+		if i == height-1 {
+			attr = termbox.AttrUnderline
 		}
 		w := new(bytes.Buffer)
 		fmt.Fprintf(w, "%08x |", state.Offset+int64(i*width))
@@ -126,16 +126,22 @@ func (ui *Tui) Redraw(state core.State) error {
 			buf[j] = prettyByte(state.Bytes[k])
 		}
 		fmt.Fprintf(w, " | %s\n", buf)
-		ui.setLine(i+1, 0, w.String(), 0)
+		ui.setLine(i+1, 0, w.String(), attr)
 	}
 	i, j := int(state.Cursor%int64(width)), int(state.Cursor-state.Offset)
 	cursorLine := j / width
 	ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrBold|termbox.AttrUnderline)
-	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), termbox.AttrBold)
-	ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[j]), termbox.AttrReverse)
-	ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[j])}), termbox.AttrBold)
+	if cursorLine == height-1 {
+		attr = termbox.AttrUnderline
+	} else {
+		attr = 0
+	}
+	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), termbox.AttrBold|attr)
+	ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[j]), termbox.AttrReverse|attr)
+	ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[j])}), termbox.AttrBold|attr)
 	termbox.SetCursor(3*i+11, cursorLine+1)
 	ui.drawScrollBar(state, 4*width+14)
+	ui.drawFooter(state)
 	return termbox.Flush()
 }
 
@@ -148,10 +154,20 @@ func (ui *Tui) drawScrollBar(state core.State, offset int) {
 	for i := 0; i < height; i++ {
 		if top <= i && i < top+size {
 			ui.setLine(i+1, offset, " ", termbox.AttrReverse)
-		} else {
+		} else if i < height-1 {
 			ui.setLine(i+1, offset, "|", 0)
+		} else {
+			ui.setLine(i+1, offset, "|", termbox.AttrUnderline)
 		}
 	}
+}
+
+func (ui *Tui) drawFooter(state core.State) {
+	j := int(state.Cursor - state.Offset)
+	line := fmt.Sprintf("%08x / %08x (%.2f%%) [0x%02x '%s']     ",
+		state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
+		state.Bytes[j], prettyRune(state.Bytes[j]))
+	ui.setLine(ui.Height()+1, 0, line, 0)
 }
 
 func prettyByte(b byte) byte {
@@ -160,6 +176,33 @@ func prettyByte(b byte) byte {
 		return b
 	default:
 		return 0x2e
+	}
+}
+
+func prettyRune(b byte) string {
+	switch {
+	case b == 0x07:
+		return "\\a"
+	case b == 0x08:
+		return "\\b"
+	case b == 0x09:
+		return "\\t"
+	case b == 0x0a:
+		return "\\n"
+	case b == 0x0b:
+		return "\\v"
+	case b == 0x0c:
+		return "\\f"
+	case b == 0x0d:
+		return "\\r"
+	case b < 0x20:
+		return fmt.Sprintf("\\x%02x", b)
+	case b == 0x27:
+		return "\\'"
+	case b < 0x7f:
+		return string(rune(b))
+	default:
+		return fmt.Sprintf("\\u%04x", b)
 	}
 }
 
