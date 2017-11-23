@@ -119,21 +119,21 @@ func (e *Editor) cursorDown() error {
 
 func (e *Editor) cursorLeft() error {
 	if e.cursor%int64(e.width) > 0 {
-		e.cursor -= 1
+		e.cursor--
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorRight() error {
 	if e.cursor < e.length-1 && int(e.cursor%int64(e.width)) < e.width-1 {
-		e.cursor += 1
+		e.cursor++
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorPrev() error {
 	if e.cursor > 0 {
-		e.cursor -= 1
+		e.cursor--
 		if e.cursor < e.offset {
 			e.offset -= int64(e.width)
 		}
@@ -143,7 +143,7 @@ func (e *Editor) cursorPrev() error {
 
 func (e *Editor) cursorNext() error {
 	if e.cursor < e.length-1 {
-		e.cursor += 1
+		e.cursor++
 		if e.cursor >= e.offset+int64(e.ui.Height()*e.width) {
 			e.offset += int64(e.width)
 		}
