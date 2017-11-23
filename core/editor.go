@@ -1,6 +1,7 @@
 package core
 
 import (
+	"io"
 	"os"
 
 	"github.com/itchyny/bed/util"
@@ -185,7 +186,7 @@ func (e *Editor) pageDown() error {
 	if e.cursor < e.offset {
 		e.cursor = e.offset
 	} else if e.offset == offset {
-		e.cursor = ((e.length+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
+		e.cursor = ((util.MaxInt64(e.length, 1)+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
 	}
 	return e.redraw()
 }
@@ -198,14 +199,14 @@ func (e *Editor) pageTop() error {
 
 func (e *Editor) pageLast() error {
 	e.offset = util.MaxInt64(((e.length+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
-	e.cursor = ((e.length+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
+	e.cursor = ((util.MaxInt64(e.length, 1)+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
 	return e.redraw()
 }
 
 func (e *Editor) redraw() error {
 	b := make([]byte, e.ui.Height()*e.width)
 	n, err := e.buffer.Read(e.offset, b)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return err
 	}
 	return e.ui.Redraw(State{

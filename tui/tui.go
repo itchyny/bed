@@ -141,7 +141,7 @@ func (ui *Tui) Redraw(state core.State) error {
 
 func (ui *Tui) drawScrollBar(state core.State, offset int) {
 	height := (state.Size + state.Width - 1) / state.Width
-	len := int((state.Length + int64(state.Width) - 1) / int64(state.Width))
+	len := util.MaxInt(int((state.Length+int64(state.Width)-1)/int64(state.Width)), 1)
 	size := util.MaxInt((state.Size+state.Width-1)/state.Width*height/len, 1)
 	pad := util.MinInt(height*height-len*size+len/2, len/2)
 	top := (int(state.Offset/int64(state.Width))*height + pad) / len
