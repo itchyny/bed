@@ -2,6 +2,8 @@ package core
 
 import (
 	"os"
+
+	"github.com/itchyny/bed/util"
 )
 
 // Editor is the main struct for this command.
@@ -164,14 +166,8 @@ func (e *Editor) scrollDown() error {
 	if err != nil {
 		return err
 	}
-	e.offset += int64(e.width)
-	offset := ((len+int64(e.width)-1)/int64(e.width) - int64(e.ui.Height())) * int64(e.width)
-	if offset < 0 {
-		offset = 0
-	}
-	if e.offset > offset {
-		e.offset = offset
-	}
+	offset := util.MaxInt64(((len+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
+	e.offset = util.MinInt64(e.offset+int64(e.width), offset)
 	if e.cursor < e.offset {
 		e.cursor += int64(e.width)
 	}
@@ -179,10 +175,7 @@ func (e *Editor) scrollDown() error {
 }
 
 func (e *Editor) pageUp() error {
-	e.offset = e.offset - int64((e.ui.Height()-2)*e.width)
-	if e.offset < 0 {
-		e.offset = 0
-	}
+	e.offset = util.MaxInt64(e.offset-int64((e.ui.Height()-2)*e.width), 0)
 	if e.offset == 0 {
 		e.cursor = 0
 	} else if e.cursor >= e.offset+int64(e.ui.Height()*e.width) {
@@ -196,14 +189,8 @@ func (e *Editor) pageDown() error {
 	if err != nil {
 		return err
 	}
-	e.offset = e.offset + int64((e.ui.Height()-2)*e.width)
-	offset := ((len+int64(e.width)-1)/int64(e.width) - int64(e.ui.Height())) * int64(e.width)
-	if offset < 0 {
-		offset = 0
-	}
-	if e.offset > offset {
-		e.offset = offset
-	}
+	offset := util.MaxInt64(((len+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
+	e.offset = util.MinInt64(e.offset+int64((e.ui.Height()-2)*e.width), offset)
 	if e.cursor < e.offset {
 		e.cursor = e.offset
 	} else if e.offset == offset {
@@ -223,10 +210,7 @@ func (e *Editor) pageLast() error {
 	if err != nil {
 		return err
 	}
-	e.offset = ((len+int64(e.width)-1)/int64(e.width) - int64(e.ui.Height())) * int64(e.width)
-	if e.offset < 0 {
-		e.offset = 0
-	}
+	e.offset = util.MaxInt64(((len+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
 	e.cursor = ((len+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
 	return e.redraw()
 }

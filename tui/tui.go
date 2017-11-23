@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/itchyny/bed/core"
+	"github.com/itchyny/bed/util"
 	termbox "github.com/nsf/termbox-go"
 )
 
@@ -141,14 +142,8 @@ func (ui *Tui) Redraw(state core.State) error {
 func (ui *Tui) drawScrollBar(state core.State, offset int) {
 	height := (state.Size + state.Width - 1) / state.Width
 	len := int((state.Len + int64(state.Width) - 1) / int64(state.Width))
-	size := (state.Size + state.Width - 1) / state.Width * height / len
-	if size < 1 {
-		size = 1
-	}
-	pad := height*height - len*size + len/2
-	if pad >= len {
-		pad = len - 1
-	}
+	size := util.MaxInt((state.Size+state.Width-1)/state.Width*height/len, 1)
+	pad := util.MinInt(height*height-len*size+len/2, len/2)
 	top := (int(state.Offset/int64(state.Width))*height + pad) / len
 	for i := 0; i < height; i++ {
 		if top <= i && i < top+size {
