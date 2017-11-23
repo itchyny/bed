@@ -11,7 +11,7 @@ import (
 type Editor struct {
 	ui     UI
 	buffer *Buffer
-	width  int
+	width  int64
 	offset int64
 	cursor int64
 	length int64
@@ -98,34 +98,34 @@ func (e *Editor) Start() error {
 }
 
 func (e *Editor) cursorUp() error {
-	if e.cursor >= int64(e.width) {
-		e.cursor -= int64(e.width)
+	if e.cursor >= e.width {
+		e.cursor -= e.width
 		if e.cursor < e.offset {
-			e.offset = e.offset - int64(e.width)
+			e.offset = e.offset - e.width
 		}
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorDown() error {
-	if e.cursor < e.length-int64(e.width) {
-		e.cursor += int64(e.width)
+	if e.cursor < e.length-e.width {
+		e.cursor += e.width
 	}
-	if e.cursor >= e.offset+int64(e.ui.Height()*e.width) {
+	if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
 		return e.scrollDown()
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorLeft() error {
-	if e.cursor%int64(e.width) > 0 {
+	if e.cursor%e.width > 0 {
 		e.cursor--
 	}
 	return e.redraw()
 }
 
 func (e *Editor) cursorRight() error {
-	if e.cursor < e.length-1 && int(e.cursor%int64(e.width)) < e.width-1 {
+	if e.cursor < e.length-1 && e.cursor%e.width < e.width-1 {
 		e.cursor++
 	}
 	return e.redraw()
@@ -135,7 +135,7 @@ func (e *Editor) cursorPrev() error {
 	if e.cursor > 0 {
 		e.cursor--
 		if e.cursor < e.offset {
-			e.offset -= int64(e.width)
+			e.offset -= e.width
 		}
 	}
 	return e.redraw()
@@ -144,8 +144,8 @@ func (e *Editor) cursorPrev() error {
 func (e *Editor) cursorNext() error {
 	if e.cursor < e.length-1 {
 		e.cursor++
-		if e.cursor >= e.offset+int64(e.ui.Height()*e.width) {
-			e.offset += int64(e.width)
+		if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
+			e.offset += e.width
 		}
 	}
 	return e.redraw()
@@ -153,40 +153,40 @@ func (e *Editor) cursorNext() error {
 
 func (e *Editor) scrollUp() error {
 	if e.offset > 0 {
-		e.offset -= int64(e.width)
+		e.offset -= e.width
 	}
-	if e.cursor >= e.offset+int64(e.ui.Height()*e.width) {
-		e.cursor -= int64(e.width)
+	if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
+		e.cursor -= e.width
 	}
 	return e.redraw()
 }
 
 func (e *Editor) scrollDown() error {
-	offset := util.MaxInt64(((e.length+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
-	e.offset = util.MinInt64(e.offset+int64(e.width), offset)
+	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
+	e.offset = util.MinInt64(e.offset+e.width, offset)
 	if e.cursor < e.offset {
-		e.cursor += int64(e.width)
+		e.cursor += e.width
 	}
 	return e.redraw()
 }
 
 func (e *Editor) pageUp() error {
-	e.offset = util.MaxInt64(e.offset-int64((e.ui.Height()-2)*e.width), 0)
+	e.offset = util.MaxInt64(e.offset-int64(e.ui.Height()-2)*e.width, 0)
 	if e.offset == 0 {
 		e.cursor = 0
-	} else if e.cursor >= e.offset+int64(e.ui.Height()*e.width) {
-		e.cursor = e.offset + int64(e.ui.Height()-1)*int64(e.width)
+	} else if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
+		e.cursor = e.offset + int64(e.ui.Height()-1)*e.width
 	}
 	return e.redraw()
 }
 
 func (e *Editor) pageDown() error {
-	offset := util.MaxInt64(((e.length+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
-	e.offset = util.MinInt64(e.offset+int64((e.ui.Height()-2)*e.width), offset)
+	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
+	e.offset = util.MinInt64(e.offset+int64(e.ui.Height()-2)*e.width, offset)
 	if e.cursor < e.offset {
 		e.cursor = e.offset
 	} else if e.offset == offset {
-		e.cursor = ((util.MaxInt64(e.length, 1)+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
+		e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
 	}
 	return e.redraw()
 }
@@ -198,19 +198,19 @@ func (e *Editor) pageTop() error {
 }
 
 func (e *Editor) pageLast() error {
-	e.offset = util.MaxInt64(((e.length+int64(e.width)-1)/int64(e.width)-int64(e.ui.Height()))*int64(e.width), 0)
-	e.cursor = ((util.MaxInt64(e.length, 1)+int64(e.width)-1)/int64(e.width) - 1) * int64(e.width)
+	e.offset = util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
+	e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
 	return e.redraw()
 }
 
 func (e *Editor) redraw() error {
-	b := make([]byte, e.ui.Height()*e.width)
+	b := make([]byte, e.ui.Height()*int(e.width))
 	n, err := e.buffer.Read(e.offset, b)
 	if err != nil && err != io.EOF {
 		return err
 	}
 	return e.ui.Redraw(State{
-		Width:  e.width,
+		Width:  int(e.width),
 		Offset: e.offset,
 		Cursor: e.cursor,
 		Bytes:  b,
