@@ -164,8 +164,8 @@ func (ui *Tui) drawScrollBar(state core.State, offset int) {
 
 func (ui *Tui) drawFooter(state core.State) {
 	j := int(state.Cursor - state.Offset)
-	line := fmt.Sprintf("%08x / %08x (%.2f%%) [0x%02x '%s']     ",
-		state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
+	line := fmt.Sprintf("%s: %08x / %08x (%.2f%%) [0x%02x '%s']     ",
+		state.Name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.setLine(ui.Height()+1, 0, line, 0)
 }

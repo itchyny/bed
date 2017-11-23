@@ -3,6 +3,7 @@ package core
 import (
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/itchyny/bed/util"
 )
@@ -10,6 +11,7 @@ import (
 // Editor is the main struct for this command.
 type Editor struct {
 	ui     UI
+	name   string
 	buffer *Buffer
 	width  int64
 	offset int64
@@ -80,6 +82,7 @@ func (e *Editor) Open(filename string) error {
 	if err != nil {
 		return err
 	}
+	e.name = filepath.Base(filename)
 	e.buffer = NewBuffer(file)
 	len, err := e.buffer.Len()
 	if err != nil {
@@ -212,6 +215,7 @@ func (e *Editor) redraw() error {
 		return err
 	}
 	return e.ui.Redraw(State{
+		Name:   e.name,
 		Width:  int(e.width),
 		Offset: e.offset,
 		Cursor: e.cursor,
