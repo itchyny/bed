@@ -146,15 +146,15 @@ func (ui *Tui) Redraw(state core.State) error {
 }
 
 func (ui *Tui) drawScrollBar(state core.State, offset int) {
-	height := (state.Size + state.Width - 1) / state.Width
-	len := util.MaxInt(int((state.Length+int64(state.Width)-1)/int64(state.Width)), 1)
-	size := util.MaxInt(height*height/len, 1)
-	pad := (height*height + len - len*size - 1) / util.MaxInt(height-size+1, 1)
-	top := (int(state.Offset/int64(state.Width)) * height) / (len - pad)
-	for i := 0; i < height; i++ {
-		if top <= i && i < top+size {
+	height := int64((state.Size + state.Width - 1) / state.Width)
+	len := util.MaxInt64((state.Length+int64(state.Width)-1)/int64(state.Width), 1)
+	size := util.MaxInt64(height*height/len, 1)
+	pad := (height*height + len - len*size - 1) / util.MaxInt64(height-size+1, 1)
+	top := (state.Offset / int64(state.Width) * height) / (len - pad)
+	for i := 0; i < int(height); i++ {
+		if int(top) <= i && i < int(top+size) {
 			ui.setLine(i+1, offset, " ", termbox.AttrReverse)
-		} else if i < height-1 {
+		} else if i < int(height-1) {
 			ui.setLine(i+1, offset, "|", 0)
 		} else {
 			ui.setLine(i+1, offset, "|", termbox.AttrUnderline)
