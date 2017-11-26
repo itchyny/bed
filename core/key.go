@@ -1,11 +1,15 @@
 package core
 
+import (
+	"strconv"
+)
+
 // Key represents one keyboard stroke.
 type Key string
 
 type keyEvent struct {
 	keys  []Key
-	event Event
+	event EventType
 }
 
 const (
@@ -41,7 +45,7 @@ func NewKeyManager() *KeyManager {
 }
 
 // Register adds a new key mapping.
-func (km *KeyManager) Register(event Event, keys ...Key) {
+func (km *KeyManager) Register(event EventType, keys ...Key) {
 	km.keyEvents = append(km.keyEvents, keyEvent{keys, event})
 }
 
@@ -50,16 +54,26 @@ func (km *KeyManager) Press(k Key) Event {
 	km.keys = append(km.keys, k)
 	for i := 0; i < len(km.keys); i++ {
 		keys := km.keys[i:]
+		numStr := ""
+		for j, k := range keys {
+			if len(k) == 1 && ('1' <= k[0] && k[0] <= '9' || k[0] == '0' && j > 0) {
+				numStr += string(k)
+			} else {
+				break
+			}
+		}
+		keys = keys[len(numStr):]
+		count, _ := strconv.ParseInt(numStr, 10, 64)
 		for _, ke := range km.keyEvents {
 			switch ke.cmp(keys) {
 			case keysPending:
-				return Event(Nop)
+				return Event{Type: Nop}
 			case keysEq:
 				km.keys = nil
-				return ke.event
+				return Event{Type: ke.event, Count: count}
 			}
 		}
 	}
 	km.keys = nil
-	return Event(Nop)
+	return Event{Type: Nop}
 }

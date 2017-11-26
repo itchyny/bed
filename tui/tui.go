@@ -43,8 +43,8 @@ loop:
 		select {
 		case e := <-events:
 			if e.Type == termbox.EventKey {
-				if event := km.Press(eventToKey(e)); event != core.Nop {
-					if event == core.Quit {
+				if event := km.Press(eventToKey(e)); event.Type != core.Nop {
+					if event.Type == core.Quit {
 						break loop
 					}
 					ui.ch <- event

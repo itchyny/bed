@@ -20,9 +20,9 @@ func (e *Editor) Init() error {
 	go func() {
 		for {
 			select {
-			case c := <-ch:
+			case event := <-ch:
 				e.buffer.height = int64(e.ui.Height())
-				switch c {
+				switch event.Type {
 				case CursorUp:
 					e.buffer.cursorUp()
 				case CursorDown:

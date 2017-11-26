@@ -1,9 +1,15 @@
 package core
 
 // Event represents the event emitted by UI.
-type Event int
+type Event struct {
+	Type  EventType
+	Count int64
+}
 
-// Events
+// EventType ...
+type EventType int
+
+// Event types
 const (
 	Nop = iota
 	Quit
