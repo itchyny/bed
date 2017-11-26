@@ -64,6 +64,10 @@ func (e *Editor) Init() error {
 					e.pageUp()
 				case PageDown:
 					e.pageDown()
+				case PageUpHalf:
+					e.pageUpHalf()
+				case PageDownHalf:
+					e.pageDownHalf()
 				case PageTop:
 					e.pageTop()
 				case PageEnd:
@@ -98,6 +102,8 @@ func defaultKeyManager() *KeyManager {
 	km.Register(ScrollDown, "c-e")
 	km.Register(PageUp, "c-b")
 	km.Register(PageDown, "c-f")
+	km.Register(PageUpHalf, "c-u")
+	km.Register(PageDownHalf, "c-d")
 	km.Register(PageTop, "g", "g")
 	km.Register(PageEnd, "G")
 	return km
@@ -230,6 +236,27 @@ func (e *Editor) pageUp() error {
 func (e *Editor) pageDown() error {
 	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
 	e.offset = util.MinInt64(e.offset+int64(e.ui.Height()-2)*e.width, offset)
+	if e.cursor < e.offset {
+		e.cursor = e.offset
+	} else if e.offset == offset {
+		e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
+	}
+	return e.redraw()
+}
+
+func (e *Editor) pageUpHalf() error {
+	e.offset = util.MaxInt64(e.offset-int64(util.MaxInt(e.ui.Height()/2, 1))*e.width, 0)
+	if e.offset == 0 {
+		e.cursor = 0
+	} else if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
+		e.cursor = e.offset + int64(e.ui.Height()-1)*e.width
+	}
+	return e.redraw()
+}
+
+func (e *Editor) pageDownHalf() error {
+	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
+	e.offset = util.MinInt64(e.offset+int64(util.MaxInt(e.ui.Height()/2, 1))*e.width, offset)
 	if e.cursor < e.offset {
 		e.cursor = e.offset
 	} else if e.offset == offset {

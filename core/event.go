@@ -19,6 +19,8 @@ const (
 	ScrollDown
 	PageUp
 	PageDown
+	PageUpHalf
+	PageDownHalf
 	PageTop
 	PageEnd
 )
