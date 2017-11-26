@@ -71,6 +71,23 @@ func (e *Editor) Init() error {
 	return nil
 }
 
+func defaultKeyManager() *KeyManager {
+	km := NewKeyManager()
+	km.Register(CursorUp, NewKey("k"))
+	km.Register(CursorDown, NewKey("j"))
+	km.Register(CursorLeft, NewKey("h"))
+	km.Register(CursorRight, NewKey("l"))
+	km.Register(CursorPrev, NewKey("b"))
+	km.Register(CursorNext, NewKey("w"))
+	km.Register(ScrollUp, NewKey("c-y"))
+	km.Register(ScrollDown, NewKey("c-e"))
+	km.Register(PageUp, NewKey("c-b"))
+	km.Register(PageDown, NewKey("c-f"))
+	km.Register(PageTop, NewKey("g"), NewKey("g"))
+	km.Register(PageLast, NewKey("s-g"))
+	return km
+}
+
 // Close terminates the editor.
 func (e *Editor) Close() error {
 	return e.ui.Close()
@@ -97,7 +114,7 @@ func (e *Editor) Start() error {
 	if err := e.redraw(); err != nil {
 		return err
 	}
-	return e.ui.Start()
+	return e.ui.Start(defaultKeyManager())
 }
 
 func (e *Editor) cursorUp() error {

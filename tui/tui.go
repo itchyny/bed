@@ -29,56 +29,26 @@ func (ui *Tui) Init(ch chan<- core.Event) error {
 }
 
 // Start starts the Tui.
-func (ui *Tui) Start() error {
+func (ui *Tui) Start(km *core.KeyManager) error {
 	events := make(chan termbox.Event)
 	go func() {
 		for {
 			events <- termbox.PollEvent()
 		}
 	}()
+	km.Register(core.Quit, core.NewKey("q"))
+	km.Register(core.Quit, core.NewKey("c-c"))
 loop:
 	for {
 		select {
 		case e := <-events:
 			if e.Type == termbox.EventKey {
-				if e.Ch == 'q' || e.Key == termbox.KeyCtrlC || e.Key == termbox.KeyCtrlD {
-					break loop
-				}
-				if e.Ch == 'k' {
-					ui.ch <- core.CursorUp
-				}
-				if e.Ch == 'j' {
-					ui.ch <- core.CursorDown
-				}
-				if e.Ch == 'h' {
-					ui.ch <- core.CursorLeft
-				}
-				if e.Ch == 'l' {
-					ui.ch <- core.CursorRight
-				}
-				if e.Ch == 'b' {
-					ui.ch <- core.CursorPrev
-				}
-				if e.Ch == 'w' {
-					ui.ch <- core.CursorNext
-				}
-				if e.Key == termbox.KeyCtrlY {
-					ui.ch <- core.ScrollUp
-				}
-				if e.Key == termbox.KeyCtrlE {
-					ui.ch <- core.ScrollDown
-				}
-				if e.Key == termbox.KeyCtrlB {
-					ui.ch <- core.PageUp
-				}
-				if e.Key == termbox.KeyCtrlF {
-					ui.ch <- core.PageDown
-				}
-				if e.Ch == 'g' {
-					ui.ch <- core.PageTop
-				}
-				if e.Ch == 'G' {
-					ui.ch <- core.PageLast
+				if event := km.Press(eventToKey(e)); event != core.Nop {
+					if event == core.Quit {
+						break loop
+					}
+					ui.ch <- event
+					continue
 				}
 			}
 		}

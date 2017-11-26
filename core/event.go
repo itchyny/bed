@@ -5,7 +5,9 @@ type Event int
 
 // Events
 const (
-	CursorUp = iota
+	Nop = iota
+	Quit
+	CursorUp
 	CursorDown
 	CursorLeft
 	CursorRight
