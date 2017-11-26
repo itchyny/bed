@@ -119,17 +119,9 @@ func (e *Editor) Start() error {
 }
 
 func (e *Editor) redraw() error {
-	n, bytes, err := e.buffer.ReadBytes()
+	state, err := e.buffer.State()
 	if err != nil {
 		return err
 	}
-	return e.ui.Redraw(State{
-		Name:   e.buffer.basename,
-		Width:  int(e.buffer.width),
-		Offset: e.buffer.offset,
-		Cursor: e.buffer.cursor,
-		Bytes:  bytes,
-		Size:   n,
-		Length: e.buffer.length,
-	})
+	return e.ui.Redraw(state)
 }

@@ -66,8 +66,7 @@ func (b *Buffer) Len() (int64, error) {
 	return b.r.Seek(0, io.SeekEnd)
 }
 
-// ReadBytes reads the bytes at the current offset.
-func (b *Buffer) ReadBytes() (int, []byte, error) {
+func (b *Buffer) readBytes() (int, []byte, error) {
 	bytes := make([]byte, int(b.height*b.width))
 	_, err := b.Seek(b.offset, io.SeekStart)
 	if err != nil {
@@ -78,6 +77,23 @@ func (b *Buffer) ReadBytes() (int, []byte, error) {
 		return 0, bytes, err
 	}
 	return n, bytes, nil
+}
+
+// State returns the current state of the buffer.
+func (b *Buffer) State() (State, error) {
+	n, bytes, err := b.readBytes()
+	if err != nil {
+		return State{}, err
+	}
+	return State{
+		Name:   b.basename,
+		Width:  int(b.width),
+		Offset: b.offset,
+		Cursor: b.cursor,
+		Bytes:  bytes,
+		Size:   n,
+		Length: b.length,
+	}, nil
 }
 
 func (b *Buffer) cursorUp() {
