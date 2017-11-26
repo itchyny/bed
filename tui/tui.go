@@ -36,8 +36,8 @@ func (ui *Tui) Start(km *core.KeyManager) error {
 			events <- termbox.PollEvent()
 		}
 	}()
-	km.Register(core.Quit, core.NewKey("q"))
-	km.Register(core.Quit, core.NewKey("c-c"))
+	km.Register(core.Quit, "q")
+	km.Register(core.Quit, "c-c")
 loop:
 	for {
 		select {

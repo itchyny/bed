@@ -1,32 +1,6 @@
 package core
 
-import (
-	"strings"
-)
-
-type Key struct {
-	Key   string
-	Ctrl  bool
-	Shift bool
-}
-
-func NewKey(k string) Key {
-	var ctrl, shift bool
-	if strings.HasPrefix(k, "c-") {
-		ctrl = true
-		k = k[2:]
-	}
-	if strings.HasPrefix(k, "s-") {
-		shift = true
-		k = k[2:]
-	}
-	l := strings.ToLower(k)
-	return Key{Key: l, Ctrl: ctrl, Shift: shift || k != l}
-}
-
-func (x Key) eq(y Key) bool {
-	return x.Key == y.Key && x.Ctrl == y.Ctrl && x.Shift == y.Shift
-}
+type Key string
 
 type keyEvent struct {
 	keys  []Key
@@ -47,7 +21,7 @@ func (ke keyEvent) cmp(ks []Key) int {
 		if i >= len(ks) {
 			return keysPending
 		}
-		if !k.eq(ks[i]) {
+		if k != ks[i] {
 			return keysNeq
 		}
 	}
