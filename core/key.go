@@ -1,5 +1,6 @@
 package core
 
+// Key represents one keyboard stroke.
 type Key string
 
 type keyEvent struct {
@@ -28,19 +29,23 @@ func (ke keyEvent) cmp(ks []Key) int {
 	return keysEq
 }
 
+// KeyManager holds the key mappings and current key sequence.
 type KeyManager struct {
 	keys      []Key
 	keyEvents []keyEvent
 }
 
+// NewKeyManager creates a new KeyManager.
 func NewKeyManager() *KeyManager {
 	return &KeyManager{}
 }
 
+// Register adds a new key mapping.
 func (km *KeyManager) Register(event Event, keys ...Key) {
 	km.keyEvents = append(km.keyEvents, keyEvent{keys, event})
 }
 
+// Press checks the new key down event.
 func (km *KeyManager) Press(k Key) Event {
 	km.keys = append(km.keys, k)
 	for i := 0; i < len(km.keys); i++ {
