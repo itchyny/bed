@@ -39,7 +39,7 @@ func NewBuffer(name string, width int64) (*Buffer, error) {
 		basename: filepath.Base(name),
 		width:    width,
 	}
-	b.length, err = b.Len()
+	b.length, err = b.r.Seek(0, io.SeekEnd)
 	if err != nil {
 		return nil, err
 	}
@@ -59,11 +59,6 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 // Close the buffer.
 func (b *Buffer) Close() error {
 	return b.r.Close()
-}
-
-// Len returns the total size of the buffer.
-func (b *Buffer) Len() (int64, error) {
-	return b.r.Seek(0, io.SeekEnd)
 }
 
 func (b *Buffer) readBytes() (int, []byte, error) {
