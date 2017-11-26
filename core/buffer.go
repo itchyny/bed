@@ -10,7 +10,7 @@ import (
 
 // Buffer represents a buffer.
 type Buffer struct {
-	r        io.ReadSeeker
+	r        ReadSeekCloser
 	name     string
 	basename string
 	height   int64
@@ -18,6 +18,13 @@ type Buffer struct {
 	offset   int64
 	cursor   int64
 	length   int64
+}
+
+// ReadSeekCloser is the interface that groups the basic Read, Seek and Close methods.
+type ReadSeekCloser interface {
+	io.Reader
+	io.Seeker
+	io.Closer
 }
 
 // NewBuffer creates a new buffer.
@@ -39,14 +46,19 @@ func NewBuffer(name string, width int64) (*Buffer, error) {
 	return b, err
 }
 
+// Read reads the bytes.
+func (b *Buffer) Read(p []byte) (int, error) {
+	return b.r.Read(p)
+}
+
 // Seek sets the offset.
 func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	return b.r.Seek(offset, whence)
 }
 
-// Read reads the bytes.
-func (b *Buffer) Read(p []byte) (int, error) {
-	return b.r.Read(p)
+// Close the buffer.
+func (b *Buffer) Close() error {
+	return b.r.Close()
 }
 
 // Len returns the total size of the buffer.
