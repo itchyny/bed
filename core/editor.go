@@ -24,21 +24,21 @@ func (e *Editor) Init() error {
 				e.buffer.height = int64(e.ui.Height())
 				switch event.Type {
 				case CursorUp:
-					e.buffer.cursorUp()
+					e.buffer.cursorUp(event.Count)
 				case CursorDown:
-					e.buffer.cursorDown()
+					e.buffer.cursorDown(event.Count)
 				case CursorLeft:
-					e.buffer.cursorLeft()
+					e.buffer.cursorLeft(event.Count)
 				case CursorRight:
-					e.buffer.cursorRight()
+					e.buffer.cursorRight(event.Count)
 				case CursorPrev:
-					e.buffer.cursorPrev()
+					e.buffer.cursorPrev(event.Count)
 				case CursorNext:
-					e.buffer.cursorNext()
+					e.buffer.cursorNext(event.Count)
 				case CursorHead:
-					e.buffer.cursorHead()
+					e.buffer.cursorHead(event.Count)
 				case CursorEnd:
-					e.buffer.cursorEnd()
+					e.buffer.cursorEnd(event.Count)
 				case ScrollUp:
 					e.buffer.scrollUp()
 				case ScrollDown:

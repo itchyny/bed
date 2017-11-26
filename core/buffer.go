@@ -91,62 +91,53 @@ func (b *Buffer) State() (State, error) {
 	}, nil
 }
 
-func (b *Buffer) cursorUp() {
-	if b.cursor >= b.width {
-		b.cursor -= b.width
-		if b.cursor < b.offset {
-			b.offset = b.offset - b.width
-		}
+func (b *Buffer) cursorUp(count int64) {
+	b.cursor -= util.MinInt64(util.MaxInt64(count, 1), b.cursor/b.width) * b.width
+	if b.cursor < b.offset {
+		b.offset = b.cursor / b.width * b.width
 	}
 }
 
-func (b *Buffer) cursorDown() {
-	if b.cursor < b.length-b.width {
-		b.cursor += b.width
-	} else if b.cursor < ((util.MaxInt64(b.length, 1)+b.width-1)/b.width-1)*b.width {
-		b.cursor = b.length - 1
-	}
+func (b *Buffer) cursorDown(count int64) {
+	b.cursor += util.MinInt64(
+		util.MinInt64(util.MaxInt64(count, 1), (util.MaxInt64(b.length, 1)-1)/b.width-b.cursor/b.width)*b.width,
+		util.MaxInt64(b.length, 1)-1-b.cursor)
 	if b.cursor >= b.offset+b.height*b.width {
-		b.scrollDown()
+		b.offset = (b.cursor - b.height*b.width + b.width) / b.width * b.width
 	}
 }
 
-func (b *Buffer) cursorLeft() {
-	if b.cursor%b.width > 0 {
-		b.cursor--
+func (b *Buffer) cursorLeft(count int64) {
+	b.cursor -= util.MinInt64(util.MaxInt64(count, 1), b.cursor%b.width)
+}
+
+func (b *Buffer) cursorRight(count int64) {
+	b.cursor += util.MinInt64(util.MinInt64(util.MaxInt64(count, 1), b.width-1-b.cursor%b.width), util.MaxInt64(b.length, 1)-1-b.cursor)
+}
+
+func (b *Buffer) cursorPrev(count int64) {
+	b.cursor -= util.MinInt64(util.MaxInt64(count, 1), b.cursor)
+	if b.cursor < b.offset {
+		b.offset = b.cursor / b.width * b.width
 	}
 }
 
-func (b *Buffer) cursorRight() {
-	if b.cursor < b.length-1 && b.cursor%b.width < b.width-1 {
-		b.cursor++
+func (b *Buffer) cursorNext(count int64) {
+	b.cursor += util.MinInt64(util.MaxInt64(count, 1), util.MaxInt64(b.length, 1)-1-b.cursor)
+	if b.cursor >= b.offset+b.height*b.width {
+		b.offset = (b.cursor - b.height*b.width + b.width) / b.width * b.width
 	}
 }
 
-func (b *Buffer) cursorPrev() {
-	if b.cursor > 0 {
-		b.cursor--
-		if b.cursor < b.offset {
-			b.offset -= b.width
-		}
-	}
-}
-
-func (b *Buffer) cursorNext() {
-	if b.cursor < b.length-1 {
-		b.cursor++
-		if b.cursor >= b.offset+b.height*b.width {
-			b.offset += b.width
-		}
-	}
-}
-
-func (b *Buffer) cursorHead() {
+func (b *Buffer) cursorHead(_ int64) {
 	b.cursor -= b.cursor % b.width
 }
 
-func (b *Buffer) cursorEnd() {
-	b.cursor = util.MinInt64((b.cursor/b.width+1)*b.width-1, b.length-1)
+func (b *Buffer) cursorEnd(count int64) {
+	b.cursor = util.MinInt64((b.cursor/b.width+util.MaxInt64(count, 1))*b.width-1, util.MaxInt64(b.length, 1)-1)
+	if b.cursor >= b.offset+b.height*b.width {
+		b.offset = (b.cursor - b.height*b.width + b.width) / b.width * b.width
+	}
 }
 
 func (b *Buffer) scrollUp() {
