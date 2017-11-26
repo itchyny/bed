@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"unicode"
-
 	"github.com/itchyny/bed/core"
 	"github.com/nsf/termbox-go"
 )
@@ -11,10 +9,7 @@ func eventToKey(event termbox.Event) core.Key {
 	if key, ok := keyMap[event.Key]; ok {
 		return key
 	}
-	if unicode.IsUpper(event.Ch) {
-		return core.Key("s-" + string(unicode.ToLower(event.Ch)))
-	}
-	return core.Key(unicode.ToLower(event.Ch))
+	return core.Key(event.Ch)
 }
 
 var keyMap = map[termbox.Key]core.Key{

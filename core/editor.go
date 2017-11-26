@@ -99,7 +99,7 @@ func defaultKeyManager() *KeyManager {
 	km.Register(PageUp, "c-b")
 	km.Register(PageDown, "c-f")
 	km.Register(PageTop, "g", "g")
-	km.Register(PageEnd, "s-g")
+	km.Register(PageEnd, "G")
 	return km
 }
 
