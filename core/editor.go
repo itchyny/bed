@@ -1,25 +1,18 @@
 package core
 
 import (
-	"io"
 	"os"
-
-	"github.com/itchyny/bed/util"
 )
 
 // Editor is the main struct for this command.
 type Editor struct {
 	ui     UI
 	buffer *Buffer
-	width  int64
-	offset int64
-	cursor int64
-	length int64
 }
 
 // NewEditor creates a new editor.
 func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui, width: 16}
+	return &Editor{ui: ui}
 }
 
 // Init initializes the editor.
@@ -32,45 +25,44 @@ func (e *Editor) Init() error {
 		for {
 			select {
 			case c := <-ch:
-				len, err := e.buffer.Len()
-				if err != nil {
-					return
-				}
-				e.length = len
+				e.buffer.height = int64(e.ui.Height())
 				switch c {
 				case CursorUp:
-					e.cursorUp()
+					e.buffer.cursorUp()
 				case CursorDown:
-					e.cursorDown()
+					e.buffer.cursorDown()
 				case CursorLeft:
-					e.cursorLeft()
+					e.buffer.cursorLeft()
 				case CursorRight:
-					e.cursorRight()
+					e.buffer.cursorRight()
 				case CursorPrev:
-					e.cursorPrev()
+					e.buffer.cursorPrev()
 				case CursorNext:
-					e.cursorNext()
+					e.buffer.cursorNext()
 				case CursorHead:
-					e.cursorHead()
+					e.buffer.cursorHead()
 				case CursorEnd:
-					e.cursorEnd()
+					e.buffer.cursorEnd()
 				case ScrollUp:
-					e.scrollUp()
+					e.buffer.scrollUp()
 				case ScrollDown:
-					e.scrollDown()
+					e.buffer.scrollDown()
 				case PageUp:
-					e.pageUp()
+					e.buffer.pageUp()
 				case PageDown:
-					e.pageDown()
+					e.buffer.pageDown()
 				case PageUpHalf:
-					e.pageUpHalf()
+					e.buffer.pageUpHalf()
 				case PageDownHalf:
-					e.pageDownHalf()
+					e.buffer.pageDownHalf()
 				case PageTop:
-					e.pageTop()
+					e.buffer.pageTop()
 				case PageEnd:
-					e.pageEnd()
+					e.buffer.pageEnd()
+				default:
+					continue
 				}
+				e.redraw()
 			}
 		}
 	}()
@@ -118,12 +110,13 @@ func (e *Editor) Open(filename string) error {
 	if err != nil {
 		return err
 	}
-	e.buffer = NewBuffer(filename, file)
+	e.buffer = NewBuffer(filename, file, 16)
 	len, err := e.buffer.Len()
 	if err != nil {
 		return err
 	}
-	e.length = len
+	e.buffer.length = len
+	e.buffer.height = int64(e.ui.Height())
 	return nil
 }
 
@@ -135,162 +128,18 @@ func (e *Editor) Start() error {
 	return e.ui.Start(defaultKeyManager())
 }
 
-func (e *Editor) cursorUp() error {
-	if e.cursor >= e.width {
-		e.cursor -= e.width
-		if e.cursor < e.offset {
-			e.offset = e.offset - e.width
-		}
-	}
-	return e.redraw()
-}
-
-func (e *Editor) cursorDown() error {
-	if e.cursor < e.length-e.width {
-		e.cursor += e.width
-	} else if e.cursor < ((util.MaxInt64(e.length, 1)+e.width-1)/e.width-1)*e.width {
-		e.cursor = e.length - 1
-	}
-	if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
-		return e.scrollDown()
-	}
-	return e.redraw()
-}
-
-func (e *Editor) cursorLeft() error {
-	if e.cursor%e.width > 0 {
-		e.cursor--
-	}
-	return e.redraw()
-}
-
-func (e *Editor) cursorRight() error {
-	if e.cursor < e.length-1 && e.cursor%e.width < e.width-1 {
-		e.cursor++
-	}
-	return e.redraw()
-}
-
-func (e *Editor) cursorPrev() error {
-	if e.cursor > 0 {
-		e.cursor--
-		if e.cursor < e.offset {
-			e.offset -= e.width
-		}
-	}
-	return e.redraw()
-}
-
-func (e *Editor) cursorNext() error {
-	if e.cursor < e.length-1 {
-		e.cursor++
-		if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
-			e.offset += e.width
-		}
-	}
-	return e.redraw()
-}
-
-func (e *Editor) cursorHead() error {
-	e.cursor -= e.cursor % e.width
-	return e.redraw()
-}
-
-func (e *Editor) cursorEnd() error {
-	e.cursor = util.MinInt64((e.cursor/e.width+1)*e.width-1, e.length-1)
-	return e.redraw()
-}
-
-func (e *Editor) scrollUp() error {
-	if e.offset > 0 {
-		e.offset -= e.width
-	}
-	if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
-		e.cursor -= e.width
-	}
-	return e.redraw()
-}
-
-func (e *Editor) scrollDown() error {
-	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
-	e.offset = util.MinInt64(e.offset+e.width, offset)
-	if e.cursor < e.offset {
-		e.cursor += e.width
-	}
-	return e.redraw()
-}
-
-func (e *Editor) pageUp() error {
-	e.offset = util.MaxInt64(e.offset-int64(e.ui.Height()-2)*e.width, 0)
-	if e.offset == 0 {
-		e.cursor = 0
-	} else if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
-		e.cursor = e.offset + int64(e.ui.Height()-1)*e.width
-	}
-	return e.redraw()
-}
-
-func (e *Editor) pageDown() error {
-	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
-	e.offset = util.MinInt64(e.offset+int64(e.ui.Height()-2)*e.width, offset)
-	if e.cursor < e.offset {
-		e.cursor = e.offset
-	} else if e.offset == offset {
-		e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
-	}
-	return e.redraw()
-}
-
-func (e *Editor) pageUpHalf() error {
-	e.offset = util.MaxInt64(e.offset-int64(util.MaxInt(e.ui.Height()/2, 1))*e.width, 0)
-	if e.offset == 0 {
-		e.cursor = 0
-	} else if e.cursor >= e.offset+int64(e.ui.Height())*e.width {
-		e.cursor = e.offset + int64(e.ui.Height()-1)*e.width
-	}
-	return e.redraw()
-}
-
-func (e *Editor) pageDownHalf() error {
-	offset := util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
-	e.offset = util.MinInt64(e.offset+int64(util.MaxInt(e.ui.Height()/2, 1))*e.width, offset)
-	if e.cursor < e.offset {
-		e.cursor = e.offset
-	} else if e.offset == offset {
-		e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
-	}
-	return e.redraw()
-}
-
-func (e *Editor) pageTop() error {
-	e.offset = 0
-	e.cursor = 0
-	return e.redraw()
-}
-
-func (e *Editor) pageEnd() error {
-	e.offset = util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
-	e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
-	return e.redraw()
-}
-
 func (e *Editor) redraw() error {
-	b := make([]byte, e.ui.Height()*int(e.width))
-	_, err := e.buffer.Seek(e.offset, io.SeekStart)
+	n, bytes, err := e.buffer.ReadBytes()
 	if err != nil {
-		return err
-	}
-	n, err := e.buffer.Read(b)
-	if err != nil && err != io.EOF {
 		return err
 	}
 	return e.ui.Redraw(State{
 		Name:   e.buffer.basename,
-		Width:  int(e.width),
-		Offset: e.offset,
-		Cursor: e.cursor,
-		Bytes:  b,
+		Width:  int(e.buffer.width),
+		Offset: e.buffer.offset,
+		Cursor: e.buffer.cursor,
+		Bytes:  bytes,
 		Size:   n,
-		Length: e.length,
+		Length: e.buffer.length,
 	})
 }
