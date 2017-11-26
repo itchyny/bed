@@ -2,16 +2,19 @@ package core
 
 import (
 	"io"
+	"path/filepath"
 )
 
 // Buffer represents a buffer.
 type Buffer struct {
-	r io.ReadSeeker
+	r        io.ReadSeeker
+	name     string
+	basename string
 }
 
 // NewBuffer creates a new buffer.
-func NewBuffer(r io.ReadSeeker) *Buffer {
-	return &Buffer{r}
+func NewBuffer(name string, r io.ReadSeeker) *Buffer {
+	return &Buffer{r: r, name: name, basename: filepath.Base(name)}
 }
 
 // Seek sets the offset.
