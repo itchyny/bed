@@ -73,6 +73,14 @@ func (e *Editor) Init() error {
 
 func defaultKeyManager() *KeyManager {
 	km := NewKeyManager()
+	km.Register(CursorUp, NewKey("up"))
+	km.Register(CursorDown, NewKey("down"))
+	km.Register(CursorLeft, NewKey("left"))
+	km.Register(CursorRight, NewKey("right"))
+	km.Register(PageUp, NewKey("pgup"))
+	km.Register(PageDown, NewKey("pgdn"))
+	km.Register(PageTop, NewKey("home"))
+	km.Register(PageLast, NewKey("end"))
 	km.Register(CursorUp, NewKey("k"))
 	km.Register(CursorDown, NewKey("j"))
 	km.Register(CursorLeft, NewKey("h"))
