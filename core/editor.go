@@ -1,9 +1,5 @@
 package core
 
-import (
-	"os"
-)
-
 // Editor is the main struct for this command.
 type Editor struct {
 	ui     UI
@@ -105,17 +101,10 @@ func (e *Editor) Close() error {
 }
 
 // Open opens a new file.
-func (e *Editor) Open(filename string) error {
-	file, err := os.Open(filename)
-	if err != nil {
+func (e *Editor) Open(filename string) (err error) {
+	if e.buffer, err = NewBuffer(filename, 16); err != nil {
 		return err
 	}
-	e.buffer = NewBuffer(filename, file, 16)
-	len, err := e.buffer.Len()
-	if err != nil {
-		return err
-	}
-	e.buffer.length = len
 	e.buffer.height = int64(e.ui.Height())
 	return nil
 }

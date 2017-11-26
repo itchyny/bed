@@ -2,6 +2,7 @@ package core
 
 import (
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/itchyny/bed/util"
@@ -20,8 +21,22 @@ type Buffer struct {
 }
 
 // NewBuffer creates a new buffer.
-func NewBuffer(name string, r io.ReadSeeker, width int64) *Buffer {
-	return &Buffer{r: r, name: name, basename: filepath.Base(name), width: width}
+func NewBuffer(name string, width int64) (*Buffer, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	b := &Buffer{
+		r:        file,
+		name:     name,
+		basename: filepath.Base(name),
+		width:    width,
+	}
+	b.length, err = b.Len()
+	if err != nil {
+		return nil, err
+	}
+	return b, err
 }
 
 // Seek sets the offset.
