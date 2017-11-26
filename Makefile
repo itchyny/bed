@@ -20,7 +20,7 @@ lint: lintdeps build
 
 lintdeps:
 	go get -d -v -t ./...
-	go get -u github.com/golang/lint/golint
+	command -v golint >/dev/null || go get -u github.com/golang/lint/golint
 
 clean:
 	rm -rf build
