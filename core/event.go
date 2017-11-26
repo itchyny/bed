@@ -18,5 +18,5 @@ const (
 	PageUp
 	PageDown
 	PageTop
-	PageLast
+	PageEnd
 )

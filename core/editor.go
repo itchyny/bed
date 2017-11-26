@@ -62,8 +62,8 @@ func (e *Editor) Init() error {
 					e.pageDown()
 				case PageTop:
 					e.pageTop()
-				case PageLast:
-					e.pageLast()
+				case PageEnd:
+					e.pageEnd()
 				}
 			}
 		}
@@ -80,7 +80,7 @@ func defaultKeyManager() *KeyManager {
 	km.Register(PageUp, NewKey("pgup"))
 	km.Register(PageDown, NewKey("pgdn"))
 	km.Register(PageTop, NewKey("home"))
-	km.Register(PageLast, NewKey("end"))
+	km.Register(PageEnd, NewKey("end"))
 	km.Register(CursorUp, NewKey("k"))
 	km.Register(CursorDown, NewKey("j"))
 	km.Register(CursorLeft, NewKey("h"))
@@ -92,7 +92,7 @@ func defaultKeyManager() *KeyManager {
 	km.Register(PageUp, NewKey("c-b"))
 	km.Register(PageDown, NewKey("c-f"))
 	km.Register(PageTop, NewKey("g"), NewKey("g"))
-	km.Register(PageLast, NewKey("s-g"))
+	km.Register(PageEnd, NewKey("s-g"))
 	return km
 }
 
@@ -227,7 +227,7 @@ func (e *Editor) pageTop() error {
 	return e.redraw()
 }
 
-func (e *Editor) pageLast() error {
+func (e *Editor) pageEnd() error {
 	e.offset = util.MaxInt64(((e.length+e.width-1)/e.width-int64(e.ui.Height()))*e.width, 0)
 	e.cursor = ((util.MaxInt64(e.length, 1)+e.width-1)/e.width - 1) * e.width
 	return e.redraw()
