@@ -52,6 +52,10 @@ func (e *Editor) Init() error {
 					e.cursorPrev()
 				case CursorNext:
 					e.cursorNext()
+				case CursorHead:
+					e.cursorHead()
+				case CursorEnd:
+					e.cursorEnd()
 				case ScrollUp:
 					e.scrollUp()
 				case ScrollDown:
@@ -87,6 +91,9 @@ func defaultKeyManager() *KeyManager {
 	km.Register(CursorRight, "l")
 	km.Register(CursorPrev, "b")
 	km.Register(CursorNext, "w")
+	km.Register(CursorHead, "0")
+	km.Register(CursorHead, "^")
+	km.Register(CursorEnd, "$")
 	km.Register(ScrollUp, "c-y")
 	km.Register(ScrollDown, "c-e")
 	km.Register(PageUp, "c-b")
@@ -178,6 +185,16 @@ func (e *Editor) cursorNext() error {
 			e.offset += e.width
 		}
 	}
+	return e.redraw()
+}
+
+func (e *Editor) cursorHead() error {
+	e.cursor -= e.cursor % e.width
+	return e.redraw()
+}
+
+func (e *Editor) cursorEnd() error {
+	e.cursor = util.MinInt64((e.cursor/e.width+1)*e.width-1, e.length-1)
 	return e.redraw()
 }
 

@@ -13,6 +13,8 @@ const (
 	CursorRight
 	CursorPrev
 	CursorNext
+	CursorHead
+	CursorEnd
 	ScrollUp
 	ScrollDown
 	PageUp
