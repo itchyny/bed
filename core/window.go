@@ -40,9 +40,9 @@ func NewWindow(name string, width int64) (*Window, error) {
 	}, nil
 }
 
-func (w *Window) readBytes() (int, []byte, error) {
-	bytes := make([]byte, int(w.height*w.width))
-	_, err := w.buffer.Seek(w.offset, io.SeekStart)
+func (w *Window) readBytes(pos int64, len int) (int, []byte, error) {
+	bytes := make([]byte, len)
+	_, err := w.buffer.Seek(pos, io.SeekStart)
 	if err != nil {
 		return 0, bytes, err
 	}
@@ -55,7 +55,7 @@ func (w *Window) readBytes() (int, []byte, error) {
 
 // State returns the current state of the buffer.
 func (w *Window) State() (State, error) {
-	n, bytes, err := w.readBytes()
+	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
 		return State{}, err
 	}
