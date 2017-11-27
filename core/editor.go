@@ -55,6 +55,10 @@ func (e *Editor) Init() error {
 					e.window.pageTop()
 				case PageEnd:
 					e.window.pageEnd()
+				case JumpTo:
+					e.window.jumpTo()
+				case JumpBack:
+					e.window.jumpBack()
 				default:
 					continue
 				}
@@ -92,6 +96,8 @@ func defaultKeyManager() *KeyManager {
 	km.Register(PageDownHalf, "c-d")
 	km.Register(PageTop, "g", "g")
 	km.Register(PageEnd, "G")
+	km.Register(JumpTo, "c-]")
+	km.Register(JumpBack, "c-t")
 	return km
 }
 

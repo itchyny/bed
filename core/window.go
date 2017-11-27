@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/itchyny/bed/util"
 )
@@ -18,6 +19,12 @@ type Window struct {
 	offset   int64
 	cursor   int64
 	length   int64
+	stack    []position
+}
+
+type position struct {
+	cursor int64
+	offset int64
 }
 
 // NewWindow creates a new editor window.
@@ -185,4 +192,49 @@ func (w *Window) pageTop() {
 func (w *Window) pageEnd() {
 	w.offset = util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
 	w.cursor = ((util.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
+}
+
+func isDigit(b byte) bool {
+	return '\x30' <= b && b <= '\x39'
+}
+
+func isWhite(b byte) bool {
+	return b == '\x00' || b == '\x09' || b == '\x0a' || b == '\x0d' || b == '\x20'
+}
+
+func (w *Window) jumpTo() {
+	s := 50
+	_, bytes, err := w.readBytes(util.MaxInt64(w.cursor-int64(s), 0), 2*s)
+	if err != nil {
+		return
+	}
+	var i, j int
+	for i = s; i < 2*s && isWhite(bytes[i]); i++ {
+	}
+	if i == 2*s || !isDigit(bytes[i]) {
+		return
+	}
+	for ; 0 < i && isDigit(bytes[i-1]); i-- {
+	}
+	for j = i; j < 2*s && isDigit(bytes[j]); j++ {
+	}
+	if j == 2*s {
+		return
+	}
+	offset, _ := strconv.ParseInt(string(bytes[i:j]), 10, 64)
+	if offset <= 0 || w.length <= offset {
+		return
+	}
+	w.stack = append(w.stack, position{w.cursor, w.offset})
+	w.cursor = offset
+	w.offset = util.MaxInt64(offset-offset%w.width-util.MaxInt64(w.height/3, 0)*w.width, 0)
+}
+
+func (w *Window) jumpBack() {
+	if len(w.stack) == 0 {
+		return
+	}
+	w.cursor = w.stack[len(w.stack)-1].cursor
+	w.offset = w.stack[len(w.stack)-1].offset
+	w.stack = w.stack[:len(w.stack)-1]
 }

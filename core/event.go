@@ -29,4 +29,6 @@ const (
 	PageDownHalf
 	PageTop
 	PageEnd
+	JumpTo
+	JumpBack
 )
