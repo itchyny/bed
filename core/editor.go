@@ -3,7 +3,7 @@ package core
 // Editor is the main struct for this command.
 type Editor struct {
 	ui     UI
-	buffer *Buffer
+	window *Window
 }
 
 // NewEditor creates a new editor.
@@ -21,40 +21,40 @@ func (e *Editor) Init() error {
 		for {
 			select {
 			case event := <-ch:
-				e.buffer.height = int64(e.ui.Height())
+				e.window.height = int64(e.ui.Height())
 				switch event.Type {
 				case CursorUp:
-					e.buffer.cursorUp(event.Count)
+					e.window.cursorUp(event.Count)
 				case CursorDown:
-					e.buffer.cursorDown(event.Count)
+					e.window.cursorDown(event.Count)
 				case CursorLeft:
-					e.buffer.cursorLeft(event.Count)
+					e.window.cursorLeft(event.Count)
 				case CursorRight:
-					e.buffer.cursorRight(event.Count)
+					e.window.cursorRight(event.Count)
 				case CursorPrev:
-					e.buffer.cursorPrev(event.Count)
+					e.window.cursorPrev(event.Count)
 				case CursorNext:
-					e.buffer.cursorNext(event.Count)
+					e.window.cursorNext(event.Count)
 				case CursorHead:
-					e.buffer.cursorHead(event.Count)
+					e.window.cursorHead(event.Count)
 				case CursorEnd:
-					e.buffer.cursorEnd(event.Count)
+					e.window.cursorEnd(event.Count)
 				case ScrollUp:
-					e.buffer.scrollUp()
+					e.window.scrollUp()
 				case ScrollDown:
-					e.buffer.scrollDown()
+					e.window.scrollDown()
 				case PageUp:
-					e.buffer.pageUp()
+					e.window.pageUp()
 				case PageDown:
-					e.buffer.pageDown()
+					e.window.pageDown()
 				case PageUpHalf:
-					e.buffer.pageUpHalf()
+					e.window.pageUpHalf()
 				case PageDownHalf:
-					e.buffer.pageDownHalf()
+					e.window.pageDownHalf()
 				case PageTop:
-					e.buffer.pageTop()
+					e.window.pageTop()
 				case PageEnd:
-					e.buffer.pageEnd()
+					e.window.pageEnd()
 				default:
 					continue
 				}
@@ -97,16 +97,16 @@ func defaultKeyManager() *KeyManager {
 
 // Close terminates the editor.
 func (e *Editor) Close() error {
-	_ = e.buffer.Close()
+	_ = e.window.Close()
 	return e.ui.Close()
 }
 
 // Open opens a new file.
 func (e *Editor) Open(filename string) (err error) {
-	if e.buffer, err = NewBuffer(filename, 16); err != nil {
+	if e.window, err = NewWindow(filename, 16); err != nil {
 		return err
 	}
-	e.buffer.height = int64(e.ui.Height())
+	e.window.height = int64(e.ui.Height())
 	return nil
 }
 
@@ -119,7 +119,7 @@ func (e *Editor) Start() error {
 }
 
 func (e *Editor) redraw() error {
-	state, err := e.buffer.State()
+	state, err := e.window.State()
 	if err != nil {
 		return err
 	}

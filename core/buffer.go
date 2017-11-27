@@ -2,22 +2,11 @@ package core
 
 import (
 	"io"
-	"os"
-	"path/filepath"
-
-	"github.com/itchyny/bed/util"
 )
 
 // Buffer represents a buffer.
 type Buffer struct {
-	r        ReadSeekCloser
-	name     string
-	basename string
-	height   int64
-	width    int64
-	offset   int64
-	cursor   int64
-	length   int64
+	r ReadSeekCloser
 }
 
 // ReadSeekCloser is the interface that groups the basic Read, Seek and Close methods.
@@ -28,25 +17,11 @@ type ReadSeekCloser interface {
 }
 
 // NewBuffer creates a new buffer.
-func NewBuffer(name string, width int64) (*Buffer, error) {
-	file, err := os.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	b := &Buffer{
-		r:        file,
-		name:     name,
-		basename: filepath.Base(name),
-		width:    width,
-	}
-	b.length, err = b.r.Seek(0, io.SeekEnd)
-	if err != nil {
-		return nil, err
-	}
-	return b, err
+func NewBuffer(r ReadSeekCloser) *Buffer {
+	return &Buffer{r}
 }
 
-// Read reads the bytes.
+// Read reads bytes.
 func (b *Buffer) Read(p []byte) (int, error) {
 	return b.r.Read(p)
 }
@@ -61,146 +36,7 @@ func (b *Buffer) Close() error {
 	return b.r.Close()
 }
 
-func (b *Buffer) readBytes() (int, []byte, error) {
-	bytes := make([]byte, int(b.height*b.width))
-	_, err := b.Seek(b.offset, io.SeekStart)
-	if err != nil {
-		return 0, bytes, err
-	}
-	n, err := b.Read(bytes)
-	if err != nil && err != io.EOF {
-		return 0, bytes, err
-	}
-	return n, bytes, nil
-}
-
-// State returns the current state of the buffer.
-func (b *Buffer) State() (State, error) {
-	n, bytes, err := b.readBytes()
-	if err != nil {
-		return State{}, err
-	}
-	return State{
-		Name:   b.basename,
-		Width:  int(b.width),
-		Offset: b.offset,
-		Cursor: b.cursor,
-		Bytes:  bytes,
-		Size:   n,
-		Length: b.length,
-	}, nil
-}
-
-func (b *Buffer) cursorUp(count int64) {
-	b.cursor -= util.MinInt64(util.MaxInt64(count, 1), b.cursor/b.width) * b.width
-	if b.cursor < b.offset {
-		b.offset = b.cursor / b.width * b.width
-	}
-}
-
-func (b *Buffer) cursorDown(count int64) {
-	b.cursor += util.MinInt64(
-		util.MinInt64(util.MaxInt64(count, 1), (util.MaxInt64(b.length, 1)-1)/b.width-b.cursor/b.width)*b.width,
-		util.MaxInt64(b.length, 1)-1-b.cursor)
-	if b.cursor >= b.offset+b.height*b.width {
-		b.offset = (b.cursor - b.height*b.width + b.width) / b.width * b.width
-	}
-}
-
-func (b *Buffer) cursorLeft(count int64) {
-	b.cursor -= util.MinInt64(util.MaxInt64(count, 1), b.cursor%b.width)
-}
-
-func (b *Buffer) cursorRight(count int64) {
-	b.cursor += util.MinInt64(util.MinInt64(util.MaxInt64(count, 1), b.width-1-b.cursor%b.width), util.MaxInt64(b.length, 1)-1-b.cursor)
-}
-
-func (b *Buffer) cursorPrev(count int64) {
-	b.cursor -= util.MinInt64(util.MaxInt64(count, 1), b.cursor)
-	if b.cursor < b.offset {
-		b.offset = b.cursor / b.width * b.width
-	}
-}
-
-func (b *Buffer) cursorNext(count int64) {
-	b.cursor += util.MinInt64(util.MaxInt64(count, 1), util.MaxInt64(b.length, 1)-1-b.cursor)
-	if b.cursor >= b.offset+b.height*b.width {
-		b.offset = (b.cursor - b.height*b.width + b.width) / b.width * b.width
-	}
-}
-
-func (b *Buffer) cursorHead(_ int64) {
-	b.cursor -= b.cursor % b.width
-}
-
-func (b *Buffer) cursorEnd(count int64) {
-	b.cursor = util.MinInt64((b.cursor/b.width+util.MaxInt64(count, 1))*b.width-1, util.MaxInt64(b.length, 1)-1)
-	if b.cursor >= b.offset+b.height*b.width {
-		b.offset = (b.cursor - b.height*b.width + b.width) / b.width * b.width
-	}
-}
-
-func (b *Buffer) scrollUp() {
-	if b.offset > 0 {
-		b.offset -= b.width
-	}
-	if b.cursor >= b.offset+b.height*b.width {
-		b.cursor -= b.width
-	}
-}
-
-func (b *Buffer) scrollDown() {
-	offset := util.MaxInt64(((b.length+b.width-1)/b.width-b.height)*b.width, 0)
-	b.offset = util.MinInt64(b.offset+b.width, offset)
-	if b.cursor < b.offset {
-		b.cursor += b.width
-	}
-}
-
-func (b *Buffer) pageUp() {
-	b.offset = util.MaxInt64(b.offset-(b.height-2)*b.width, 0)
-	if b.offset == 0 {
-		b.cursor = 0
-	} else if b.cursor >= b.offset+b.height*b.width {
-		b.cursor = b.offset + (b.height-1)*b.width
-	}
-}
-
-func (b *Buffer) pageDown() {
-	offset := util.MaxInt64(((b.length+b.width-1)/b.width-b.height)*b.width, 0)
-	b.offset = util.MinInt64(b.offset+(b.height-2)*b.width, offset)
-	if b.cursor < b.offset {
-		b.cursor = b.offset
-	} else if b.offset == offset {
-		b.cursor = ((util.MaxInt64(b.length, 1)+b.width-1)/b.width - 1) * b.width
-	}
-}
-
-func (b *Buffer) pageUpHalf() {
-	b.offset = util.MaxInt64(b.offset-util.MaxInt64(b.height/2, 1)*b.width, 0)
-	if b.offset == 0 {
-		b.cursor = 0
-	} else if b.cursor >= b.offset+b.height*b.width {
-		b.cursor = b.offset + (b.height-1)*b.width
-	}
-}
-
-func (b *Buffer) pageDownHalf() {
-	offset := util.MaxInt64(((b.length+b.width-1)/b.width-b.height)*b.width, 0)
-	b.offset = util.MinInt64(b.offset+util.MaxInt64(b.height/2, 1)*b.width, offset)
-	if b.cursor < b.offset {
-		b.cursor = b.offset
-	} else if b.offset == offset {
-		b.cursor = ((util.MaxInt64(b.length, 1)+b.width-1)/b.width - 1) * b.width
-	}
-}
-
-func (b *Buffer) pageTop() {
-	b.offset = 0
-	b.cursor = 0
-}
-
-func (b *Buffer) pageEnd() {
-	b.offset = util.MaxInt64(((b.length+b.width-1)/b.width-b.height)*b.width, 0)
-	b.cursor = ((util.MaxInt64(b.length, 1)+b.width-1)/b.width - 1) * b.width
+// Len returns the total size of the buffer.
+func (b *Buffer) Len() (int64, error) {
+	return b.r.Seek(0, io.SeekEnd)
 }
