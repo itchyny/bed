@@ -124,20 +124,18 @@ func (w *Window) cursorEnd(count int64) {
 	}
 }
 
-func (w *Window) scrollUp() {
-	if w.offset > 0 {
-		w.offset -= w.width
-	}
+func (w *Window) scrollUp(count int64) {
+	w.offset -= util.MinInt64(util.MaxInt64(count, 1), w.offset/w.width) * w.width
 	if w.cursor >= w.offset+w.height*w.width {
-		w.cursor -= w.width
+		w.cursor -= ((w.cursor-w.offset-w.height*w.width)/w.width + 1) * w.width
 	}
 }
 
-func (w *Window) scrollDown() {
-	offset := util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
-	w.offset = util.MinInt64(w.offset+w.width, offset)
+func (w *Window) scrollDown(count int64) {
+	h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+	w.offset += util.MinInt64(util.MaxInt64(count, 1), h-w.offset/w.width) * w.width
 	if w.cursor < w.offset {
-		w.cursor += w.width
+		w.cursor += util.MinInt64((w.offset-w.cursor+w.width-1)/w.width*w.width, util.MaxInt64(w.length, 1)-1-w.cursor)
 	}
 }
 

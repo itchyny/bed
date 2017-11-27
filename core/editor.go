@@ -40,9 +40,9 @@ func (e *Editor) Init() error {
 				case CursorEnd:
 					e.window.cursorEnd(event.Count)
 				case ScrollUp:
-					e.window.scrollUp()
+					e.window.scrollUp(event.Count)
 				case ScrollDown:
-					e.window.scrollDown()
+					e.window.scrollDown(event.Count)
 				case PageUp:
 					e.window.pageUp()
 				case PageDown:
