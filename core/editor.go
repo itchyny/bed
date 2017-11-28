@@ -103,7 +103,9 @@ func defaultKeyManager() *KeyManager {
 
 // Close terminates the editor.
 func (e *Editor) Close() error {
-	_ = e.window.Close()
+	if e.window != nil {
+		_ = e.window.Close()
+	}
 	return e.ui.Close()
 }
 

@@ -79,6 +79,9 @@ func (w *Window) State() (State, error) {
 
 // Close the window.
 func (w *Window) Close() error {
+	if w.buffer == nil {
+		return nil
+	}
 	return w.buffer.Close()
 }
 
