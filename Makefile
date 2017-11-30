@@ -1,6 +1,6 @@
 BIN = bed
 
-all: clean lint build test
+all: clean build
 
 build: deps
 	go build -o build/$(BIN) ./cmd/...
