@@ -6,12 +6,13 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/itchyny/bed/buffer"
 	"github.com/itchyny/bed/util"
 )
 
 // Window represents an editor window.
 type Window struct {
-	buffer   *Buffer
+	buffer   *buffer.Buffer
 	name     string
 	basename string
 	height   int64
@@ -33,7 +34,7 @@ func NewWindow(name string, width int64) (*Window, error) {
 	if err != nil {
 		return nil, err
 	}
-	buffer := NewBuffer(file)
+	buffer := buffer.NewBuffer(file)
 	length, err := buffer.Len()
 	if err != nil {
 		return nil, err
