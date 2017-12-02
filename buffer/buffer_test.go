@@ -103,10 +103,7 @@ func TestBuffer(t *testing.T) {
 func TestBufferInsertHead(t *testing.T) {
 	b := NewBuffer(newStringReader("0123456789abcdef"))
 
-	err := b.Insert(0, 0x39)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Insert(0, 0x39)
 
 	p := make([]byte, 8)
 	n, err := b.Read(p)
@@ -120,7 +117,7 @@ func TestBufferInsertHead(t *testing.T) {
 		t.Errorf("p should be 90123456 but got: %s", string(p))
 	}
 
-	err = b.Insert(0, 0x38)
+	b.Insert(0, 0x38)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -158,12 +155,9 @@ func TestBufferInsertMiddle(t *testing.T) {
 	b := NewBuffer(newStringReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
-	err := b.Insert(4, 0x37)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Insert(4, 0x37)
 
-	_, err = b.Seek(0, io.SeekStart)
+	_, err := b.Seek(0, io.SeekStart)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -179,10 +173,7 @@ func TestBufferInsertMiddle(t *testing.T) {
 		t.Errorf("p should be 01237456 but got: %s", string(p))
 	}
 
-	err = b.Insert(8, 0x30)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Insert(8, 0x30)
 
 	_, err = b.Seek(3, io.SeekStart)
 	if err != nil {
@@ -200,10 +191,7 @@ func TestBufferInsertMiddle(t *testing.T) {
 		t.Errorf("p should be 37456078 but got: %s", string(p))
 	}
 
-	err = b.Insert(9, 0x31)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Insert(9, 0x31)
 
 	_, err = b.Seek(3, io.SeekStart)
 	if err != nil {
@@ -221,10 +209,7 @@ func TestBufferInsertMiddle(t *testing.T) {
 		t.Errorf("p should be 37456017 but got: %s", string(p))
 	}
 
-	err = b.Insert(9, 0x32)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Insert(9, 0x32)
 
 	_, err = b.Seek(4, io.SeekStart)
 	if err != nil {
@@ -259,12 +244,9 @@ func TestBufferInsertLast(t *testing.T) {
 	b := NewBuffer(newStringReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
-	err := b.Insert(16, 0x39)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Insert(16, 0x39)
 
-	_, err = b.Seek(9, io.SeekStart)
+	_, err := b.Seek(9, io.SeekStart)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -297,10 +279,7 @@ func TestBufferReplace(t *testing.T) {
 	b := NewBuffer(newStringReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
-	err := b.Replace(4, 0x39)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Replace(4, 0x39)
 
 	n, err := b.Read(p)
 	if err != nil {
@@ -313,10 +292,7 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 01239567 but got: %s", string(p))
 	}
 
-	err = b.Replace(0, 0x38)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Replace(0, 0x38)
 
 	_, err = b.Seek(0, io.SeekStart)
 	if err != nil {
@@ -334,10 +310,7 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 81239567 but got: %s", string(p))
 	}
 
-	err = b.Replace(0, 0x37)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Replace(0, 0x37)
 
 	_, err = b.Seek(0, io.SeekStart)
 	if err != nil {
@@ -355,10 +328,7 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 71239567 but got: %s", string(p))
 	}
 
-	err = b.Replace(5, 0x30)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Replace(5, 0x30)
 
 	_, err = b.Seek(3, io.SeekStart)
 	if err != nil {
@@ -376,10 +346,7 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 3906789a but got: %s", string(p))
 	}
 
-	err = b.Replace(5, 0x31)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Replace(5, 0x31)
 
 	_, err = b.Seek(3, io.SeekStart)
 	if err != nil {
@@ -397,10 +364,7 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 3916789a but got: %s", string(p))
 	}
 
-	err = b.Replace(3, 0x30)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	b.Replace(3, 0x30)
 
 	_, err = b.Seek(2, io.SeekStart)
 	if err != nil {

@@ -97,7 +97,7 @@ func (b *Buffer) Len() (int64, error) {
 }
 
 // Insert inserts a byte at the specific position.
-func (b *Buffer) Insert(offset int64, c byte) error {
+func (b *Buffer) Insert(offset int64, c byte) {
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -113,7 +113,7 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 						b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 						b.rrs[i].diff--
 					}
-					return nil
+					return
 				}
 			}
 			switch r := rr.r.(type) {
@@ -125,7 +125,7 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 					b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 					b.rrs[i].diff--
 				}
-				return nil
+				return
 			}
 			b.rrs = append(b.rrs, readerRange{})
 			copy(b.rrs[i+1:], b.rrs[i:])
@@ -135,7 +135,7 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 				b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 				b.rrs[i].diff--
 			}
-			return nil
+			return
 		}
 		switch r := rr.r.(type) {
 		case *bytesReader:
@@ -146,7 +146,7 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 				b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 				b.rrs[i].diff--
 			}
-			return nil
+			return
 		}
 		b.rrs = append(b.rrs, readerRange{})
 		b.rrs = append(b.rrs, readerRange{})
@@ -159,13 +159,13 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 			b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 			b.rrs[i].diff--
 		}
-		return nil
+		return
 	}
-	return nil
+	panic("unreachable")
 }
 
 // Replace replaces a byte at the specific position.
-func (b *Buffer) Replace(offset int64, c byte) error {
+func (b *Buffer) Replace(offset int64, c byte) {
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -177,24 +177,24 @@ func (b *Buffer) Replace(offset int64, c byte) error {
 					r.appendByte(c)
 					b.rrs[i-1].max++
 					b.rrs[i].min++
-					return nil
+					return
 				}
 			}
 			switch r := rr.r.(type) {
 			case *bytesReader:
 				r.replaceByte(0, c)
-				return nil
+				return
 			}
 			b.rrs = append(b.rrs, readerRange{})
 			copy(b.rrs[i+1:], b.rrs[i:])
 			b.rrs[i] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
 			b.rrs[i+1].min++
-			return nil
+			return
 		}
 		switch r := rr.r.(type) {
 		case *bytesReader:
 			r.replaceByte(offset+rr.diff, c)
-			return nil
+			return
 		}
 		if offset == rr.max-1 {
 			if i < len(b.rrs)-1 {
@@ -204,14 +204,14 @@ func (b *Buffer) Replace(offset int64, c byte) error {
 					b.rrs[i].max--
 					b.rrs[i+1].min--
 					b.rrs[i+1].diff++
-					return nil
+					return
 				}
 			}
 			b.rrs = append(b.rrs, readerRange{})
 			copy(b.rrs[i+1:], b.rrs[i:])
 			b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 			b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-			return nil
+			return
 		}
 		b.rrs = append(b.rrs, readerRange{})
 		b.rrs = append(b.rrs, readerRange{})
@@ -219,7 +219,7 @@ func (b *Buffer) Replace(offset int64, c byte) error {
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
 		b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
-		return nil
+		return
 	}
-	return nil
+	panic("unreachable")
 }
