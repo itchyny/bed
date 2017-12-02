@@ -22,6 +22,7 @@ type Window struct {
 	length      int64
 	stack       []position
 	mode        Mode
+	append      bool
 	pending     bool
 	pendingByte byte
 }
@@ -252,12 +253,32 @@ func (w *Window) jumpBack() {
 
 func (w *Window) startInsert() {
 	w.mode = ModeInsert
+	w.append = false
 	w.pending = false
+}
+
+func (w *Window) startAppend() {
+	w.mode = ModeInsert
+	w.append = true
+	w.pending = false
+	w.cursor++
+	if w.cursor == w.length {
+		w.length++
+	}
+	if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
 }
 
 func (w *Window) exitInsert() {
 	w.mode = ModeNormal
 	w.pending = false
+	if w.append {
+		if w.cursor == w.length-1 {
+			w.length--
+		}
+		w.cursor--
+	}
 }
 
 func (w *Window) insert(b byte) {

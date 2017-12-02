@@ -61,6 +61,8 @@ func (e *Editor) Init() error {
 					e.window.jumpBack()
 				case StartInsert:
 					e.window.startInsert()
+				case StartAppend:
+					e.window.startAppend()
 				case ExitInsert:
 					e.window.exitInsert()
 				case Insert0:
@@ -136,6 +138,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(JumpTo, "c-]")
 	km.Register(JumpBack, "c-t")
 	km.Register(StartInsert, "i")
+	km.Register(StartAppend, "a")
 	kms[ModeNormal] = km
 
 	km = NewKeyManager(false)
