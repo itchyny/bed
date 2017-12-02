@@ -257,6 +257,13 @@ func (w *Window) startInsert() {
 	w.pending = false
 }
 
+func (w *Window) startInsertHead() {
+	w.cursorHead(0)
+	w.mode = ModeInsert
+	w.append = false
+	w.pending = false
+}
+
 func (w *Window) startAppend() {
 	w.mode = ModeInsert
 	w.append = true

@@ -33,6 +33,7 @@ const (
 	JumpBack
 
 	StartInsert
+	StartInsertHead
 	StartAppend
 	ExitInsert
 	Insert0
