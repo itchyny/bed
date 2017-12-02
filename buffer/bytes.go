@@ -50,3 +50,7 @@ func (r *bytesReader) insertByte(offset int64, b byte) {
 func (r *bytesReader) appendByte(b byte) {
 	r.bs = append(r.bs, b)
 }
+
+func (r *bytesReader) replaceByte(offset int64, b byte) {
+	r.bs[offset] = b
+}
