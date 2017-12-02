@@ -355,6 +355,27 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 71239567 but got: %s", string(p))
 	}
 
+	err = b.Replace(5, 0x30)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	_, err = b.Seek(3, io.SeekStart)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "3906789a" {
+		t.Errorf("p should be 3906789a but got: %s", string(p))
+	}
+
 	l, err := b.Len()
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
