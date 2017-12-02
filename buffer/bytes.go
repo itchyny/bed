@@ -1,17 +1,52 @@
 package buffer
 
 import (
-	"bytes"
+	"io"
 )
 
 type bytesReader struct {
-	*bytes.Reader
+	bs    []byte
+	index int64
 }
 
-func NewBytesReader(bs []byte) *bytesReader {
-	return &bytesReader{bytes.NewReader(bs)}
+func newBytesReader(bs []byte) *bytesReader {
+	return &bytesReader{bs: bs, index: 0}
 }
 
-func (b *bytesReader) Close() error {
+// Read implements the io.Reader interface.
+func (r *bytesReader) Read(b []byte) (n int, err error) {
+	if r.index >= int64(len(r.bs)) {
+		return 0, io.EOF
+	}
+	n = copy(b, r.bs[r.index:])
+	r.index += int64(n)
+	return
+}
+
+// Seek implements the io.Seeker interface.
+func (r *bytesReader) Seek(offset int64, whence int) (int64, error) {
+	switch whence {
+	case io.SeekStart:
+		r.index = offset
+	case io.SeekCurrent:
+		r.index += offset
+	case io.SeekEnd:
+		r.index = int64(len(r.bs)) + offset
+	}
+	return r.index, nil
+}
+
+// Close implements the io.Closer interface.
+func (r *bytesReader) Close() error {
 	return nil
+}
+
+func (r *bytesReader) prependByte(b byte) {
+	r.bs = append(r.bs, 0)
+	copy(r.bs[1:], r.bs)
+	r.bs[0] = b
+}
+
+func (r *bytesReader) appendByte(b byte) {
+	r.bs = append(r.bs, b)
 }

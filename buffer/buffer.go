@@ -102,9 +102,33 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 			continue
 		}
 		if offset == rr.min {
+			if i > 0 {
+				switch r := b.rrs[i-1].r.(type) {
+				case *bytesReader:
+					r.appendByte(c)
+					b.rrs[i-1].max += 1
+					for ; i < len(b.rrs); i++ {
+						b.rrs[i].min += 1
+						b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+						b.rrs[i].diff -= 1
+					}
+					return nil
+				}
+			}
+			switch r := rr.r.(type) {
+			case *bytesReader:
+				r.prependByte(c)
+				b.rrs[i].max += 1
+				for i++; i < len(b.rrs); i++ {
+					b.rrs[i].min += 1
+					b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+					b.rrs[i].diff -= 1
+				}
+				return nil
+			}
 			b.rrs = append(b.rrs, readerRange{})
 			copy(b.rrs[i+1:], b.rrs[i:])
-			b.rrs[i] = readerRange{NewBytesReader([]byte{c}), offset, offset + 1, -offset}
+			b.rrs[i] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
 			for i++; i < len(b.rrs); i++ {
 				b.rrs[i].min += 1
 				b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
@@ -116,7 +140,7 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 		b.rrs = append(b.rrs, readerRange{})
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
-		b.rrs[i+1] = readerRange{NewBytesReader([]byte{c}), offset, offset + 1, -offset}
+		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
 		b.rrs[i+2] = readerRange{rr.r, offset + 1, util.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
 		for i = i + 3; i < len(b.rrs); i++ {
 			b.rrs[i].min += 1
