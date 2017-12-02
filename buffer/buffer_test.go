@@ -382,6 +382,29 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("p should be 20916789 but got: %s", string(p))
 	}
 
+	if len(b.rrs) != 4 {
+		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+	}
+
+	b.Replace(1, 0x36)
+	b.Replace(2, 0x35)
+
+	_, err = b.Seek(0, io.SeekStart)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "76509167" {
+		t.Errorf("p should be 76509167 but got: %s", string(p))
+	}
+
 	l, err := b.Len()
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -390,7 +413,7 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("l should be 17 but got: %d", l)
 	}
 
-	if len(b.rrs) != 4 {
-		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+	if len(b.rrs) != 2 {
+		t.Errorf("len(b.rrs) should be 2 but got: %d", len(b.rrs))
 	}
 }
