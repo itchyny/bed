@@ -72,14 +72,16 @@ func (w *Window) State() (State, error) {
 		return State{}, err
 	}
 	return State{
-		Name:   w.basename,
-		Width:  int(w.width),
-		Offset: w.offset,
-		Cursor: w.cursor,
-		Bytes:  bytes,
-		Size:   n,
-		Length: w.length,
-		Mode:   w.mode,
+		Name:        w.basename,
+		Width:       int(w.width),
+		Offset:      w.offset,
+		Cursor:      w.cursor,
+		Bytes:       bytes,
+		Size:        n,
+		Length:      w.length,
+		Mode:        w.mode,
+		Pending:     w.pending,
+		PendingByte: w.pendingByte,
 	}, nil
 }
 
@@ -261,7 +263,7 @@ func (w *Window) exitInsert() {
 func (w *Window) insert(b byte) {
 	if w.pending {
 		w.pending = false
-		w.buffer.Insert(w.cursor, w.pendingByte<<4|b)
+		w.buffer.Insert(w.cursor, w.pendingByte|b)
 		w.cursor++
 		w.length++
 		if w.cursor >= w.offset+w.height*w.width {
@@ -269,7 +271,7 @@ func (w *Window) insert(b byte) {
 		}
 	} else {
 		w.pending = true
-		w.pendingByte = b
+		w.pendingByte = b << 4
 	}
 }
 

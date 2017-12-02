@@ -82,6 +82,7 @@ func (ui *Tui) Redraw(state core.State) error {
 	ui.setLine(0, 9, "|", termbox.AttrUnderline)
 	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
 	var attr termbox.Attribute
+	var k int
 	for i := 0; i < height; i++ {
 		if i == height-1 {
 			attr = termbox.AttrUnderline
@@ -90,13 +91,18 @@ func (ui *Tui) Redraw(state core.State) error {
 		fmt.Fprintf(w, "%08x |", state.Offset+int64(i*width))
 		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
-			k := i*width + j
 			if k >= state.Size {
 				fmt.Fprintf(w, "   ")
 				continue
 			}
+			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
+				fmt.Fprintf(w, " %02x", state.PendingByte)
+				buf[j] = prettyByte(state.PendingByte)
+				continue
+			}
 			fmt.Fprintf(w, " %02x", state.Bytes[k])
 			buf[j] = prettyByte(state.Bytes[k])
+			k++
 		}
 		fmt.Fprintf(w, " | %s\n", buf)
 		ui.setLine(i+1, 0, w.String(), attr)
@@ -110,9 +116,15 @@ func (ui *Tui) Redraw(state core.State) error {
 		attr = 0
 	}
 	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), termbox.AttrBold|attr)
-	ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[j]), termbox.AttrReverse|attr)
-	ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[j])}), termbox.AttrBold|attr)
-	termbox.SetCursor(3*i+11, cursorLine+1)
+	if state.Pending {
+		termbox.SetCursor(3*i+12, cursorLine+1)
+		ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.PendingByte), termbox.AttrReverse|attr)
+		ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.PendingByte)}), termbox.AttrBold|attr)
+	} else {
+		termbox.SetCursor(3*i+11, cursorLine+1)
+		ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[j]), termbox.AttrReverse|attr)
+		ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[j])}), termbox.AttrBold|attr)
+	}
 	ui.drawScrollBar(state, 4*width+14)
 	ui.drawFooter(state)
 	return termbox.Flush()
