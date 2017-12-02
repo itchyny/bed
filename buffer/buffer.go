@@ -66,11 +66,12 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	case io.SeekCurrent:
 		b.index += offset
 	case io.SeekEnd:
-		if l, err := b.Len(); err != nil {
+		var l int64
+		var err error
+		if l, err = b.Len(); err != nil {
 			return 0, err
-		} else {
-			b.index = l + offset
 		}
+		b.index = l + offset
 	}
 	return b.index, nil
 }
