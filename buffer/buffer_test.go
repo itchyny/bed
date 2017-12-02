@@ -6,20 +6,20 @@ import (
 	"testing"
 )
 
-type StringBuffer struct {
+type stringReader struct {
 	*strings.Reader
 }
 
-func NewStringBuffer(str string) *StringBuffer {
-	return &StringBuffer{strings.NewReader(str)}
+func NewStringReader(str string) *stringReader {
+	return &stringReader{strings.NewReader(str)}
 }
 
-func (b *StringBuffer) Close() error {
+func (b *stringReader) Close() error {
 	return nil
 }
 
 func TestBufferEmpty(t *testing.T) {
-	b := NewBuffer(NewStringBuffer(""))
+	b := NewBuffer(NewStringReader(""))
 
 	p := make([]byte, 10)
 	n, err := b.Read(p)
@@ -40,7 +40,7 @@ func TestBufferEmpty(t *testing.T) {
 }
 
 func TestBuffer(t *testing.T) {
-	b := NewBuffer(NewStringBuffer("0123456789abcdef"))
+	b := NewBuffer(NewStringReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
 	n, err := b.Read(p)
