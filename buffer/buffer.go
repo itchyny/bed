@@ -191,6 +191,11 @@ func (b *Buffer) Replace(offset int64, c byte) error {
 			b.rrs[i+1].min++
 			return nil
 		}
+		switch r := rr.r.(type) {
+		case *bytesReader:
+			r.replaceByte(offset+rr.diff, c)
+			return nil
+		}
 		b.rrs = append(b.rrs, readerRange{})
 		b.rrs = append(b.rrs, readerRange{})
 		copy(b.rrs[i+2:], b.rrs[i:])
