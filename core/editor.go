@@ -59,6 +59,10 @@ func (e *Editor) Init() error {
 					e.window.jumpTo()
 				case JumpBack:
 					e.window.jumpBack()
+				case StartInsert:
+					e.window.startInsert()
+				case ExitInsert:
+					e.window.exitInsert()
 				default:
 					continue
 				}
@@ -69,7 +73,8 @@ func (e *Editor) Init() error {
 	return nil
 }
 
-func defaultKeyManager() *KeyManager {
+func defaultKeyManagers() map[Mode]*KeyManager {
+	kms := make(map[Mode]*KeyManager)
 	km := NewKeyManager()
 	km.Register(CursorUp, "up")
 	km.Register(CursorDown, "down")
@@ -98,7 +103,14 @@ func defaultKeyManager() *KeyManager {
 	km.Register(PageEnd, "G")
 	km.Register(JumpTo, "c-]")
 	km.Register(JumpBack, "c-t")
-	return km
+	km.Register(StartInsert, "i")
+	kms[ModeNormal] = km
+
+	km = NewKeyManager()
+	km.Register(ExitInsert, "escape")
+	km.Register(ExitInsert, "c-c")
+	kms[ModeInsert] = km
+	return kms
 }
 
 // Close terminates the editor.
@@ -123,7 +135,7 @@ func (e *Editor) Start() error {
 	if err := e.redraw(); err != nil {
 		return err
 	}
-	return e.ui.Start(defaultKeyManager())
+	return e.ui.Start(defaultKeyManagers())
 }
 
 func (e *Editor) redraw() error {

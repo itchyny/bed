@@ -31,4 +31,7 @@ const (
 	PageEnd
 	JumpTo
 	JumpBack
+
+	StartInsert
+	ExitInsert
 )

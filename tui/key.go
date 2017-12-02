@@ -64,7 +64,7 @@ var keyMap = map[termbox.Key]core.Key{
 	termbox.KeyCtrlX:          core.Key("c-x"),
 	termbox.KeyCtrlY:          core.Key("c-y"),
 	termbox.KeyCtrlZ:          core.Key("c-z"),
-	termbox.KeyCtrlLsqBracket: core.Key("c-["),
+	termbox.KeyEsc:            core.Key("escape"),
 	termbox.KeyCtrl4:          core.Key("c-4"),
 	termbox.KeyCtrlRsqBracket: core.Key("c-]"),
 	termbox.KeyCtrl6:          core.Key("c-6"),

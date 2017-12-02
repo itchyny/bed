@@ -15,6 +15,7 @@ type Tui struct {
 	width  int
 	height int
 	ch     chan<- core.Event
+	mode   core.Mode
 }
 
 // NewTui creates a new Tui.
@@ -25,25 +26,26 @@ func NewTui() *Tui {
 // Init initializes the Tui.
 func (ui *Tui) Init(ch chan<- core.Event) error {
 	ui.ch = ch
+	ui.mode = core.ModeNormal
 	return termbox.Init()
 }
 
 // Start starts the Tui.
-func (ui *Tui) Start(km *core.KeyManager) error {
+func (ui *Tui) Start(kms map[core.Mode]*core.KeyManager) error {
 	events := make(chan termbox.Event)
 	go func() {
 		for {
 			events <- termbox.PollEvent()
 		}
 	}()
-	km.Register(core.Quit, "q")
-	km.Register(core.Quit, "c-c")
+	kms[core.ModeNormal].Register(core.Quit, "q")
+	kms[core.ModeNormal].Register(core.Quit, "c-c")
 loop:
 	for {
 		select {
 		case e := <-events:
 			if e.Type == termbox.EventKey {
-				if event := km.Press(eventToKey(e)); event.Type != core.Nop {
+				if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.Nop {
 					if event.Type == core.Quit {
 						break loop
 					}
@@ -71,6 +73,7 @@ func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute)
 
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state core.State) error {
+	ui.mode = state.Mode
 	height, width := ui.Height(), state.Width
 	ui.setLine(0, 0, strings.Repeat(" ", 4*width+15), termbox.AttrUnderline)
 	for i := 0; i < width; i++ {
@@ -134,8 +137,8 @@ func (ui *Tui) drawScrollBar(state core.State, offset int) {
 
 func (ui *Tui) drawFooter(state core.State) {
 	j := int(state.Cursor - state.Offset)
-	line := fmt.Sprintf("%s: %08x / %08x (%.2f%%) [0x%02x '%s']     ",
-		state.Name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
+	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']               ",
+		prettyMode(state.Mode), state.Name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.setLine(ui.Height()+1, 0, line, 0)
 }
@@ -173,6 +176,15 @@ func prettyRune(b byte) string {
 		return string(rune(b))
 	default:
 		return fmt.Sprintf("\\u%04x", b)
+	}
+}
+
+func prettyMode(mode core.Mode) string {
+	switch mode {
+	case core.ModeInsert:
+		return "[INSERT] "
+	default:
+		return ""
 	}
 }
 

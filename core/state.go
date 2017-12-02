@@ -9,4 +9,5 @@ type State struct {
 	Bytes  []byte
 	Size   int
 	Length int64
+	Mode   Mode
 }

@@ -21,6 +21,7 @@ type Window struct {
 	cursor   int64
 	length   int64
 	stack    []position
+	mode     Mode
 }
 
 type position struct {
@@ -45,6 +46,7 @@ func NewWindow(name string, width int64) (*Window, error) {
 		basename: filepath.Base(name),
 		width:    width,
 		length:   length,
+		mode:     ModeNormal,
 	}, nil
 }
 
@@ -75,6 +77,7 @@ func (w *Window) State() (State, error) {
 		Bytes:  bytes,
 		Size:   n,
 		Length: w.length,
+		Mode:   w.mode,
 	}, nil
 }
 
@@ -241,4 +244,12 @@ func (w *Window) jumpBack() {
 	w.cursor = w.stack[len(w.stack)-1].cursor
 	w.offset = w.stack[len(w.stack)-1].offset
 	w.stack = w.stack[:len(w.stack)-1]
+}
+
+func (w *Window) startInsert() {
+	w.mode = ModeInsert
+}
+
+func (w *Window) exitInsert() {
+	w.mode = ModeNormal
 }
