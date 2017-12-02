@@ -94,3 +94,36 @@ func (b *Buffer) Len() (int64, error) {
 	}
 	return l - rr.diff, nil
 }
+
+// Insert inserts a byte at the specific position.
+func (b *Buffer) Insert(offset int64, c byte) error {
+	for i, rr := range b.rrs {
+		if offset >= rr.max {
+			continue
+		}
+		if offset == rr.min {
+			b.rrs = append(b.rrs, readerRange{})
+			copy(b.rrs[i+1:], b.rrs[i:])
+			b.rrs[i] = readerRange{NewBytesReader([]byte{c}), offset, offset + 1, -offset}
+			for i++; i < len(b.rrs); i++ {
+				b.rrs[i].min += 1
+				b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+				b.rrs[i].diff -= 1
+			}
+			return nil
+		}
+		b.rrs = append(b.rrs, readerRange{})
+		b.rrs = append(b.rrs, readerRange{})
+		copy(b.rrs[i+2:], b.rrs[i:])
+		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
+		b.rrs[i+1] = readerRange{NewBytesReader([]byte{c}), offset, offset + 1, -offset}
+		b.rrs[i+2] = readerRange{rr.r, offset + 1, util.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
+		for i = i + 3; i < len(b.rrs); i++ {
+			b.rrs[i].min += 1
+			b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+			b.rrs[i].diff -= 1
+		}
+		return nil
+	}
+	return nil
+}
