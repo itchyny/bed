@@ -292,3 +292,78 @@ func TestBufferInsertLast(t *testing.T) {
 		t.Errorf("len(b.rrs) should be 3 but got: %d", len(b.rrs))
 	}
 }
+
+func TestBufferReplace(t *testing.T) {
+	b := NewBuffer(newStringReader("0123456789abcdef"))
+
+	p := make([]byte, 8)
+	err := b.Replace(4, 0x39)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err := b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "01239567" {
+		t.Errorf("p should be 01239567 but got: %s", string(p))
+	}
+
+	err = b.Replace(0, 0x38)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	_, err = b.Seek(0, io.SeekStart)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "81239567" {
+		t.Errorf("p should be 81239567 but got: %s", string(p))
+	}
+
+	err = b.Replace(0, 0x37)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	_, err = b.Seek(0, io.SeekStart)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "71239567" {
+		t.Errorf("p should be 71239567 but got: %s", string(p))
+	}
+
+	l, err := b.Len()
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if l != 16 {
+		t.Errorf("l should be 17 but got: %d", l)
+	}
+
+	if len(b.rrs) != 4 {
+		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+	}
+}
