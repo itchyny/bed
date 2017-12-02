@@ -163,3 +163,27 @@ func (b *Buffer) Insert(offset int64, c byte) error {
 	}
 	return nil
 }
+
+// Replace replaces a byte at the specific position.
+func (b *Buffer) Replace(offset int64, c byte) error {
+	for i, rr := range b.rrs {
+		if offset >= rr.max {
+			continue
+		}
+		if offset == rr.min {
+			b.rrs = append(b.rrs, readerRange{})
+			copy(b.rrs[i+1:], b.rrs[i:])
+			b.rrs[i] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
+			b.rrs[i+1].min++
+			return nil
+		}
+		b.rrs = append(b.rrs, readerRange{})
+		b.rrs = append(b.rrs, readerRange{})
+		copy(b.rrs[i+2:], b.rrs[i:])
+		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
+		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
+		b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+		return nil
+	}
+	return nil
+}
