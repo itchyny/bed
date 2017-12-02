@@ -12,16 +12,18 @@ import (
 
 // Window represents an editor window.
 type Window struct {
-	buffer   *buffer.Buffer
-	name     string
-	basename string
-	height   int64
-	width    int64
-	offset   int64
-	cursor   int64
-	length   int64
-	stack    []position
-	mode     Mode
+	buffer      *buffer.Buffer
+	name        string
+	basename    string
+	height      int64
+	width       int64
+	offset      int64
+	cursor      int64
+	length      int64
+	stack       []position
+	mode        Mode
+	pending     bool
+	pendingByte byte
 }
 
 type position struct {
@@ -248,8 +250,89 @@ func (w *Window) jumpBack() {
 
 func (w *Window) startInsert() {
 	w.mode = ModeInsert
+	w.pending = false
 }
 
 func (w *Window) exitInsert() {
 	w.mode = ModeNormal
+	w.pending = false
+}
+
+func (w *Window) insert(b byte) {
+	if w.pending {
+		w.pending = false
+		w.buffer.Insert(w.cursor, w.pendingByte<<4|b)
+		w.cursor++
+		w.length++
+		if w.cursor >= w.offset+w.height*w.width {
+			w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+		}
+	} else {
+		w.pending = true
+		w.pendingByte = b
+	}
+}
+
+func (w *Window) insert0() {
+	w.insert(0x00)
+}
+
+func (w *Window) insert1() {
+	w.insert(0x01)
+}
+
+func (w *Window) insert2() {
+	w.insert(0x02)
+}
+
+func (w *Window) insert3() {
+	w.insert(0x03)
+}
+
+func (w *Window) insert4() {
+	w.insert(0x04)
+}
+
+func (w *Window) insert5() {
+	w.insert(0x05)
+}
+
+func (w *Window) insert6() {
+	w.insert(0x06)
+}
+
+func (w *Window) insert7() {
+	w.insert(0x07)
+}
+
+func (w *Window) insert8() {
+	w.insert(0x08)
+}
+
+func (w *Window) insert9() {
+	w.insert(0x09)
+}
+
+func (w *Window) insertA() {
+	w.insert(0x0a)
+}
+
+func (w *Window) insertB() {
+	w.insert(0x0b)
+}
+
+func (w *Window) insertC() {
+	w.insert(0x0c)
+}
+
+func (w *Window) insertD() {
+	w.insert(0x0d)
+}
+
+func (w *Window) insertE() {
+	w.insert(0x0e)
+}
+
+func (w *Window) insertF() {
+	w.insert(0x0f)
 }

@@ -37,11 +37,12 @@ func (ke keyEvent) cmp(ks []Key) int {
 type KeyManager struct {
 	keys      []Key
 	keyEvents []keyEvent
+	count     bool
 }
 
 // NewKeyManager creates a new KeyManager.
-func NewKeyManager() *KeyManager {
-	return &KeyManager{}
+func NewKeyManager(count bool) *KeyManager {
+	return &KeyManager{count: count}
 }
 
 // Register adds a new key mapping.
@@ -54,16 +55,19 @@ func (km *KeyManager) Press(k Key) Event {
 	km.keys = append(km.keys, k)
 	for i := 0; i < len(km.keys); i++ {
 		keys := km.keys[i:]
-		numStr := ""
-		for j, k := range keys {
-			if len(k) == 1 && ('1' <= k[0] && k[0] <= '9' || k[0] == '0' && j > 0) {
-				numStr += string(k)
-			} else {
-				break
+		var count int64
+		if km.count {
+			numStr := ""
+			for j, k := range keys {
+				if len(k) == 1 && ('1' <= k[0] && k[0] <= '9' || k[0] == '0' && j > 0) {
+					numStr += string(k)
+				} else {
+					break
+				}
 			}
+			keys = keys[len(numStr):]
+			count, _ = strconv.ParseInt(numStr, 10, 64)
 		}
-		keys = keys[len(numStr):]
-		count, _ := strconv.ParseInt(numStr, 10, 64)
 		for _, ke := range km.keyEvents {
 			switch ke.cmp(keys) {
 			case keysPending:

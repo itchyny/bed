@@ -63,6 +63,38 @@ func (e *Editor) Init() error {
 					e.window.startInsert()
 				case ExitInsert:
 					e.window.exitInsert()
+				case Insert0:
+					e.window.insert0()
+				case Insert1:
+					e.window.insert1()
+				case Insert2:
+					e.window.insert2()
+				case Insert3:
+					e.window.insert3()
+				case Insert4:
+					e.window.insert4()
+				case Insert5:
+					e.window.insert5()
+				case Insert6:
+					e.window.insert6()
+				case Insert7:
+					e.window.insert7()
+				case Insert8:
+					e.window.insert8()
+				case Insert9:
+					e.window.insert9()
+				case InsertA:
+					e.window.insertA()
+				case InsertB:
+					e.window.insertB()
+				case InsertC:
+					e.window.insertC()
+				case InsertD:
+					e.window.insertD()
+				case InsertE:
+					e.window.insertE()
+				case InsertF:
+					e.window.insertF()
 				default:
 					continue
 				}
@@ -75,7 +107,7 @@ func (e *Editor) Init() error {
 
 func defaultKeyManagers() map[Mode]*KeyManager {
 	kms := make(map[Mode]*KeyManager)
-	km := NewKeyManager()
+	km := NewKeyManager(true)
 	km.Register(CursorUp, "up")
 	km.Register(CursorDown, "down")
 	km.Register(CursorLeft, "left")
@@ -106,9 +138,25 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(StartInsert, "i")
 	kms[ModeNormal] = km
 
-	km = NewKeyManager()
+	km = NewKeyManager(false)
 	km.Register(ExitInsert, "escape")
 	km.Register(ExitInsert, "c-c")
+	km.Register(Insert0, "0")
+	km.Register(Insert1, "1")
+	km.Register(Insert2, "2")
+	km.Register(Insert3, "3")
+	km.Register(Insert4, "4")
+	km.Register(Insert5, "5")
+	km.Register(Insert6, "6")
+	km.Register(Insert7, "7")
+	km.Register(Insert8, "8")
+	km.Register(Insert9, "9")
+	km.Register(InsertA, "a")
+	km.Register(InsertB, "b")
+	km.Register(InsertC, "c")
+	km.Register(InsertD, "d")
+	km.Register(InsertE, "e")
+	km.Register(InsertF, "f")
 	kms[ModeInsert] = km
 	return kms
 }

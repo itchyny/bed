@@ -3,7 +3,7 @@ package core
 import "testing"
 
 func TestKeyManagerPress(t *testing.T) {
-	km := NewKeyManager()
+	km := NewKeyManager(true)
 	km.Register(CursorUp, "k")
 	e := km.Press("k")
 	if e.Type != CursorUp {
@@ -16,7 +16,7 @@ func TestKeyManagerPress(t *testing.T) {
 }
 
 func TestKeyManagerPressMulti(t *testing.T) {
-	km := NewKeyManager()
+	km := NewKeyManager(true)
 	km.Register(CursorUp, "k", "k", "j")
 	km.Register(CursorDown, "k", "j", "j")
 	km.Register(CursorDown, "j", "k", "k")
@@ -39,7 +39,7 @@ func TestKeyManagerPressMulti(t *testing.T) {
 }
 
 func TestKeyManagerPressCount(t *testing.T) {
-	km := NewKeyManager()
+	km := NewKeyManager(true)
 	km.Register(CursorUp, "k", "j")
 	e := km.Press("k")
 	if e.Type != Nop {

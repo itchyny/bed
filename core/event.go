@@ -34,4 +34,20 @@ const (
 
 	StartInsert
 	ExitInsert
+	Insert0
+	Insert1
+	Insert2
+	Insert3
+	Insert4
+	Insert5
+	Insert6
+	Insert7
+	Insert8
+	Insert9
+	InsertA
+	InsertB
+	InsertC
+	InsertD
+	InsertE
+	InsertF
 )
