@@ -171,6 +171,15 @@ func (b *Buffer) Replace(offset int64, c byte) error {
 			continue
 		}
 		if offset == rr.min {
+			if i > 0 {
+				switch r := b.rrs[i-1].r.(type) {
+				case *bytesReader:
+					r.appendByte(c)
+					b.rrs[i-1].max++
+					b.rrs[i].min++
+					return nil
+				}
+			}
 			switch r := rr.r.(type) {
 			case *bytesReader:
 				r.replaceByte(0, c)
