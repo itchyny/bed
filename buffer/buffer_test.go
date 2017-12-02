@@ -149,8 +149,8 @@ func TestBufferInsertHead(t *testing.T) {
 		t.Errorf("l should be 18 but got: %d", l)
 	}
 
-	if len(b.rrs) != 3 {
-		t.Errorf("len(b.rrs) should be 3 but got: %d", len(b.rrs))
+	if len(b.rrs) != 2 {
+		t.Errorf("len(b.rrs) should be 2 but got: %d", len(b.rrs))
 	}
 }
 
@@ -200,12 +200,33 @@ func TestBufferInsertMiddle(t *testing.T) {
 		t.Errorf("p should be 37456078 but got: %s", string(p))
 	}
 
+	err = b.Insert(9, 0x31)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	_, err = b.Seek(3, io.SeekStart)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "37456017" {
+		t.Errorf("p should be 37456017 but got: %s", string(p))
+	}
+
 	l, err := b.Len()
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if l != 18 {
-		t.Errorf("l should be 18 but got: %d", l)
+	if l != 19 {
+		t.Errorf("l should be 19 but got: %d", l)
 	}
 
 	if len(b.rrs) != 5 {
