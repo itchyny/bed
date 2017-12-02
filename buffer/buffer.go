@@ -3,6 +3,8 @@ package buffer
 import (
 	"io"
 	"math"
+
+	"github.com/itchyny/bed/util"
 )
 
 // Buffer represents a buffer.
@@ -34,11 +36,26 @@ func NewBuffer(r ReadSeekCloser) *Buffer {
 }
 
 // Read reads bytes.
-func (b *Buffer) Read(p []byte) (int, error) {
-	if _, err := b.rrs[0].r.Seek(b.index, io.SeekStart); err != nil {
-		return 0, err
+func (b *Buffer) Read(p []byte) (i int, err error) {
+	for _, rr := range b.rrs {
+		if b.index < rr.min {
+			break
+		}
+		if b.index >= rr.max {
+			continue
+		}
+		if _, err = rr.r.Seek(b.index+rr.diff, io.SeekStart); err != nil {
+			return
+		}
+		m := int(util.MinInt64(int64(len(p)-i), rr.max-b.index))
+		var k int
+		if k, err = rr.r.Read(p[i : i+m]); err != nil {
+			return
+		}
+		b.index += int64(m)
+		i += k
 	}
-	return b.rrs[0].r.Read(p)
+	return
 }
 
 // Seek sets the offset.
