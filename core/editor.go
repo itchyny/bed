@@ -114,6 +114,7 @@ func (e *Editor) Init() error {
 func defaultKeyManagers() map[Mode]*KeyManager {
 	kms := make(map[Mode]*KeyManager)
 	km := NewKeyManager(true)
+	km.Register(Quit, "Z", "Q")
 	km.Register(CursorUp, "up")
 	km.Register(CursorDown, "down")
 	km.Register(CursorLeft, "left")
