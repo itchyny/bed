@@ -23,6 +23,7 @@ type Window struct {
 	stack       []position
 	mode        Mode
 	append      bool
+	replaceByte bool
 	extending   bool
 	pending     bool
 	pendingByte byte
@@ -285,6 +286,22 @@ func (w *Window) startAppendEnd() {
 	w.startAppend()
 }
 
+func (w *Window) startReplaceByte() {
+	w.mode = ModeReplace
+	w.replaceByte = true
+	w.append = false
+	w.extending = false
+	w.pending = false
+}
+
+func (w *Window) startReplace() {
+	w.mode = ModeReplace
+	w.replaceByte = false
+	w.append = false
+	w.extending = false
+	w.pending = false
+}
+
 func (w *Window) exitInsert() {
 	w.mode = ModeNormal
 	w.pending = false
@@ -299,9 +316,24 @@ func (w *Window) exitInsert() {
 func (w *Window) insert(b byte) {
 	if w.pending {
 		w.pending = false
-		w.buffer.Insert(w.cursor, w.pendingByte|b)
-		w.cursor++
-		w.length++
+		switch w.mode {
+		case ModeInsert:
+			w.buffer.Insert(w.cursor, w.pendingByte|b)
+			w.cursor++
+			w.length++
+		case ModeReplace:
+			w.buffer.Replace(w.cursor, w.pendingByte|b)
+			if w.replaceByte {
+				w.exitInsert()
+			} else {
+				w.cursor++
+				if w.cursor == w.length {
+					w.append = true
+					w.extending = true
+					w.length++
+				}
+			}
+		}
 		if w.cursor >= w.offset+w.height*w.width {
 			w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 		}

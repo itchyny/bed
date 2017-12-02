@@ -7,4 +7,5 @@ type Mode int
 const (
 	ModeNormal = iota
 	ModeInsert
+	ModeReplace
 )

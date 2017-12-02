@@ -67,6 +67,10 @@ func (e *Editor) Init() error {
 					e.window.startAppend()
 				case StartAppendEnd:
 					e.window.startAppendEnd()
+				case StartReplaceByte:
+					e.window.startReplaceByte()
+				case StartReplace:
+					e.window.startReplace()
 				case ExitInsert:
 					e.window.exitInsert()
 				case Insert0:
@@ -146,6 +150,8 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(StartInsertHead, "I")
 	km.Register(StartAppend, "a")
 	km.Register(StartAppendEnd, "A")
+	km.Register(StartReplaceByte, "r")
+	km.Register(StartReplace, "R")
 	kms[ModeNormal] = km
 
 	km = NewKeyManager(false)
@@ -176,6 +182,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(InsertE, "e")
 	km.Register(InsertF, "f")
 	kms[ModeInsert] = km
+	kms[ModeReplace] = km
 	return kms
 }
 

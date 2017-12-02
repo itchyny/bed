@@ -36,6 +36,8 @@ const (
 	StartInsertHead
 	StartAppend
 	StartAppendEnd
+	StartReplaceByte
+	StartReplace
 	ExitInsert
 	Insert0
 	Insert1

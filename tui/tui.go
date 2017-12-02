@@ -98,6 +98,9 @@ func (ui *Tui) Redraw(state core.State) error {
 			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
 				fmt.Fprintf(w, " %02x", state.PendingByte)
 				buf[j] = prettyByte(state.PendingByte)
+				if state.Mode == core.ModeReplace {
+					k++
+				}
 				continue
 			}
 			fmt.Fprintf(w, " %02x", state.Bytes[k])
@@ -195,6 +198,8 @@ func prettyMode(mode core.Mode) string {
 	switch mode {
 	case core.ModeInsert:
 		return "[INSERT] "
+	case core.ModeReplace:
+		return "[REPLACE] "
 	default:
 		return ""
 	}
