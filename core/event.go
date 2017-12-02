@@ -35,6 +35,7 @@ const (
 	StartInsert
 	StartInsertHead
 	StartAppend
+	StartAppendEnd
 	ExitInsert
 	Insert0
 	Insert1

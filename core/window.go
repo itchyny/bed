@@ -23,6 +23,7 @@ type Window struct {
 	stack       []position
 	mode        Mode
 	append      bool
+	extending   bool
 	pending     bool
 	pendingByte byte
 }
@@ -267,9 +268,11 @@ func (w *Window) startInsertHead() {
 func (w *Window) startAppend() {
 	w.mode = ModeInsert
 	w.append = true
+	w.extending = false
 	w.pending = false
 	w.cursor++
 	if w.cursor == w.length {
+		w.extending = true
 		w.length++
 	}
 	if w.cursor >= w.offset+w.height*w.width {
@@ -277,11 +280,16 @@ func (w *Window) startAppend() {
 	}
 }
 
+func (w *Window) startAppendEnd() {
+	w.cursorEnd(0)
+	w.startAppend()
+}
+
 func (w *Window) exitInsert() {
 	w.mode = ModeNormal
 	w.pending = false
 	if w.append {
-		if w.cursor == w.length-1 {
+		if w.extending {
 			w.length--
 		}
 		w.cursor--
