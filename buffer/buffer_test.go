@@ -221,12 +221,33 @@ func TestBufferInsertMiddle(t *testing.T) {
 		t.Errorf("p should be 37456017 but got: %s", string(p))
 	}
 
+	err = b.Insert(9, 0x32)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	_, err = b.Seek(4, io.SeekStart)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "74560217" {
+		t.Errorf("p should be 74560217 but got: %s", string(p))
+	}
+
 	l, err := b.Len()
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if l != 19 {
-		t.Errorf("l should be 19 but got: %d", l)
+	if l != 20 {
+		t.Errorf("l should be 20 but got: %d", l)
 	}
 
 	if len(b.rrs) != 5 {

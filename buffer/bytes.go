@@ -41,10 +41,10 @@ func (r *bytesReader) Close() error {
 	return nil
 }
 
-func (r *bytesReader) prependByte(b byte) {
+func (r *bytesReader) insertByte(offset int64, b byte) {
 	r.bs = append(r.bs, 0)
-	copy(r.bs[1:], r.bs)
-	r.bs[0] = b
+	copy(r.bs[offset+1:], r.bs[offset:])
+	r.bs[offset] = b
 }
 
 func (r *bytesReader) appendByte(b byte) {
