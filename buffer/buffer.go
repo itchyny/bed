@@ -196,6 +196,23 @@ func (b *Buffer) Replace(offset int64, c byte) error {
 			r.replaceByte(offset+rr.diff, c)
 			return nil
 		}
+		if offset == rr.max-1 {
+			if i < len(b.rrs)-1 {
+				switch r := b.rrs[i+1].r.(type) {
+				case *bytesReader:
+					r.insertByte(0, c)
+					b.rrs[i].max--
+					b.rrs[i+1].min--
+					b.rrs[i+1].diff++
+					return nil
+				}
+			}
+			b.rrs = append(b.rrs, readerRange{})
+			copy(b.rrs[i+1:], b.rrs[i:])
+			b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
+			b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
+			return nil
+		}
 		b.rrs = append(b.rrs, readerRange{})
 		b.rrs = append(b.rrs, readerRange{})
 		copy(b.rrs[i+2:], b.rrs[i:])
