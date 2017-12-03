@@ -204,3 +204,68 @@ func TestBufferReplace(t *testing.T) {
 		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
 	}
 }
+
+func TestBufferDelete(t *testing.T) {
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
+
+	tests := []struct {
+		index    int64
+		b        byte
+		offset   int64
+		expected string
+		len      int64
+	}{
+		{4, 0x00, 0, "01235678", 15},
+		{3, 0x00, 0, "01256789", 14},
+		{6, 0x00, 0, "0125679a", 13},
+		{0, 0x00, 0, "125679ab", 12},
+		{4, 0x39, 0, "1256979a", 13},
+		{5, 0x38, 0, "12569879", 14},
+		{3, 0x00, 0, "1259879a", 13},
+		{4, 0x00, 0, "125979ab", 12},
+		{3, 0x00, 0, "12579abc", 11},
+	}
+
+	for _, test := range tests {
+		if test.b == 0x00 {
+			b.Delete(test.index)
+		} else {
+			b.Insert(test.index, test.b)
+		}
+		p := make([]byte, 8)
+
+		_, err := b.Seek(test.offset, io.SeekStart)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+
+		n, err := b.Read(p)
+		if err != nil && err != io.EOF {
+			t.Errorf("err should be nil or io.EOF but got: %v", err)
+		}
+		if n != 8 {
+			t.Errorf("n should be 8 but got: %d", n)
+		}
+		if string(p) != test.expected {
+			t.Errorf("p should be %s but got: %s", test.expected, string(p))
+		}
+
+		l, err := b.Len()
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if l != test.len {
+			t.Errorf("l should be %d but got: %d", test.len, l)
+		}
+	}
+
+	eis := b.EditedIndices()
+	expected := []int64{}
+	if !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
+	}
+
+	if len(b.rrs) != 4 {
+		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+	}
+}
