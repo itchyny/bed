@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -87,28 +86,26 @@ func (ui *Tui) Redraw(state core.State) error {
 		if i == height-1 {
 			attr = termbox.AttrUnderline
 		}
-		w := new(bytes.Buffer)
-		fmt.Fprintf(w, "%08x |", state.Offset+int64(i*width))
+		ui.setLine(i+1, 0, fmt.Sprintf("%08x |", state.Offset+int64(i*width)), attr)
 		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
 			if k >= state.Size {
-				fmt.Fprintf(w, "   ")
+				ui.setLine(i+1, 3*j+10, "   ", attr)
 				continue
 			}
 			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
-				fmt.Fprintf(w, " %02x", state.PendingByte)
+				ui.setLine(i+1, 3*j+10, fmt.Sprintf(" %02x", state.PendingByte), attr)
 				buf[j] = prettyByte(state.PendingByte)
 				if state.Mode == core.ModeReplace {
 					k++
 				}
 				continue
 			}
-			fmt.Fprintf(w, " %02x", state.Bytes[k])
+			ui.setLine(i+1, 3*j+10, fmt.Sprintf(" %02x", state.Bytes[k]), attr)
 			buf[j] = prettyByte(state.Bytes[k])
 			k++
 		}
-		fmt.Fprintf(w, " | %s\n", buf)
-		ui.setLine(i+1, 0, w.String(), attr)
+		ui.setLine(i+1, 3*width+10, fmt.Sprintf(" | %s\n", buf), attr)
 	}
 	i, j := int(state.Cursor%int64(width)), int(state.Cursor-state.Offset)
 	cursorLine := j / width
