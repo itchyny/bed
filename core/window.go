@@ -2,8 +2,6 @@ package core
 
 import (
 	"io"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/itchyny/bed/buffer"
@@ -35,11 +33,7 @@ type position struct {
 }
 
 // NewWindow creates a new editor window.
-func NewWindow(name string, width int64) (*Window, error) {
-	file, err := os.Open(name)
-	if err != nil {
-		return nil, err
-	}
+func NewWindow(file *File, width int64) (*Window, error) {
 	buffer := buffer.NewBuffer(file)
 	length, err := buffer.Len()
 	if err != nil {
@@ -47,8 +41,8 @@ func NewWindow(name string, width int64) (*Window, error) {
 	}
 	return &Window{
 		buffer:   buffer,
-		name:     name,
-		basename: filepath.Base(name),
+		name:     file.name,
+		basename: file.basename,
 		width:    width,
 		length:   length,
 		mode:     ModeNormal,
@@ -87,14 +81,6 @@ func (w *Window) State() (State, error) {
 		PendingByte:   w.pendingByte,
 		EditedIndices: w.buffer.EditedIndices(),
 	}, nil
-}
-
-// Close the window.
-func (w *Window) Close() error {
-	if w.buffer == nil {
-		return nil
-	}
-	return w.buffer.Close()
 }
 
 func (w *Window) cursorUp(count int64) {

@@ -36,11 +36,6 @@ func (r *bytesReader) Seek(offset int64, whence int) (int64, error) {
 	return r.index, nil
 }
 
-// Close implements the io.Closer interface.
-func (r *bytesReader) Close() error {
-	return nil
-}
-
 func (r *bytesReader) insertByte(offset int64, b byte) {
 	r.bs = append(r.bs, 0)
 	copy(r.bs[offset+1:], r.bs[offset:])

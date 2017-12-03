@@ -4,6 +4,7 @@ package core
 type Editor struct {
 	ui     UI
 	window *Window
+	files  []*File
 }
 
 // NewEditor creates a new editor.
@@ -188,15 +189,20 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 
 // Close terminates the editor.
 func (e *Editor) Close() error {
-	if e.window != nil {
-		_ = e.window.Close()
+	for _, f := range e.files {
+		f.Close()
 	}
 	return e.ui.Close()
 }
 
 // Open opens a new file.
 func (e *Editor) Open(filename string) (err error) {
-	if e.window, err = NewWindow(filename, 16); err != nil {
+	f, err := NewFile(filename)
+	if err != nil {
+		return err
+	}
+	e.files = append(e.files, f)
+	if e.window, err = NewWindow(f, 16); err != nil {
 		return err
 	}
 	e.window.height = int64(e.ui.Height())

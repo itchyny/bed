@@ -13,22 +13,15 @@ type Buffer struct {
 	index int64
 }
 
-// ReadSeekCloser is the interface that groups the basic Read, Seek and Close methods.
-type ReadSeekCloser interface {
-	io.Reader
-	io.Seeker
-	io.Closer
-}
-
 type readerRange struct {
-	r    ReadSeekCloser
+	r    io.ReadSeeker
 	min  int64
 	max  int64
 	diff int64
 }
 
 // NewBuffer creates a new buffer.
-func NewBuffer(r ReadSeekCloser) *Buffer {
+func NewBuffer(r io.ReadSeeker) *Buffer {
 	return &Buffer{
 		rrs:   []readerRange{{r: r, min: 0, max: math.MaxInt64, diff: 0}},
 		index: 0,
@@ -74,16 +67,6 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 		b.index = l + offset
 	}
 	return b.index, nil
-}
-
-// Close the buffer.
-func (b *Buffer) Close() (err error) {
-	for _, rr := range b.rrs {
-		if e := rr.r.Close(); e != nil {
-			err = e
-		}
-	}
-	return
 }
 
 // Len returns the total size of the buffer.
@@ -178,7 +161,7 @@ func (b *Buffer) Replace(offset int64, c byte) {
 	panic("Buffer#Replace: unreachable")
 }
 
-func (b *Buffer) clone(r ReadSeekCloser) ReadSeekCloser {
+func (b *Buffer) clone(r io.ReadSeeker) io.ReadSeeker {
 	switch br := r.(type) {
 	case *bytesReader:
 		bs := make([]byte, len(br.bs))
