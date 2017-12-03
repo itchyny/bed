@@ -84,344 +84,123 @@ func TestBuffer(t *testing.T) {
 	}
 }
 
-func TestBufferInsertHead(t *testing.T) {
+func TestBufferInsert(t *testing.T) {
 	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
-	b.Insert(0, 0x39)
-
-	p := make([]byte, 8)
-	n, err := b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "90123456" {
-		t.Errorf("p should be 90123456 but got: %s", string(p))
-	}
-
-	b.Insert(0, 0x38)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+	tests := []struct {
+		index    int64
+		b        byte
+		offset   int64
+		expected string
+		len      int64
+	}{
+		{0, 0x39, 0, "90123456", 17},
+		{0, 0x38, 0, "89012345", 18},
+		{4, 0x37, 0, "89017234", 19},
+		{8, 0x30, 3, "17234056", 20},
+		{9, 0x31, 3, "17234015", 21},
+		{9, 0x32, 4, "72340215", 22},
+		{23, 0x39, 19, "def9\x00\x00\x00\x00", 23},
+		{23, 0x38, 19, "def89\x00\x00\x00", 24},
 	}
 
-	_, err = b.Seek(0, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	for _, test := range tests {
+		b.Insert(test.index, test.b)
+		p := make([]byte, 8)
 
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "89012345" {
-		t.Errorf("p should be 89012345 but got: %s", string(p))
-	}
+		_, err := b.Seek(test.offset, io.SeekStart)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 
-	l, err := b.Len()
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if l != 18 {
-		t.Errorf("l should be 18 but got: %d", l)
+		n, err := b.Read(p)
+		if err != nil && err != io.EOF {
+			t.Errorf("err should be nil or io.EOF but got: %v", err)
+		}
+		if n != len(strings.TrimRight(test.expected, "\x00")) {
+			t.Errorf("n should be %d but got: %d", len(strings.TrimRight(test.expected, "\x00")), n)
+		}
+		if string(p) != test.expected {
+			t.Errorf("p should be %s but got: %s", test.expected, string(p))
+		}
+
+		l, err := b.Len()
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if l != test.len {
+			t.Errorf("l should be %d but got: %d", test.len, l)
+		}
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{0, 2}
+	expected := []int64{0, 2, 4, 5, 8, 11, 23, 25}
 	if !reflect.DeepEqual(eis, expected) {
 		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
-	if len(b.rrs) != 2 {
-		t.Errorf("len(b.rrs) should be 2 but got: %d", len(b.rrs))
-	}
-}
-
-func TestBufferInsertMiddle(t *testing.T) {
-	b := NewBuffer(strings.NewReader("0123456789abcdef"))
-
-	p := make([]byte, 8)
-	b.Insert(4, 0x37)
-
-	_, err := b.Seek(0, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err := b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "01237456" {
-		t.Errorf("p should be 01237456 but got: %s", string(p))
-	}
-
-	b.Insert(8, 0x30)
-
-	_, err = b.Seek(3, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "37456078" {
-		t.Errorf("p should be 37456078 but got: %s", string(p))
-	}
-
-	b.Insert(9, 0x31)
-
-	_, err = b.Seek(3, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "37456017" {
-		t.Errorf("p should be 37456017 but got: %s", string(p))
-	}
-
-	b.Insert(9, 0x32)
-
-	_, err = b.Seek(4, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "74560217" {
-		t.Errorf("p should be 74560217 but got: %s", string(p))
-	}
-
-	l, err := b.Len()
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if l != 20 {
-		t.Errorf("l should be 20 but got: %d", l)
-	}
-
-	eis := b.EditedIndices()
-	expected := []int64{4, 5, 8, 11}
-	if !reflect.DeepEqual(eis, expected) {
-		t.Errorf("edited indices should be %v but got: %v", expected, eis)
-	}
-
-	if len(b.rrs) != 5 {
-		t.Errorf("len(b.rrs) should be 5 but got: %d", len(b.rrs))
-	}
-}
-
-func TestBufferInsertLast(t *testing.T) {
-	b := NewBuffer(strings.NewReader("0123456789abcdef"))
-
-	p := make([]byte, 8)
-	b.Insert(16, 0x39)
-
-	_, err := b.Seek(9, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err := b.Read(p)
-	if err != io.EOF {
-		t.Errorf("err should be io.EOF but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "9abcdef9" {
-		t.Errorf("p should be 9abcdef9 but got: %s", string(p))
-	}
-
-	l, err := b.Len()
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if l != 17 {
-		t.Errorf("l should be 17 but got: %d", l)
-	}
-
-	eis := b.EditedIndices()
-	expected := []int64{16, 17}
-	if !reflect.DeepEqual(eis, expected) {
-		t.Errorf("edited indices should be %v but got: %v", expected, eis)
-	}
-
-	if len(b.rrs) != 3 {
-		t.Errorf("len(b.rrs) should be 3 but got: %d", len(b.rrs))
+	if len(b.rrs) != 8 {
+		t.Errorf("len(b.rrs) should be 8 but got: %d", len(b.rrs))
 	}
 }
 
 func TestBufferReplace(t *testing.T) {
 	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
-	p := make([]byte, 8)
-	b.Replace(4, 0x39)
-
-	n, err := b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "01239567" {
-		t.Errorf("p should be 01239567 but got: %s", string(p))
-	}
-
-	b.Replace(0, 0x38)
-
-	_, err = b.Seek(0, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+	tests := []struct {
+		index    int64
+		b        byte
+		offset   int64
+		expected string
+		len      int64
+	}{
+		{0, 0x39, 0, "91234567", 16},
+		{0, 0x38, 0, "81234567", 16},
+		{1, 0x37, 0, "87234567", 16},
+		{5, 0x30, 0, "87234067", 16},
+		{4, 0x31, 0, "87231067", 16},
+		{3, 0x30, 0, "87201067", 16},
+		{2, 0x31, 0, "87101067", 16},
+		{16, 0x31, 9, "9abcdef1", 16},
+		{15, 0x30, 9, "9abcde01", 16},
 	}
 
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "81239567" {
-		t.Errorf("p should be 81239567 but got: %s", string(p))
-	}
+	for _, test := range tests {
+		b.Replace(test.index, test.b)
+		p := make([]byte, 8)
 
-	b.Replace(0, 0x37)
+		_, err := b.Seek(test.offset, io.SeekStart)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 
-	_, err = b.Seek(0, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+		n, err := b.Read(p)
+		if err != nil && err != io.EOF {
+			t.Errorf("err should be nil or io.EOF but got: %v", err)
+		}
+		if n != 8 {
+			t.Errorf("n should be 8 but got: %d", n)
+		}
+		if string(p) != test.expected {
+			t.Errorf("p should be %s but got: %s", test.expected, string(p))
+		}
 
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "71239567" {
-		t.Errorf("p should be 71239567 but got: %s", string(p))
-	}
-
-	b.Replace(5, 0x30)
-
-	_, err = b.Seek(3, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "3906789a" {
-		t.Errorf("p should be 3906789a but got: %s", string(p))
-	}
-
-	b.Replace(5, 0x31)
-
-	_, err = b.Seek(3, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "3916789a" {
-		t.Errorf("p should be 3916789a but got: %s", string(p))
-	}
-
-	b.Replace(3, 0x30)
-
-	_, err = b.Seek(2, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "20916789" {
-		t.Errorf("p should be 20916789 but got: %s", string(p))
-	}
-
-	if len(b.rrs) != 4 {
-		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
-	}
-
-	b.Replace(1, 0x36)
-	b.Replace(2, 0x35)
-
-	_, err = b.Seek(0, io.SeekStart)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-
-	n, err = b.Read(p)
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if n != 8 {
-		t.Errorf("n should be 8 but got: %d", n)
-	}
-	if string(p) != "76509167" {
-		t.Errorf("p should be 76509167 but got: %s", string(p))
-	}
-
-	l, err := b.Len()
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if l != 16 {
-		t.Errorf("l should be 17 but got: %d", l)
+		l, err := b.Len()
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if l != test.len {
+			t.Errorf("l should be %d but got: %d", test.len, l)
+		}
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{0, 6}
+	expected := []int64{0, 6, 15, 17}
 	if !reflect.DeepEqual(eis, expected) {
 		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
-	if len(b.rrs) != 2 {
-		t.Errorf("len(b.rrs) should be 2 but got: %d", len(b.rrs))
+	if len(b.rrs) != 4 {
+		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
 	}
 }
