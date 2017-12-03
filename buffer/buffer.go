@@ -161,6 +161,47 @@ func (b *Buffer) Replace(offset int64, c byte) {
 	panic("Buffer#Replace: unreachable")
 }
 
+// Delete deletes a byte at the specific position.
+func (b *Buffer) Delete(offset int64) {
+	for i, rr := range b.rrs {
+		if offset >= rr.max {
+			continue
+		}
+		switch r := rr.r.(type) {
+		case *bytesReader:
+			r.deleteByte(offset + rr.diff)
+			b.rrs[i].max--
+			for i++; i < len(b.rrs); i++ {
+				b.rrs[i].min--
+				if b.rrs[i].max != math.MaxInt64 {
+					b.rrs[i].max--
+				}
+				b.rrs[i].diff++
+			}
+			b.cleanup()
+			return
+		}
+		b.rrs = append(b.rrs, readerRange{})
+		copy(b.rrs[i+1:], b.rrs[i:])
+		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
+		b.rrs[i+1].min = offset
+		if b.rrs[i+1].max != math.MaxInt64 {
+			b.rrs[i+1].max--
+		}
+		b.rrs[i+1].diff++
+		for i += 2; i < len(b.rrs); i++ {
+			b.rrs[i].min--
+			if b.rrs[i].max != math.MaxInt64 {
+				b.rrs[i].max--
+			}
+			b.rrs[i].diff++
+		}
+		b.cleanup()
+		return
+	}
+	panic("Buffer#Delete: unreachable")
+}
+
 func (b *Buffer) clone(r io.ReadSeeker) io.ReadSeeker {
 	switch br := r.(type) {
 	case *bytesReader:

@@ -49,3 +49,8 @@ func (r *bytesReader) appendByte(b byte) {
 func (r *bytesReader) replaceByte(offset int64, b byte) {
 	r.bs[offset] = b
 }
+
+func (r *bytesReader) deleteByte(offset int64) {
+	copy(r.bs[offset:], r.bs[offset+1:])
+	r.bs = r.bs[:len(r.bs)-1]
+}
