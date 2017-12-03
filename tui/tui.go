@@ -7,7 +7,7 @@ import (
 
 	"github.com/itchyny/bed/core"
 	"github.com/itchyny/bed/util"
-	termbox "github.com/nsf/termbox-go"
+	"github.com/nsf/termbox-go"
 )
 
 // Tui implements UI
