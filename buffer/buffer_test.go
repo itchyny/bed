@@ -2,6 +2,7 @@ package buffer
 
 import (
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -146,6 +147,12 @@ func TestBufferInsertHead(t *testing.T) {
 		t.Errorf("l should be 18 but got: %d", l)
 	}
 
+	eis := b.EditedIndices()
+	expected := []int64{0, 2}
+	if !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
+	}
+
 	if len(b.rrs) != 2 {
 		t.Errorf("len(b.rrs) should be 2 but got: %d", len(b.rrs))
 	}
@@ -235,6 +242,12 @@ func TestBufferInsertMiddle(t *testing.T) {
 		t.Errorf("l should be 20 but got: %d", l)
 	}
 
+	eis := b.EditedIndices()
+	expected := []int64{4, 5, 8, 11}
+	if !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
+	}
+
 	if len(b.rrs) != 5 {
 		t.Errorf("len(b.rrs) should be 5 but got: %d", len(b.rrs))
 	}
@@ -268,6 +281,12 @@ func TestBufferInsertLast(t *testing.T) {
 	}
 	if l != 17 {
 		t.Errorf("l should be 17 but got: %d", l)
+	}
+
+	eis := b.EditedIndices()
+	expected := []int64{16, 17}
+	if !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
 	if len(b.rrs) != 3 {
@@ -411,6 +430,12 @@ func TestBufferReplace(t *testing.T) {
 	}
 	if l != 16 {
 		t.Errorf("l should be 17 but got: %d", l)
+	}
+
+	eis := b.EditedIndices()
+	expected := []int64{0, 6}
+	if !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
 	if len(b.rrs) != 2 {

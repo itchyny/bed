@@ -96,6 +96,19 @@ func (b *Buffer) Len() (int64, error) {
 	return l - rr.diff, nil
 }
 
+// EditedIndices returns the indices of edited regions.
+func (b *Buffer) EditedIndices() []int64 {
+	eis := make([]int64, 0, len(b.rrs))
+	for _, rr := range b.rrs {
+		switch rr.r.(type) {
+		case *bytesReader:
+			eis = append(eis, rr.min)
+			eis = append(eis, rr.max)
+		}
+	}
+	return eis
+}
+
 // Insert inserts a byte at the specific position.
 func (b *Buffer) Insert(offset int64, c byte) {
 	for i, rr := range b.rrs {
