@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/itchyny/bed/core"
@@ -74,53 +75,35 @@ func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute)
 func (ui *Tui) Redraw(state core.State) error {
 	ui.mode = state.Mode
 	height, width := ui.Height(), state.Width
-	ui.setLine(0, 0, strings.Repeat(" ", 4*width+15), termbox.AttrUnderline)
-	for i := 0; i < width; i++ {
-		ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrUnderline)
-	}
-	ui.setLine(0, 9, "|", termbox.AttrUnderline)
-	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
+	bytes, attrs := ui.bytesArray(height, width, state)
 	var attr termbox.Attribute
-	var k int
-	eis := state.EditedIndices
 	for i := 0; i < height; i++ {
+		attr := termbox.ColorDefault
 		if i == height-1 {
 			attr = termbox.AttrUnderline
 		}
-		ui.setLine(i+1, 0, fmt.Sprintf("%08x |", state.Offset+int64(i*width)), attr)
 		for j := 0; j < width; j++ {
-			if k >= state.Size {
+			if attrs[i][j] == math.MaxUint16 {
 				ui.setLine(i+1, 3*j+10, "   ", attr)
 				ui.setLine(i+1, 3*width+j+13, " ", attr)
-				continue
-			}
-			ui.setLine(i+1, 3*j+10, " ", attr)
-			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
-				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", state.PendingByte), attr|termbox.ColorCyan)
-				ui.setLine(i+1, 3*width+j+13, fmt.Sprintf("%c", prettyByte(state.PendingByte)), attr|termbox.ColorCyan)
-				if state.Mode == core.ModeReplace {
-					k++
-				}
-				continue
-			}
-			if 0 < len(eis) && eis[0] <= int64(k)+state.Offset && int64(k)+state.Offset < eis[1] {
-				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", state.Bytes[k]), attr|termbox.ColorCyan)
-				ui.setLine(i+1, 3*width+j+13, fmt.Sprintf("%c", prettyByte(state.Bytes[k])), attr|termbox.ColorCyan)
 			} else {
-				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", state.Bytes[k]), attr)
-				ui.setLine(i+1, 3*width+j+13, fmt.Sprintf("%c", prettyByte(state.Bytes[k])), attr)
-				if 0 < len(eis) && eis[1] <= int64(k)+state.Offset {
-					eis = eis[2:]
+				ui.setLine(i+1, 3*j+10, " ", attrs[i][j]|attr)
+				if i*width+j == int(state.Cursor-state.Offset) {
+					attrs[i][j] |= termbox.AttrReverse
 				}
+				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", bytes[i][j]), attrs[i][j]|attr)
+				if i*width+j == int(state.Cursor-state.Offset) {
+					attrs[i][j] ^= termbox.AttrReverse | termbox.AttrBold
+				}
+				ui.setLine(i+1, 3*width+j+13, string(prettyByte(bytes[i][j])), attrs[i][j]|attr)
 			}
-			k++
 		}
+		ui.setLine(i+1, 0, fmt.Sprintf("%08x |", state.Offset+int64(i*width)), attr)
 		ui.setLine(i+1, 3*width+10, " | ", attr)
 		ui.setLine(i+1, 4*width+13, " ", attr)
 	}
 	i, j := int(state.Cursor%int64(width)), int(state.Cursor-state.Offset)
 	cursorLine := j / width
-	ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrBold|termbox.AttrUnderline)
 	if cursorLine == height-1 {
 		attr = termbox.AttrUnderline
 	} else {
@@ -129,16 +112,59 @@ func (ui *Tui) Redraw(state core.State) error {
 	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), termbox.AttrBold|attr)
 	if state.Pending {
 		termbox.SetCursor(3*i+12, cursorLine+1)
-		ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.PendingByte), termbox.AttrReverse|attr|termbox.ColorCyan)
-		ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.PendingByte)}), termbox.AttrBold|attr)
 	} else {
 		termbox.SetCursor(3*i+11, cursorLine+1)
-		ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.Bytes[j]), termbox.AttrReverse|attr)
-		ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.Bytes[j])}), termbox.AttrBold|attr)
 	}
+	ui.drawHeader(state)
 	ui.drawScrollBar(state, 4*width+14)
 	ui.drawFooter(state)
 	return termbox.Flush()
+}
+
+func (ui *Tui) bytesArray(height, width int, state core.State) ([][]byte, [][]termbox.Attribute) {
+	var k int
+	eis := state.EditedIndices
+	bytes := make([][]byte, height)
+	attrs := make([][]termbox.Attribute, height)
+	for i := 0; i < height; i++ {
+		bytes[i] = make([]byte, width)
+		attrs[i] = make([]termbox.Attribute, width)
+		for j := 0; j < width; j++ {
+			if k >= state.Size {
+				attrs[i][j] = termbox.Attribute(math.MaxUint16)
+			}
+			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
+				bytes[i][j] = state.PendingByte
+				attrs[i][j] = termbox.ColorCyan
+				if state.Mode == core.ModeReplace {
+					k++
+				}
+				continue
+			}
+			bytes[i][j] = state.Bytes[k]
+			if 0 < len(eis) && eis[0] <= int64(k)+state.Offset && int64(k)+state.Offset < eis[1] {
+				attrs[i][j] = termbox.ColorCyan
+			} else if 0 < len(eis) && eis[1] <= int64(k)+state.Offset {
+				eis = eis[2:]
+			}
+			k++
+		}
+	}
+	return bytes, attrs
+}
+
+func (ui *Tui) drawHeader(state core.State) {
+	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+15), termbox.AttrUnderline)
+	cursor := int(state.Cursor % int64(state.Width))
+	for i := 0; i < state.Width; i++ {
+		if cursor == i {
+			ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrBold|termbox.AttrUnderline)
+		} else {
+			ui.setLine(0, 3*i+11, fmt.Sprintf("%2x", i), termbox.AttrUnderline)
+		}
+	}
+	ui.setLine(0, 9, "|", termbox.AttrUnderline)
+	ui.setLine(0, 3*state.Width+11, "|", termbox.AttrUnderline)
 }
 
 func (ui *Tui) drawScrollBar(state core.State, offset int) {
