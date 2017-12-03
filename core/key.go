@@ -71,7 +71,7 @@ func (km *KeyManager) Press(k Key) Event {
 		for _, ke := range km.keyEvents {
 			switch ke.cmp(keys) {
 			case keysPending:
-				return Event{Type: Nop}
+				return Event{Type: EventNop}
 			case keysEq:
 				km.keys = nil
 				return Event{Type: ke.event, Count: count}
@@ -79,5 +79,5 @@ func (km *KeyManager) Press(k Key) Event {
 		}
 	}
 	km.keys = nil
-	return Event{Type: Nop}
+	return Event{Type: EventNop}
 }

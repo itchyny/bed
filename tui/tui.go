@@ -38,15 +38,15 @@ func (ui *Tui) Start(kms map[core.Mode]*core.KeyManager) error {
 			events <- termbox.PollEvent()
 		}
 	}()
-	kms[core.ModeNormal].Register(core.Quit, "q")
-	kms[core.ModeNormal].Register(core.Quit, "c-c")
+	kms[core.ModeNormal].Register(core.EventQuit, "q")
+	kms[core.ModeNormal].Register(core.EventQuit, "c-c")
 loop:
 	for {
 		select {
 		case e := <-events:
 			if e.Type == termbox.EventKey {
-				if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.Nop {
-					if event.Type == core.Quit {
+				if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
+					if event.Type == core.EventQuit {
 						break loop
 					}
 					ui.ch <- event

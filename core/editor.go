@@ -24,96 +24,96 @@ func (e *Editor) Init() error {
 			case event := <-ch:
 				e.window.height = int64(e.ui.Height())
 				switch event.Type {
-				case CursorUp:
+				case EventCursorUp:
 					e.window.cursorUp(event.Count)
-				case CursorDown:
+				case EventCursorDown:
 					e.window.cursorDown(event.Count)
-				case CursorLeft:
+				case EventCursorLeft:
 					e.window.cursorLeft(event.Count)
-				case CursorRight:
+				case EventCursorRight:
 					e.window.cursorRight(event.Count)
-				case CursorPrev:
+				case EventCursorPrev:
 					e.window.cursorPrev(event.Count)
-				case CursorNext:
+				case EventCursorNext:
 					e.window.cursorNext(event.Count)
-				case CursorHead:
+				case EventCursorHead:
 					e.window.cursorHead(event.Count)
-				case CursorEnd:
+				case EventCursorEnd:
 					e.window.cursorEnd(event.Count)
-				case ScrollUp:
+				case EventScrollUp:
 					e.window.scrollUp(event.Count)
-				case ScrollDown:
+				case EventScrollDown:
 					e.window.scrollDown(event.Count)
-				case PageUp:
+				case EventPageUp:
 					e.window.pageUp()
-				case PageDown:
+				case EventPageDown:
 					e.window.pageDown()
-				case PageUpHalf:
+				case EventPageUpHalf:
 					e.window.pageUpHalf()
-				case PageDownHalf:
+				case EventPageDownHalf:
 					e.window.pageDownHalf()
-				case PageTop:
+				case EventPageTop:
 					e.window.pageTop()
-				case PageEnd:
+				case EventPageEnd:
 					e.window.pageEnd()
-				case JumpTo:
+				case EventJumpTo:
 					e.window.jumpTo()
-				case JumpBack:
+				case EventJumpBack:
 					e.window.jumpBack()
-				case DeleteByte:
+				case EventDeleteByte:
 					e.window.deleteByte(event.Count)
-				case DeletePrevByte:
+				case EventDeletePrevByte:
 					e.window.deletePrevByte(event.Count)
 
-				case StartInsert:
+				case EventStartInsert:
 					e.window.startInsert()
-				case StartInsertHead:
+				case EventStartInsertHead:
 					e.window.startInsertHead()
-				case StartAppend:
+				case EventStartAppend:
 					e.window.startAppend()
-				case StartAppendEnd:
+				case EventStartAppendEnd:
 					e.window.startAppendEnd()
-				case StartReplaceByte:
+				case EventStartReplaceByte:
 					e.window.startReplaceByte()
-				case StartReplace:
+				case EventStartReplace:
 					e.window.startReplace()
-				case ExitInsert:
+				case EventExitInsert:
 					e.window.exitInsert()
-				case Insert0:
+				case EventInsert0:
 					e.window.insert0()
-				case Insert1:
+				case EventInsert1:
 					e.window.insert1()
-				case Insert2:
+				case EventInsert2:
 					e.window.insert2()
-				case Insert3:
+				case EventInsert3:
 					e.window.insert3()
-				case Insert4:
+				case EventInsert4:
 					e.window.insert4()
-				case Insert5:
+				case EventInsert5:
 					e.window.insert5()
-				case Insert6:
+				case EventInsert6:
 					e.window.insert6()
-				case Insert7:
+				case EventInsert7:
 					e.window.insert7()
-				case Insert8:
+				case EventInsert8:
 					e.window.insert8()
-				case Insert9:
+				case EventInsert9:
 					e.window.insert9()
-				case InsertA:
+				case EventInsertA:
 					e.window.insertA()
-				case InsertB:
+				case EventInsertB:
 					e.window.insertB()
-				case InsertC:
+				case EventInsertC:
 					e.window.insertC()
-				case InsertD:
+				case EventInsertD:
 					e.window.insertD()
-				case InsertE:
+				case EventInsertE:
 					e.window.insertE()
-				case InsertF:
+				case EventInsertF:
 					e.window.insertF()
-				case Backspace:
+				case EventBackspace:
 					e.window.backspace()
-				case Delete:
+				case EventDelete:
 					e.window.deleteByte(1)
 				default:
 					continue
@@ -128,75 +128,75 @@ func (e *Editor) Init() error {
 func defaultKeyManagers() map[Mode]*KeyManager {
 	kms := make(map[Mode]*KeyManager)
 	km := NewKeyManager(true)
-	km.Register(Quit, "Z", "Q")
-	km.Register(CursorUp, "up")
-	km.Register(CursorDown, "down")
-	km.Register(CursorLeft, "left")
-	km.Register(CursorRight, "right")
-	km.Register(PageUp, "pgup")
-	km.Register(PageDown, "pgdn")
-	km.Register(PageTop, "home")
-	km.Register(PageEnd, "end")
-	km.Register(CursorUp, "k")
-	km.Register(CursorDown, "j")
-	km.Register(CursorLeft, "h")
-	km.Register(CursorRight, "l")
-	km.Register(CursorPrev, "b")
-	km.Register(CursorNext, "w")
-	km.Register(CursorHead, "0")
-	km.Register(CursorHead, "^")
-	km.Register(CursorEnd, "$")
-	km.Register(ScrollUp, "c-y")
-	km.Register(ScrollDown, "c-e")
-	km.Register(PageUp, "c-b")
-	km.Register(PageDown, "c-f")
-	km.Register(PageUpHalf, "c-u")
-	km.Register(PageDownHalf, "c-d")
-	km.Register(PageTop, "g", "g")
-	km.Register(PageEnd, "G")
-	km.Register(JumpTo, "c-]")
-	km.Register(JumpBack, "c-t")
-	km.Register(DeleteByte, "x")
-	km.Register(DeletePrevByte, "X")
+	km.Register(EventQuit, "Z", "Q")
+	km.Register(EventCursorUp, "up")
+	km.Register(EventCursorDown, "down")
+	km.Register(EventCursorLeft, "left")
+	km.Register(EventCursorRight, "right")
+	km.Register(EventPageUp, "pgup")
+	km.Register(EventPageDown, "pgdn")
+	km.Register(EventPageTop, "home")
+	km.Register(EventPageEnd, "end")
+	km.Register(EventCursorUp, "k")
+	km.Register(EventCursorDown, "j")
+	km.Register(EventCursorLeft, "h")
+	km.Register(EventCursorRight, "l")
+	km.Register(EventCursorPrev, "b")
+	km.Register(EventCursorNext, "w")
+	km.Register(EventCursorHead, "0")
+	km.Register(EventCursorHead, "^")
+	km.Register(EventCursorEnd, "$")
+	km.Register(EventScrollUp, "c-y")
+	km.Register(EventScrollDown, "c-e")
+	km.Register(EventPageUp, "c-b")
+	km.Register(EventPageDown, "c-f")
+	km.Register(EventPageUpHalf, "c-u")
+	km.Register(EventPageDownHalf, "c-d")
+	km.Register(EventPageTop, "g", "g")
+	km.Register(EventPageEnd, "G")
+	km.Register(EventJumpTo, "c-]")
+	km.Register(EventJumpBack, "c-t")
+	km.Register(EventDeleteByte, "x")
+	km.Register(EventDeletePrevByte, "X")
 
-	km.Register(StartInsert, "i")
-	km.Register(StartInsertHead, "I")
-	km.Register(StartAppend, "a")
-	km.Register(StartAppendEnd, "A")
-	km.Register(StartReplaceByte, "r")
-	km.Register(StartReplace, "R")
+	km.Register(EventStartInsert, "i")
+	km.Register(EventStartInsertHead, "I")
+	km.Register(EventStartAppend, "a")
+	km.Register(EventStartAppendEnd, "A")
+	km.Register(EventStartReplaceByte, "r")
+	km.Register(EventStartReplace, "R")
 	kms[ModeNormal] = km
 
 	km = NewKeyManager(false)
-	km.Register(ExitInsert, "escape")
-	km.Register(ExitInsert, "c-c")
-	km.Register(CursorUp, "up")
-	km.Register(CursorDown, "down")
-	km.Register(CursorLeft, "left")
-	km.Register(CursorRight, "right")
-	km.Register(PageUp, "pgup")
-	km.Register(PageDown, "pgdn")
-	km.Register(PageTop, "home")
-	km.Register(PageEnd, "end")
-	km.Register(Insert0, "0")
-	km.Register(Insert1, "1")
-	km.Register(Insert2, "2")
-	km.Register(Insert3, "3")
-	km.Register(Insert4, "4")
-	km.Register(Insert5, "5")
-	km.Register(Insert6, "6")
-	km.Register(Insert7, "7")
-	km.Register(Insert8, "8")
-	km.Register(Insert9, "9")
-	km.Register(InsertA, "a")
-	km.Register(InsertB, "b")
-	km.Register(InsertC, "c")
-	km.Register(InsertD, "d")
-	km.Register(InsertE, "e")
-	km.Register(InsertF, "f")
-	km.Register(Backspace, "backspace")
-	km.Register(Backspace, "backspace2")
-	km.Register(Delete, "delete")
+	km.Register(EventExitInsert, "escape")
+	km.Register(EventExitInsert, "c-c")
+	km.Register(EventCursorUp, "up")
+	km.Register(EventCursorDown, "down")
+	km.Register(EventCursorLeft, "left")
+	km.Register(EventCursorRight, "right")
+	km.Register(EventPageUp, "pgup")
+	km.Register(EventPageDown, "pgdn")
+	km.Register(EventPageTop, "home")
+	km.Register(EventPageEnd, "end")
+	km.Register(EventInsert0, "0")
+	km.Register(EventInsert1, "1")
+	km.Register(EventInsert2, "2")
+	km.Register(EventInsert3, "3")
+	km.Register(EventInsert4, "4")
+	km.Register(EventInsert5, "5")
+	km.Register(EventInsert6, "6")
+	km.Register(EventInsert7, "7")
+	km.Register(EventInsert8, "8")
+	km.Register(EventInsert9, "9")
+	km.Register(EventInsertA, "a")
+	km.Register(EventInsertB, "b")
+	km.Register(EventInsertC, "c")
+	km.Register(EventInsertD, "d")
+	km.Register(EventInsertE, "e")
+	km.Register(EventInsertF, "f")
+	km.Register(EventBackspace, "backspace")
+	km.Register(EventBackspace, "backspace2")
+	km.Register(EventDelete, "delete")
 	kms[ModeInsert] = km
 	kms[ModeReplace] = km
 	return kms
