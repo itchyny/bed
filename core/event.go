@@ -58,4 +58,6 @@ const (
 	InsertD
 	InsertE
 	InsertF
+	Backspace
+	Delete
 )

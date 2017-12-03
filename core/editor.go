@@ -111,6 +111,10 @@ func (e *Editor) Init() error {
 					e.window.insertE()
 				case InsertF:
 					e.window.insertF()
+				case Backspace:
+					e.window.backspace()
+				case Delete:
+					e.window.deleteByte(1)
 				default:
 					continue
 				}
@@ -190,6 +194,9 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(InsertD, "d")
 	km.Register(InsertE, "e")
 	km.Register(InsertF, "f")
+	km.Register(Backspace, "backspace")
+	km.Register(Backspace, "backspace2")
+	km.Register(Delete, "delete")
 	kms[ModeInsert] = km
 	kms[ModeReplace] = km
 	return kms

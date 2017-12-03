@@ -413,3 +413,11 @@ func (w *Window) insertE() {
 func (w *Window) insertF() {
 	w.insert(0x0f)
 }
+
+func (w *Window) backspace() {
+	if w.cursor > 0 {
+		w.buffer.Delete(w.cursor - 1)
+		w.cursor--
+		w.length--
+	}
+}

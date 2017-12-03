@@ -70,5 +70,5 @@ var keyMap = map[termbox.Key]core.Key{
 	termbox.KeyCtrl6:          core.Key("c-6"),
 	termbox.KeyCtrlSlash:      core.Key("c-slash"),
 	termbox.KeySpace:          core.Key("space"),
-	termbox.KeyCtrl8:          core.Key("c-8"),
+	termbox.KeyBackspace2:     core.Key("backspace2"),
 }
