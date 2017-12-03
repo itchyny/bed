@@ -240,6 +240,26 @@ func (w *Window) jumpBack() {
 	w.stack = w.stack[:len(w.stack)-1]
 }
 
+func (w *Window) deleteByte(count int64) {
+	cnt := int(util.MinInt64(util.MinInt64(util.MaxInt64(count, 1), w.width-w.cursor%w.width), w.length-w.cursor))
+	for i := 0; i < cnt; i++ {
+		w.buffer.Delete(w.cursor)
+		w.length--
+		if w.cursor == w.length {
+			w.cursor--
+		}
+	}
+}
+
+func (w *Window) deletePrevByte(count int64) {
+	cnt := int(util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width))
+	for i := 0; i < cnt; i++ {
+		w.buffer.Delete(w.cursor - 1)
+		w.cursor--
+		w.length--
+	}
+}
+
 func (w *Window) startInsert() {
 	w.mode = ModeInsert
 	w.append = false

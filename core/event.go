@@ -31,6 +31,8 @@ const (
 	PageEnd
 	JumpTo
 	JumpBack
+	DeleteByte
+	DeletePrevByte
 
 	StartInsert
 	StartInsertHead
@@ -38,6 +40,7 @@ const (
 	StartAppendEnd
 	StartReplaceByte
 	StartReplace
+
 	ExitInsert
 	Insert0
 	Insert1

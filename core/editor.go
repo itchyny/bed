@@ -60,6 +60,11 @@ func (e *Editor) Init() error {
 					e.window.jumpTo()
 				case JumpBack:
 					e.window.jumpBack()
+				case DeleteByte:
+					e.window.deleteByte(event.Count)
+				case DeletePrevByte:
+					e.window.deletePrevByte(event.Count)
+
 				case StartInsert:
 					e.window.startInsert()
 				case StartInsertHead:
@@ -147,6 +152,9 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(PageEnd, "G")
 	km.Register(JumpTo, "c-]")
 	km.Register(JumpBack, "c-t")
+	km.Register(DeleteByte, "x")
+	km.Register(DeletePrevByte, "X")
+
 	km.Register(StartInsert, "i")
 	km.Register(StartInsertHead, "I")
 	km.Register(StartAppend, "a")
