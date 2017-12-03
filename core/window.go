@@ -75,16 +75,17 @@ func (w *Window) State() (State, error) {
 		return State{}, err
 	}
 	return State{
-		Name:        w.basename,
-		Width:       int(w.width),
-		Offset:      w.offset,
-		Cursor:      w.cursor,
-		Bytes:       bytes,
-		Size:        n,
-		Length:      w.length,
-		Mode:        w.mode,
-		Pending:     w.pending,
-		PendingByte: w.pendingByte,
+		Name:          w.basename,
+		Width:         int(w.width),
+		Offset:        w.offset,
+		Cursor:        w.cursor,
+		Bytes:         bytes,
+		Size:          n,
+		Length:        w.length,
+		Mode:          w.mode,
+		Pending:       w.pending,
+		PendingByte:   w.pendingByte,
+		EditedIndices: w.buffer.EditedIndices(),
 	}, nil
 }
 

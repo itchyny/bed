@@ -82,30 +82,41 @@ func (ui *Tui) Redraw(state core.State) error {
 	ui.setLine(0, 3*width+11, "|", termbox.AttrUnderline)
 	var attr termbox.Attribute
 	var k int
+	eis := state.EditedIndices
 	for i := 0; i < height; i++ {
 		if i == height-1 {
 			attr = termbox.AttrUnderline
 		}
 		ui.setLine(i+1, 0, fmt.Sprintf("%08x |", state.Offset+int64(i*width)), attr)
-		buf := make([]byte, width)
 		for j := 0; j < width; j++ {
 			if k >= state.Size {
 				ui.setLine(i+1, 3*j+10, "   ", attr)
+				ui.setLine(i+1, 3*width+j+13, " ", attr)
 				continue
 			}
+			ui.setLine(i+1, 3*j+10, " ", attr)
 			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
-				ui.setLine(i+1, 3*j+10, fmt.Sprintf(" %02x", state.PendingByte), attr)
-				buf[j] = prettyByte(state.PendingByte)
+				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", state.PendingByte), attr|termbox.ColorCyan)
+				ui.setLine(i+1, 3*width+j+13, fmt.Sprintf("%c", prettyByte(state.PendingByte)), attr|termbox.ColorCyan)
 				if state.Mode == core.ModeReplace {
 					k++
 				}
 				continue
 			}
-			ui.setLine(i+1, 3*j+10, fmt.Sprintf(" %02x", state.Bytes[k]), attr)
-			buf[j] = prettyByte(state.Bytes[k])
+			if 0 < len(eis) && eis[0] <= int64(k)+state.Offset && int64(k)+state.Offset < eis[1] {
+				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", state.Bytes[k]), attr|termbox.ColorCyan)
+				ui.setLine(i+1, 3*width+j+13, fmt.Sprintf("%c", prettyByte(state.Bytes[k])), attr|termbox.ColorCyan)
+			} else {
+				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", state.Bytes[k]), attr)
+				ui.setLine(i+1, 3*width+j+13, fmt.Sprintf("%c", prettyByte(state.Bytes[k])), attr)
+				if 0 < len(eis) && eis[1] <= int64(k)+state.Offset {
+					eis = eis[2:]
+				}
+			}
 			k++
 		}
-		ui.setLine(i+1, 3*width+10, fmt.Sprintf(" | %s\n", buf), attr)
+		ui.setLine(i+1, 3*width+10, " | ", attr)
+		ui.setLine(i+1, 4*width+13, " ", attr)
 	}
 	i, j := int(state.Cursor%int64(width)), int(state.Cursor-state.Offset)
 	cursorLine := j / width
@@ -118,7 +129,7 @@ func (ui *Tui) Redraw(state core.State) error {
 	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), termbox.AttrBold|attr)
 	if state.Pending {
 		termbox.SetCursor(3*i+12, cursorLine+1)
-		ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.PendingByte), termbox.AttrReverse|attr)
+		ui.setLine(cursorLine+1, 3*i+11, fmt.Sprintf("%02x", state.PendingByte), termbox.AttrReverse|attr|termbox.ColorCyan)
 		ui.setLine(cursorLine+1, 3*width+13+i, string([]byte{prettyByte(state.PendingByte)}), termbox.AttrBold|attr)
 	} else {
 		termbox.SetCursor(3*i+11, cursorLine+1)
