@@ -234,4 +234,12 @@ func (b *Buffer) cleanup() {
 			}
 		}
 	}
+	for i := 1; i < len(b.rrs); i++ {
+		rr1, rr2 := b.rrs[i-1], b.rrs[i]
+		if rr1.diff == rr2.diff && rr1.r == rr2.r && rr1.max == rr2.min {
+			b.rrs[i-1].max = b.rrs[i].max
+			copy(b.rrs[i:], b.rrs[i+1:])
+			b.rrs = b.rrs[:len(b.rrs)-1]
+		}
+	}
 }
