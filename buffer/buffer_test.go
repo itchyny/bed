@@ -224,6 +224,10 @@ func TestBufferDelete(t *testing.T) {
 		{3, 0x00, 0, "1259879a", 13},
 		{4, 0x00, 0, "125979ab", 12},
 		{3, 0x00, 0, "12579abc", 11},
+		{8, 0x39, 4, "9abc9def", 12},
+		{8, 0x38, 4, "9abc89de", 13},
+		{8, 0x00, 4, "9abc9def", 12},
+		{8, 0x00, 4, "9abcdef\x00", 11},
 	}
 
 	for _, test := range tests {
@@ -243,8 +247,8 @@ func TestBufferDelete(t *testing.T) {
 		if err != nil && err != io.EOF {
 			t.Errorf("err should be nil or io.EOF but got: %v", err)
 		}
-		if n != 8 {
-			t.Errorf("n should be 8 but got: %d", n)
+		if n != len(strings.TrimRight(test.expected, "\x00")) {
+			t.Errorf("n should be %d but got: %d", len(strings.TrimRight(test.expected, "\x00")), n)
 		}
 		if string(p) != test.expected {
 			t.Errorf("p should be %s but got: %s", test.expected, string(p))
