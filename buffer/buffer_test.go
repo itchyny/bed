@@ -7,20 +7,8 @@ import (
 	"testing"
 )
 
-type stringReader struct {
-	*strings.Reader
-}
-
-func newStringReader(str string) *stringReader {
-	return &stringReader{strings.NewReader(str)}
-}
-
-func (b *stringReader) Close() error {
-	return nil
-}
-
 func TestBufferEmpty(t *testing.T) {
-	b := NewBuffer(newStringReader(""))
+	b := NewBuffer(strings.NewReader(""))
 
 	p := make([]byte, 10)
 	n, err := b.Read(p)
@@ -41,7 +29,7 @@ func TestBufferEmpty(t *testing.T) {
 }
 
 func TestBuffer(t *testing.T) {
-	b := NewBuffer(newStringReader("0123456789abcdef"))
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
 	n, err := b.Read(p)
@@ -94,15 +82,10 @@ func TestBuffer(t *testing.T) {
 	if string(p) != "cdef89ab" {
 		t.Errorf("p should be cdef89ab but got: %s", string(p))
 	}
-
-	err = b.Close()
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
 }
 
 func TestBufferInsertHead(t *testing.T) {
-	b := NewBuffer(newStringReader("0123456789abcdef"))
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
 	b.Insert(0, 0x39)
 
@@ -159,7 +142,7 @@ func TestBufferInsertHead(t *testing.T) {
 }
 
 func TestBufferInsertMiddle(t *testing.T) {
-	b := NewBuffer(newStringReader("0123456789abcdef"))
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
 	b.Insert(4, 0x37)
@@ -254,7 +237,7 @@ func TestBufferInsertMiddle(t *testing.T) {
 }
 
 func TestBufferInsertLast(t *testing.T) {
-	b := NewBuffer(newStringReader("0123456789abcdef"))
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
 	b.Insert(16, 0x39)
@@ -295,7 +278,7 @@ func TestBufferInsertLast(t *testing.T) {
 }
 
 func TestBufferReplace(t *testing.T) {
-	b := NewBuffer(newStringReader("0123456789abcdef"))
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
 	p := make([]byte, 8)
 	b.Replace(4, 0x39)
