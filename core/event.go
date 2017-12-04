@@ -33,6 +33,8 @@ const (
 	EventJumpBack
 	EventDeleteByte
 	EventDeletePrevByte
+	EventIncrement
+	EventDecrement
 
 	EventStartInsert
 	EventStartInsertHead

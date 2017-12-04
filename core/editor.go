@@ -64,6 +64,10 @@ func (e *Editor) Init() error {
 					e.window.deleteByte(event.Count)
 				case EventDeletePrevByte:
 					e.window.deletePrevByte(event.Count)
+				case EventIncrement:
+					e.window.increment(event.Count)
+				case EventDecrement:
+					e.window.decrement(event.Count)
 
 				case EventStartInsert:
 					e.window.startInsert()
@@ -158,6 +162,10 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventJumpBack, "c-t")
 	km.Register(EventDeleteByte, "x")
 	km.Register(EventDeletePrevByte, "X")
+	km.Register(EventIncrement, "c-a")
+	km.Register(EventIncrement, "+")
+	km.Register(EventDecrement, "c-x")
+	km.Register(EventDecrement, "-")
 
 	km.Register(EventStartInsert, "i")
 	km.Register(EventStartInsertHead, "I")

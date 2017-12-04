@@ -260,6 +260,22 @@ func (w *Window) deletePrevByte(count int64) {
 	}
 }
 
+func (w *Window) increment(count int64) {
+	_, bytes, err := w.readBytes(w.cursor, 1)
+	if err != nil {
+		return
+	}
+	w.buffer.Replace(w.cursor, bytes[0]+byte(util.MaxInt64(count, 1)%256))
+}
+
+func (w *Window) decrement(count int64) {
+	_, bytes, err := w.readBytes(w.cursor, 1)
+	if err != nil {
+		return
+	}
+	w.buffer.Replace(w.cursor, bytes[0]-byte(util.MaxInt64(count, 1)%256))
+}
+
 func (w *Window) startInsert() {
 	w.mode = ModeInsert
 	w.append = false
