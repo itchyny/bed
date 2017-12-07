@@ -32,7 +32,7 @@ type position struct {
 }
 
 // NewWindow creates a new editor window.
-func NewWindow(r io.ReadSeeker, name string, width int64) (*Window, error) {
+func NewWindow(r io.ReadSeeker, name string, height, width int64) (*Window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -41,6 +41,7 @@ func NewWindow(r io.ReadSeeker, name string, width int64) (*Window, error) {
 	return &Window{
 		buffer: buffer,
 		name:   name,
+		height: height,
 		width:  width,
 		length: length,
 		mode:   ModeNormal,

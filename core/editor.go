@@ -230,10 +230,9 @@ func (e *Editor) Open(filename string) (err error) {
 		return err
 	}
 	e.files = append(e.files, f)
-	if e.window, err = NewWindow(f, filepath.Base(filename), 16); err != nil {
+	if e.window, err = NewWindow(f, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
 		return err
 	}
-	e.window.height = int64(e.ui.Height())
 	return nil
 }
 
