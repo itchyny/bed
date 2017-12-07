@@ -12,7 +12,6 @@ import (
 type Window struct {
 	buffer      *buffer.Buffer
 	name        string
-	basename    string
 	height      int64
 	width       int64
 	offset      int64
@@ -33,19 +32,18 @@ type position struct {
 }
 
 // NewWindow creates a new editor window.
-func NewWindow(file *File, width int64) (*Window, error) {
-	buffer := buffer.NewBuffer(file)
+func NewWindow(r io.ReadSeeker, name string, width int64) (*Window, error) {
+	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
 		return nil, err
 	}
 	return &Window{
-		buffer:   buffer,
-		name:     file.name,
-		basename: file.basename,
-		width:    width,
-		length:   length,
-		mode:     ModeNormal,
+		buffer: buffer,
+		name:   name,
+		width:  width,
+		length: length,
+		mode:   ModeNormal,
 	}, nil
 }
 
@@ -69,7 +67,7 @@ func (w *Window) State() (State, error) {
 		return State{}, err
 	}
 	return State{
-		Name:          w.basename,
+		Name:          w.name,
 		Width:         int(w.width),
 		Offset:        w.offset,
 		Cursor:        w.cursor,

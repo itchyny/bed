@@ -1,10 +1,15 @@
 package core
 
+import (
+	"os"
+	"path/filepath"
+)
+
 // Editor is the main struct for this command.
 type Editor struct {
 	ui     UI
 	window *Window
-	files  []*File
+	files  []*os.File
 }
 
 // NewEditor creates a new editor.
@@ -220,12 +225,12 @@ func (e *Editor) Close() error {
 
 // Open opens a new file.
 func (e *Editor) Open(filename string) (err error) {
-	f, err := NewFile(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
 	e.files = append(e.files, f)
-	if e.window, err = NewWindow(f, 16); err != nil {
+	if e.window, err = NewWindow(f, filepath.Base(filename), 16); err != nil {
 		return err
 	}
 	e.window.height = int64(e.ui.Height())
