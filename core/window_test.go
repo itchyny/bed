@@ -995,3 +995,32 @@ func TestWindowBackspace(t *testing.T) {
 		t.Errorf("state.Bytes should start with %q but got %q", ", world!\x00", string(state.Bytes))
 	}
 }
+
+func TestWindowBackspacePending(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(5)
+	window.startInsert()
+	window.insert3()
+	state, _ := window.State()
+	if state.Pending != true {
+		t.Errorf("state.Pending should be %b but got %b", true, state.Pending)
+	}
+	if state.PendingByte != '\x30' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x30', state.PendingByte)
+	}
+
+	window.backspace()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
+	}
+	if state.Pending != false {
+		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+	}
+	if state.PendingByte != '\x00' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	}
+}
