@@ -406,6 +406,67 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 }
 
+func TestWindowDeleteBytes(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(7)
+	window.deleteByte(0)
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, orld!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, orld!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 7 {
+		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	}
+
+	window.deleteByte(3)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, d!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, d!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 7 {
+		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	}
+
+	window.deleteByte(3)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, \x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, \x00", string(state.Bytes))
+	}
+	if state.Cursor != 6 {
+		t.Errorf("state.Cursor should be %d but got %d", 6, state.Cursor)
+	}
+
+	window.deleteByte(0)
+	window.deleteByte(0)
+	window.deleteByte(0)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hell\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hell\x00", string(state.Bytes))
+	}
+	if state.Cursor != 3 {
+		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	}
+
+	window.deleteByte(0)
+	window.deleteByte(0)
+	window.deleteByte(0)
+	window.deleteByte(0)
+	window.deleteByte(0)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "\x00", string(state.Bytes))
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+	if state.Length != 0 {
+		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	}
+}
+
 func TestWindowIncrementDecrement(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
