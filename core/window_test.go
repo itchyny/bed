@@ -788,3 +788,66 @@ func TestWindowAppendEmpty(t *testing.T) {
 		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
 	}
 }
+
+func TestWindowReplaceByte(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(7)
+	window.startReplaceByte()
+	state, _ := window.State()
+	if state.Mode != ModeReplace {
+		t.Errorf("state.Mode should be %d but got %d", ModeReplace, state.Mode)
+	}
+	if state.Cursor != 7 {
+		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertA()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, :orld!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, :orld!\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeNormal {
+		t.Errorf("state.Mode should be %d but got %d", ModeNormal, state.Mode)
+	}
+	if state.Length != 13 {
+		t.Errorf("state.Length should be %d but got %d", 13, state.Length)
+	}
+	if state.Cursor != 7 {
+		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	}
+}
+
+func TestWindowReplaceByteEmpty(t *testing.T) {
+	r := strings.NewReader("")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.startReplaceByte()
+	state, _ := window.State()
+	if state.Mode != ModeReplace {
+		t.Errorf("state.Mode should be %d but got %d", ModeReplace, state.Mode)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertA()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), ":\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", ":\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeNormal {
+		t.Errorf("state.Mode should be %d but got %d", ModeNormal, state.Mode)
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+}
