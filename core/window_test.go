@@ -300,3 +300,107 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
 	}
 }
+
+func TestWindowScreenMotions(t *testing.T) {
+	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
+	height, width := int64(10), int64(16)
+	window, err := NewWindow(r, "test", height, width)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	state, _ := window.State()
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+
+	window.pageDown()
+	state, _ = window.State()
+	if state.Cursor != 128 {
+		t.Errorf("state.Cursor should be %d but got %d", 128, state.Cursor)
+	}
+	if state.Offset != 128 {
+		t.Errorf("state.Offset should be %d but got %d", 128, state.Offset)
+	}
+
+	window.pageDownHalf()
+	state, _ = window.State()
+	if state.Cursor != 208 {
+		t.Errorf("state.Cursor should be %d but got %d", 208, state.Cursor)
+	}
+	if state.Offset != 208 {
+		t.Errorf("state.Offset should be %d but got %d", 208, state.Offset)
+	}
+
+	window.scrollDown(0)
+	state, _ = window.State()
+	if state.Cursor != 224 {
+		t.Errorf("state.Cursor should be %d but got %d", 224, state.Cursor)
+	}
+	if state.Offset != 224 {
+		t.Errorf("state.Offset should be %d but got %d", 224, state.Offset)
+	}
+
+	window.scrollUp(0)
+	state, _ = window.State()
+	if state.Cursor != 224 {
+		t.Errorf("state.Cursor should be %d but got %d", 224, state.Cursor)
+	}
+	if state.Offset != 208 {
+		t.Errorf("state.Offset should be %d but got %d", 208, state.Offset)
+	}
+
+	window.scrollDown(30)
+	state, _ = window.State()
+	if state.Cursor != 688 {
+		t.Errorf("state.Cursor should be %d but got %d", 688, state.Cursor)
+	}
+	if state.Offset != 688 {
+		t.Errorf("state.Offset should be %d but got %d", 688, state.Offset)
+	}
+
+	window.scrollUp(30)
+	state, _ = window.State()
+	if state.Cursor != 352 {
+		t.Errorf("state.Cursor should be %d but got %d", 352, state.Cursor)
+	}
+	if state.Offset != 208 {
+		t.Errorf("state.Offset should be %d but got %d", 208, state.Offset)
+	}
+
+	window.pageUpHalf()
+	state, _ = window.State()
+	if state.Cursor != 272 {
+		t.Errorf("state.Cursor should be %d but got %d", 272, state.Cursor)
+	}
+	if state.Offset != 128 {
+		t.Errorf("state.Offset should be %d but got %d", 128, state.Offset)
+	}
+
+	window.pageUp()
+	state, _ = window.State()
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+	if state.Offset != 0 {
+		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	}
+
+	window.pageEnd()
+	state, _ = window.State()
+	if state.Cursor != 1296 {
+		t.Errorf("state.Cursor should be %d but got %d", 1296, state.Cursor)
+	}
+	if state.Offset != width*72 {
+		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	}
+
+	window.pageTop()
+	state, _ = window.State()
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+	if state.Offset != 0 {
+		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	}
+}
