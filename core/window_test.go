@@ -1,6 +1,7 @@
 package core
 
 import (
+	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -402,5 +403,54 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 	if state.Offset != 0 {
 		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	}
+}
+
+func TestWindowIncrementDecrement(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.increment(0)
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Iello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Iello, world\x00!", string(state.Bytes))
+	}
+
+	window.increment(1000)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "1ello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "1ello, world!\x00", string(state.Bytes))
+	}
+
+	window.increment(math.MaxInt64)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "0ello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "0ello, world!\x00", string(state.Bytes))
+	}
+
+	window.decrement(0)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "/ello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "/ello, world!\x00", string(state.Bytes))
+	}
+
+	window.decrement(1000)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Gello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Gello, world!\x00", string(state.Bytes))
+	}
+
+	window.decrement(math.MaxInt64)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
+	}
+
+	window.cursorNext(7)
+	window.increment(1000)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, _orld!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, _orld!\x00", string(state.Bytes))
 	}
 }
