@@ -851,3 +851,92 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
 	}
 }
+
+func TestWindowReplace(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(10)
+	window.startReplace()
+	state, _ := window.State()
+	if state.Mode != ModeReplace {
+		t.Errorf("state.Mode should be %d but got %d", ModeReplace, state.Mode)
+	}
+	if state.Cursor != 10 {
+		t.Errorf("state.Cursor should be %d but got %d", 10, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertA()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, wor:d!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, wor:d!\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeReplace {
+		t.Errorf("state.Mode should be %d but got %d", ModeReplace, state.Mode)
+	}
+	if state.Length != 13 {
+		t.Errorf("state.Length should be %d but got %d", 13, state.Length)
+	}
+	if state.Cursor != 11 {
+		t.Errorf("state.Cursor should be %d but got %d", 11, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertB()
+	window.insert3()
+	window.insertC()
+	window.insert3()
+	window.insertD()
+	window.insert3()
+	window.insertE()
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, wor:;<=>\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, wor:;<=>\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeNormal {
+		t.Errorf("state.Mode should be %d but got %d", ModeNormal, state.Mode)
+	}
+	if state.Length != 15 {
+		t.Errorf("state.Length should be %d but got %d", 15, state.Length)
+	}
+	if state.Cursor != 14 {
+		t.Errorf("state.Cursor should be %d but got %d", 14, state.Cursor)
+	}
+}
+
+func TestWindowReplaceEmpty(t *testing.T) {
+	r := strings.NewReader("")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.startReplace()
+	state, _ := window.State()
+	if state.Mode != ModeReplace {
+		t.Errorf("state.Mode should be %d but got %d", ModeReplace, state.Mode)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertA()
+	window.insert3()
+	window.insertB()
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), ":;\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", ":;\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeNormal {
+		t.Errorf("state.Mode should be %d but got %d", ModeNormal, state.Mode)
+	}
+	if state.Length != 2 {
+		t.Errorf("state.Length should be %d but got %d", 2, state.Length)
+	}
+	if state.Cursor != 1 {
+		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	}
+}
