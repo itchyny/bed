@@ -449,7 +449,10 @@ func (w *Window) insertF() {
 }
 
 func (w *Window) backspace() {
-	if w.cursor > 0 {
+	if w.pending {
+		w.pending = false
+		w.pendingByte = '\x00'
+	} else if w.cursor > 0 {
 		w.buffer.Delete(w.cursor - 1)
 		w.cursor--
 		w.length--
