@@ -454,3 +454,43 @@ func TestWindowIncrementDecrement(t *testing.T) {
 		t.Errorf("state.Bytes should start with %q but got %q", "Hello, _orld!\x00", string(state.Bytes))
 	}
 }
+
+func TestWindowIncrementDecrementEmpty(t *testing.T) {
+	r := strings.NewReader("")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	state, _ := window.State()
+	if state.Size != 0 {
+		t.Errorf("state.Size should be %d but got %d", 0, state.Size)
+	}
+	if state.Length != 0 {
+		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	}
+
+	window.increment(0)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "\x01\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "\x01\x00", string(state.Bytes))
+	}
+	if state.Size != 1 {
+		t.Errorf("state.Size should be %d but got %d", 1, state.Size)
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+
+	window, _ = NewWindow(r, "test", height, width)
+
+	window.decrement(0)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "\xff\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "\xff\x00", string(state.Bytes))
+	}
+	if state.Size != 1 {
+		t.Errorf("state.Size should be %d but got %d", 1, state.Size)
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+}
