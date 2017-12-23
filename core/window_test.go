@@ -972,3 +972,26 @@ func TestWindowInsertX(t *testing.T) {
 		t.Errorf("state.Bytes should start with %q but got %q", "\x01\x23\x45\x67\x89\xab\xcd\xef\x00", string(state.Bytes))
 	}
 }
+
+func TestWindowBackspace(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(5)
+	window.startInsert()
+	window.backspace()
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hell, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hell, world!\x00", string(state.Bytes))
+	}
+	window.backspace()
+	window.backspace()
+	window.backspace()
+	window.backspace()
+	window.backspace()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), ", world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", ", world!\x00", string(state.Bytes))
+	}
+}
