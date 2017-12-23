@@ -13,6 +13,7 @@ deps:
 	dep ensure
 
 test: build
+	@! git grep termbox -- ':!tui/' ':!Gopkg.lock' ':!Makefile'
 	go test -v ./...
 
 lint: lintdeps build
