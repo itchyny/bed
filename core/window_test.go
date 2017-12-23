@@ -589,3 +589,125 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
 	}
 }
+
+func TestWindowInsert(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(7)
+	window.startInsert()
+	state, _ := window.State()
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+
+	window.insert4()
+	state, _ = window.State()
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+	if state.Pending != true {
+		t.Errorf("state.Pending should be %b but got %b", true, state.Pending)
+	}
+	if state.PendingByte != '\x40' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x40', state.PendingByte)
+	}
+
+	window.insertA()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, Jworld!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, Jworld!\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+	if state.Pending != false {
+		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+	}
+	if state.PendingByte != '\x00' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	}
+	if state.Length != 14 {
+		t.Errorf("state.Length should be %d but got %d", 14, state.Length)
+	}
+}
+
+func TestWindowInsertEmpty(t *testing.T) {
+	r := strings.NewReader("")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.startInsert()
+	window.insert4()
+	window.insertA()
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "J\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "J\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+	if state.Pending != false {
+		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+	}
+	if state.PendingByte != '\x00' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "J\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "J\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeNormal {
+		t.Errorf("state.Mode should be %d but got %d", ModeNormal, state.Mode)
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+}
+
+func TestWindowInsertHead(t *testing.T) {
+	r := strings.NewReader(strings.Repeat("Hello, world!", 2))
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.pageEnd()
+	window.startInsertHead()
+	state, _ := window.State()
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+	if state.Cursor != 16 {
+		t.Errorf("state.Cursor should be %d but got %d", 16, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertA()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, world!Hel:lo, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!Hel:lo, world!\x00", string(state.Bytes))
+	}
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+	if state.Pending != false {
+		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+	}
+	if state.PendingByte != '\x00' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	}
+	if state.Length != 27 {
+		t.Errorf("state.Length should be %d but got %d", 27, state.Length)
+	}
+	if state.Cursor != 17 {
+		t.Errorf("state.Cursor should be %d but got %d", 17, state.Cursor)
+	}
+}
