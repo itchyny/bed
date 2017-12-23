@@ -265,6 +265,9 @@ func (w *Window) increment(count int64) {
 		return
 	}
 	w.buffer.Replace(w.cursor, bytes[0]+byte(util.MaxInt64(count, 1)%256))
+	if w.length == 0 {
+		w.length++
+	}
 }
 
 func (w *Window) decrement(count int64) {
@@ -273,6 +276,9 @@ func (w *Window) decrement(count int64) {
 		return
 	}
 	w.buffer.Replace(w.cursor, bytes[0]-byte(util.MaxInt64(count, 1)%256))
+	if w.length == 0 {
+		w.length++
+	}
 }
 
 func (w *Window) startInsert() {
