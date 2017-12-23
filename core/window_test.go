@@ -940,3 +940,35 @@ func TestWindowReplaceEmpty(t *testing.T) {
 		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
 	}
 }
+
+func TestWindowInsertX(t *testing.T) {
+	r := strings.NewReader("")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.startInsert()
+	window.insert0()
+	window.insert1()
+	window.insert2()
+	window.insert3()
+	window.insert4()
+	window.insert5()
+	window.insert6()
+	window.insert7()
+	window.insert8()
+	window.insert9()
+	window.insertA()
+	window.insertB()
+	window.insertC()
+	window.insertD()
+	window.insertE()
+	window.insertF()
+	window.exitInsert()
+	state, _ := window.State()
+	if state.Mode != ModeNormal {
+		t.Errorf("state.Mode should be %d but got %d", ModeNormal, state.Mode)
+	}
+	if !strings.HasPrefix(string(state.Bytes), "\x01\x23\x45\x67\x89\xab\xcd\xef\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "\x01\x23\x45\x67\x89\xab\xcd\xef\x00", string(state.Bytes))
+	}
+}
