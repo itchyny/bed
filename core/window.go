@@ -240,11 +240,14 @@ func (w *Window) jumpBack() {
 }
 
 func (w *Window) deleteByte(count int64) {
+	if w.length == 0 {
+		return
+	}
 	cnt := int(util.MinInt64(util.MinInt64(util.MaxInt64(count, 1), w.width-w.cursor%w.width), w.length-w.cursor))
 	for i := 0; i < cnt; i++ {
 		w.buffer.Delete(w.cursor)
 		w.length--
-		if w.cursor == w.length {
+		if w.cursor == w.length && w.cursor > 0 {
 			w.cursor--
 		}
 	}
