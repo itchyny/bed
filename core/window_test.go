@@ -711,3 +711,80 @@ func TestWindowInsertHead(t *testing.T) {
 		t.Errorf("state.Cursor should be %d but got %d", 17, state.Cursor)
 	}
 }
+
+func TestWindowAppend(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(7)
+	window.startAppend()
+	state, _ := window.State()
+	if state.Mode != ModeInsert {
+		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
+	}
+	if state.Cursor != 8 {
+		t.Errorf("state.Cursor should be %d but got %d", 8, state.Cursor)
+	}
+
+	window.insert3()
+	window.insertA()
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, w:orld!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, w:orld!\x00", string(state.Bytes))
+	}
+	if state.Length != 14 {
+		t.Errorf("state.Length should be %d but got %d", 14, state.Length)
+	}
+	if state.Cursor != 8 {
+		t.Errorf("state.Cursor should be %d but got %d", 8, state.Cursor)
+	}
+
+	window.cursorNext(10)
+	window.startAppend()
+	window.insert3()
+	window.insertA()
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, w:orld!:\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, w:orld!:\x00", string(state.Bytes))
+	}
+	if state.Length != 15 {
+		t.Errorf("state.Length should be %d but got %d", 15, state.Length)
+	}
+	if state.Cursor != 14 {
+		t.Errorf("state.Cursor should be %d but got %d", 14, state.Cursor)
+	}
+}
+
+func TestWindowAppendEmpty(t *testing.T) {
+	r := strings.NewReader("")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.startAppend()
+	window.exitInsert()
+	state, _ := window.State()
+	if state.Length != 0 {
+		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+
+	window.startAppend()
+	window.insert3()
+	window.insertA()
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), ":\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", ":\x00", string(state.Bytes))
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+}
