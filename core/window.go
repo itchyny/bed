@@ -357,6 +357,9 @@ func (w *Window) insert(b byte) {
 			w.length++
 		case ModeReplace:
 			w.buffer.Replace(w.cursor, w.pendingByte|b)
+			if w.length == 0 {
+				w.length++
+			}
 			if w.replaceByte {
 				w.exitInsert()
 			} else {
