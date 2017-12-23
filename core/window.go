@@ -286,14 +286,14 @@ func (w *Window) decrement(count int64) {
 
 func (w *Window) startInsert() {
 	w.mode = ModeInsert
-	w.append = false
+	w.append = w.length == 0
 	w.pending = false
 }
 
 func (w *Window) startInsertHead() {
 	w.cursorHead(0)
 	w.mode = ModeInsert
-	w.append = false
+	w.append = w.length == 0
 	w.pending = false
 }
 
@@ -302,7 +302,9 @@ func (w *Window) startAppend() {
 	w.append = true
 	w.extending = false
 	w.pending = false
-	w.cursor++
+	if w.length > 0 {
+		w.cursor++
+	}
 	if w.cursor == w.length {
 		w.extending = true
 		w.length++
@@ -337,10 +339,12 @@ func (w *Window) exitInsert() {
 	w.mode = ModeNormal
 	w.pending = false
 	if w.append {
-		if w.extending {
+		if w.extending && w.length > 0 {
 			w.length--
 		}
-		w.cursor--
+		if w.cursor > 0 {
+			w.cursor--
+		}
 	}
 }
 
