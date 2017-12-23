@@ -346,7 +346,6 @@ func (w *Window) exitInsert() {
 
 func (w *Window) insert(b byte) {
 	if w.pending {
-		w.pending = false
 		switch w.mode {
 		case ModeInsert:
 			w.buffer.Insert(w.cursor, w.pendingByte|b)
@@ -368,6 +367,8 @@ func (w *Window) insert(b byte) {
 		if w.cursor >= w.offset+w.height*w.width {
 			w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 		}
+		w.pending = false
+		w.pendingByte = '\x00'
 	} else {
 		w.pending = true
 		w.pendingByte = b << 4
