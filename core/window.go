@@ -287,6 +287,7 @@ func (w *Window) decrement(count int64) {
 func (w *Window) startInsert() {
 	w.mode = ModeInsert
 	w.append = w.length == 0
+	w.extending = false
 	w.pending = false
 }
 
@@ -294,6 +295,7 @@ func (w *Window) startInsertHead() {
 	w.cursorHead(0)
 	w.mode = ModeInsert
 	w.append = w.length == 0
+	w.extending = false
 	w.pending = false
 }
 
