@@ -467,6 +467,40 @@ func TestWindowDeleteBytes(t *testing.T) {
 	}
 }
 
+func TestWindowDeletePrevBytes(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	height, width := int64(10), int64(16)
+	window, _ := NewWindow(r, "test", height, width)
+
+	window.cursorNext(5)
+	window.deletePrevByte(0)
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hell, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, orld!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 4 {
+		t.Errorf("state.Cursor should be %d but got %d", 4, state.Cursor)
+	}
+
+	window.deletePrevByte(3)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "H, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "H, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 1 {
+		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	}
+
+	window.deletePrevByte(3)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), ", world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", ", world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+}
+
 func TestWindowIncrementDecrement(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
