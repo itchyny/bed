@@ -116,7 +116,7 @@ func (ui *Tui) Redraw(state core.State) error {
 		termbox.SetCursor(3*i+11, cursorLine+1)
 	}
 	ui.drawHeader(state)
-	ui.drawScrollBar(state, 4*width+14)
+	ui.drawScrollBar(state, height, 4*width+14)
 	ui.drawFooter(state)
 	return termbox.Flush()
 }
@@ -167,16 +167,16 @@ func (ui *Tui) drawHeader(state core.State) {
 	ui.setLine(0, 3*state.Width+11, "|", termbox.AttrUnderline)
 }
 
-func (ui *Tui) drawScrollBar(state core.State, offset int) {
-	height := int64((state.Size + state.Width - 1) / state.Width)
+func (ui *Tui) drawScrollBar(state core.State, height int, offset int) {
+	total := int64((state.Size + state.Width - 1) / state.Width)
 	len := util.MaxInt64((state.Length+int64(state.Width)-1)/int64(state.Width), 1)
-	size := util.MaxInt64(height*height/len, 1)
-	pad := (height*height + len - len*size - 1) / util.MaxInt64(height-size+1, 1)
-	top := (state.Offset / int64(state.Width) * height) / (len - pad)
-	for i := 0; i < int(height); i++ {
+	size := util.MaxInt64(total*total/len, 1)
+	pad := (total*total + len - len*size - 1) / util.MaxInt64(total-size+1, 1)
+	top := (state.Offset / int64(state.Width) * total) / (len - pad)
+	for i := 0; i < height; i++ {
 		if int(top) <= i && i < int(top+size) {
 			ui.setLine(i+1, offset, " ", termbox.AttrReverse)
-		} else if i < int(height-1) {
+		} else if i < height-1 {
 			ui.setLine(i+1, offset, "|", 0)
 		} else {
 			ui.setLine(i+1, offset, "|", termbox.AttrUnderline)
