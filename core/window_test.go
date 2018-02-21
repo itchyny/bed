@@ -49,7 +49,7 @@ func TestWindowState(t *testing.T) {
 	}
 
 	if state.Pending != false {
-		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
 	}
 
 	if state.PendingByte != '\x00' {
@@ -108,7 +108,7 @@ func TestWindowEmptyState(t *testing.T) {
 	}
 
 	if state.Pending != false {
-		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
 	}
 
 	if state.PendingByte != '\x00' {
@@ -608,7 +608,7 @@ func TestWindowInsert(t *testing.T) {
 		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
 	}
 	if state.Pending != true {
-		t.Errorf("state.Pending should be %b but got %b", true, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", true, state.Pending)
 	}
 	if state.PendingByte != '\x40' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x40', state.PendingByte)
@@ -623,7 +623,7 @@ func TestWindowInsert(t *testing.T) {
 		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
 	}
 	if state.Pending != false {
-		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
 	}
 	if state.PendingByte != '\x00' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
@@ -649,7 +649,7 @@ func TestWindowInsertEmpty(t *testing.T) {
 		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
 	}
 	if state.Pending != false {
-		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
 	}
 	if state.PendingByte != '\x00' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
@@ -699,7 +699,7 @@ func TestWindowInsertHead(t *testing.T) {
 		t.Errorf("state.Mode should be %d but got %d", ModeInsert, state.Mode)
 	}
 	if state.Pending != false {
-		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
 	}
 	if state.PendingByte != '\x00' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
@@ -1006,7 +1006,7 @@ func TestWindowBackspacePending(t *testing.T) {
 	window.insert3()
 	state, _ := window.State()
 	if state.Pending != true {
-		t.Errorf("state.Pending should be %b but got %b", true, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", true, state.Pending)
 	}
 	if state.PendingByte != '\x30' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x30', state.PendingByte)
@@ -1018,7 +1018,7 @@ func TestWindowBackspacePending(t *testing.T) {
 		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
 	}
 	if state.Pending != false {
-		t.Errorf("state.Pending should be %b but got %b", false, state.Pending)
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
 	}
 	if state.PendingByte != '\x00' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
