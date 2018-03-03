@@ -18,7 +18,6 @@ type Window struct {
 	cursor      int64
 	length      int64
 	stack       []position
-	mode        Mode
 	append      bool
 	replaceByte bool
 	extending   bool
@@ -44,7 +43,6 @@ func NewWindow(r io.ReadSeeker, name string, height, width int64) (*Window, erro
 		height: height,
 		width:  width,
 		length: length,
-		mode:   ModeNormal,
 	}, nil
 }
 
@@ -75,7 +73,6 @@ func (w *Window) State() (State, error) {
 		Bytes:         bytes,
 		Size:          n,
 		Length:        w.length,
-		Mode:          w.mode,
 		Pending:       w.pending,
 		PendingByte:   w.pendingByte,
 		EditedIndices: w.buffer.EditedIndices(),
@@ -285,7 +282,6 @@ func (w *Window) decrement(count int64) {
 }
 
 func (w *Window) startInsert() {
-	w.mode = ModeInsert
 	w.append = w.length == 0
 	w.extending = false
 	w.pending = false
@@ -293,14 +289,12 @@ func (w *Window) startInsert() {
 
 func (w *Window) startInsertHead() {
 	w.cursorHead(0)
-	w.mode = ModeInsert
 	w.append = w.length == 0
 	w.extending = false
 	w.pending = false
 }
 
 func (w *Window) startAppend() {
-	w.mode = ModeInsert
 	w.append = true
 	w.extending = false
 	w.pending = false
@@ -322,7 +316,6 @@ func (w *Window) startAppendEnd() {
 }
 
 func (w *Window) startReplaceByte() {
-	w.mode = ModeReplace
 	w.replaceByte = true
 	w.append = false
 	w.extending = false
@@ -330,7 +323,6 @@ func (w *Window) startReplaceByte() {
 }
 
 func (w *Window) startReplace() {
-	w.mode = ModeReplace
 	w.replaceByte = false
 	w.append = false
 	w.extending = false
@@ -338,7 +330,6 @@ func (w *Window) startReplace() {
 }
 
 func (w *Window) exitInsert() {
-	w.mode = ModeNormal
 	w.pending = false
 	if w.append {
 		if w.extending && w.length > 0 {
@@ -350,9 +341,9 @@ func (w *Window) exitInsert() {
 	}
 }
 
-func (w *Window) insert(b byte) {
+func (w *Window) insert(mode Mode, b byte) {
 	if w.pending {
-		switch w.mode {
+		switch mode {
 		case ModeInsert:
 			w.buffer.Insert(w.cursor, w.pendingByte|b)
 			w.cursor++
@@ -384,68 +375,68 @@ func (w *Window) insert(b byte) {
 	}
 }
 
-func (w *Window) insert0() {
-	w.insert(0x00)
+func (w *Window) insert0(mode Mode) {
+	w.insert(mode, 0x00)
 }
 
-func (w *Window) insert1() {
-	w.insert(0x01)
+func (w *Window) insert1(mode Mode) {
+	w.insert(mode, 0x01)
 }
 
-func (w *Window) insert2() {
-	w.insert(0x02)
+func (w *Window) insert2(mode Mode) {
+	w.insert(mode, 0x02)
 }
 
-func (w *Window) insert3() {
-	w.insert(0x03)
+func (w *Window) insert3(mode Mode) {
+	w.insert(mode, 0x03)
 }
 
-func (w *Window) insert4() {
-	w.insert(0x04)
+func (w *Window) insert4(mode Mode) {
+	w.insert(mode, 0x04)
 }
 
-func (w *Window) insert5() {
-	w.insert(0x05)
+func (w *Window) insert5(mode Mode) {
+	w.insert(mode, 0x05)
 }
 
-func (w *Window) insert6() {
-	w.insert(0x06)
+func (w *Window) insert6(mode Mode) {
+	w.insert(mode, 0x06)
 }
 
-func (w *Window) insert7() {
-	w.insert(0x07)
+func (w *Window) insert7(mode Mode) {
+	w.insert(mode, 0x07)
 }
 
-func (w *Window) insert8() {
-	w.insert(0x08)
+func (w *Window) insert8(mode Mode) {
+	w.insert(mode, 0x08)
 }
 
-func (w *Window) insert9() {
-	w.insert(0x09)
+func (w *Window) insert9(mode Mode) {
+	w.insert(mode, 0x09)
 }
 
-func (w *Window) insertA() {
-	w.insert(0x0a)
+func (w *Window) insertA(mode Mode) {
+	w.insert(mode, 0x0a)
 }
 
-func (w *Window) insertB() {
-	w.insert(0x0b)
+func (w *Window) insertB(mode Mode) {
+	w.insert(mode, 0x0b)
 }
 
-func (w *Window) insertC() {
-	w.insert(0x0c)
+func (w *Window) insertC(mode Mode) {
+	w.insert(mode, 0x0c)
 }
 
-func (w *Window) insertD() {
-	w.insert(0x0d)
+func (w *Window) insertD(mode Mode) {
+	w.insert(mode, 0x0d)
 }
 
-func (w *Window) insertE() {
-	w.insert(0x0e)
+func (w *Window) insertE(mode Mode) {
+	w.insert(mode, 0x0e)
 }
 
-func (w *Window) insertF() {
-	w.insert(0x0f)
+func (w *Window) insertF(mode Mode) {
+	w.insert(mode, 0x0f)
 }
 
 func (w *Window) backspace() {

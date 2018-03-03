@@ -10,6 +10,7 @@ type Editor struct {
 	ui     UI
 	window *Window
 	files  []*os.File
+	mode   Mode
 }
 
 // NewEditor creates a new editor.
@@ -75,51 +76,57 @@ func (e *Editor) Init() error {
 					e.window.decrement(event.Count)
 
 				case EventStartInsert:
+					e.mode = ModeInsert
 					e.window.startInsert()
 				case EventStartInsertHead:
+					e.mode = ModeInsert
 					e.window.startInsertHead()
 				case EventStartAppend:
+					e.mode = ModeInsert
 					e.window.startAppend()
 				case EventStartAppendEnd:
 					e.window.startAppendEnd()
 				case EventStartReplaceByte:
+					e.mode = ModeReplace
 					e.window.startReplaceByte()
 				case EventStartReplace:
+					e.mode = ModeReplace
 					e.window.startReplace()
 				case EventExitInsert:
+					e.mode = ModeNormal
 					e.window.exitInsert()
 				case EventInsert0:
-					e.window.insert0()
+					e.window.insert0(e.mode)
 				case EventInsert1:
-					e.window.insert1()
+					e.window.insert1(e.mode)
 				case EventInsert2:
-					e.window.insert2()
+					e.window.insert2(e.mode)
 				case EventInsert3:
-					e.window.insert3()
+					e.window.insert3(e.mode)
 				case EventInsert4:
-					e.window.insert4()
+					e.window.insert4(e.mode)
 				case EventInsert5:
-					e.window.insert5()
+					e.window.insert5(e.mode)
 				case EventInsert6:
-					e.window.insert6()
+					e.window.insert6(e.mode)
 				case EventInsert7:
-					e.window.insert7()
+					e.window.insert7(e.mode)
 				case EventInsert8:
-					e.window.insert8()
+					e.window.insert8(e.mode)
 				case EventInsert9:
-					e.window.insert9()
+					e.window.insert9(e.mode)
 				case EventInsertA:
-					e.window.insertA()
+					e.window.insertA(e.mode)
 				case EventInsertB:
-					e.window.insertB()
+					e.window.insertB(e.mode)
 				case EventInsertC:
-					e.window.insertC()
+					e.window.insertC(e.mode)
 				case EventInsertD:
-					e.window.insertD()
+					e.window.insertD(e.mode)
 				case EventInsertE:
-					e.window.insertE()
+					e.window.insertE(e.mode)
 				case EventInsertF:
-					e.window.insertF()
+					e.window.insertF(e.mode)
 				case EventBackspace:
 					e.window.backspace()
 				case EventDelete:
@@ -249,5 +256,6 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
+	state.Mode = e.mode
 	return e.ui.Redraw(state)
 }
