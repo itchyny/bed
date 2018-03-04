@@ -12,11 +12,16 @@ import (
 type Editor struct {
 	ui            UI
 	window        *Window
-	files         []*os.File
+	files         []file
 	mode          Mode
 	cmdline       Cmdline
 	cmdlineCursor int
 	err           error
+}
+
+type file struct {
+	name string
+	file *os.File
 }
 
 // NewEditor creates a new editor.
@@ -310,7 +315,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 // Close terminates the editor.
 func (e *Editor) Close() error {
 	for _, f := range e.files {
-		f.Close()
+		f.file.Close()
 	}
 	return e.ui.Close()
 }
@@ -321,7 +326,7 @@ func (e *Editor) Open(filename string) (err error) {
 	if err != nil {
 		return err
 	}
-	e.files = append(e.files, f)
+	e.files = append(e.files, file{name: filename, file: f})
 	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
 		return err
 	}
