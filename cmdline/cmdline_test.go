@@ -2,6 +2,8 @@ package cmdline
 
 import (
 	"testing"
+
+	"github.com/itchyny/bed/core"
 )
 
 func TestNewCmdline(t *testing.T) {
@@ -201,5 +203,20 @@ func TestCursorInsert(t *testing.T) {
 	}
 	if cursor != 4 {
 		t.Errorf("cursor should be 4 but got %v", cursor)
+	}
+}
+
+func TestExecuteQuit(t *testing.T) {
+	c := NewCmdline()
+	ch := make(chan core.Event, 1)
+	c.Init(ch)
+	for _, cmd := range []string{"quit", "q", "qall", "qa", "x"} {
+		c.Clear()
+		c.cmdline = []rune(cmd)
+		c.Execute()
+		e := <-ch
+		if e.Type != core.EventQuit {
+			t.Errorf("cmdline should emit quit event with %q", cmd)
+		}
 	}
 }
