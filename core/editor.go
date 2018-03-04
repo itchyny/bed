@@ -154,6 +154,12 @@ func (e *Editor) Init() error {
 						e.cmdline = append(e.cmdline[:e.cmdlineCursor-1], e.cmdline[e.cmdlineCursor:]...)
 						e.cmdlineCursor -= 1
 					}
+				case EventClearToHeadCmdline:
+					e.cmdline = e.cmdline[e.cmdlineCursor:]
+					e.cmdlineCursor = 0
+				case EventClearCmdline:
+					e.cmdline = nil
+					e.cmdlineCursor = 0
 				case EventExitCmdline:
 					e.mode = ModeNormal
 				case EventSpaceCmdline:
@@ -268,6 +274,8 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventBackspaceCmdline, "c-h")
 	km.Register(EventBackspaceCmdline, "backspace")
 	km.Register(EventBackspaceCmdline, "backspace2")
+	km.Register(EventClearToHeadCmdline, "c-u")
+	km.Register(EventClearCmdline, "c-k")
 	km.Register(EventExitCmdline, "escape")
 	km.Register(EventExitCmdline, "c-c")
 	kms[ModeCmdline] = km
