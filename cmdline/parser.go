@@ -4,17 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
-
-	"github.com/itchyny/bed/core"
 )
-
-var commands = []command{
-	{"exi[t]", core.EventQuit},
-	{"qa[ll]", core.EventQuit},
-	{"q[uit]", core.EventQuit},
-	{"x[it]", core.EventQuit},
-	{"xa[ll]", core.EventQuit},
-}
 
 func parse(cmdline []rune) (command, error) {
 	i, l := 0, len(cmdline)
