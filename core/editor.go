@@ -7,10 +7,11 @@ import (
 
 // Editor is the main struct for this command.
 type Editor struct {
-	ui     UI
-	window *Window
-	files  []*os.File
-	mode   Mode
+	ui      UI
+	window  *Window
+	files   []*os.File
+	mode    Mode
+	cmdline string
 }
 
 // NewEditor creates a new editor.
@@ -131,6 +132,21 @@ func (e *Editor) Init() error {
 					e.window.backspace()
 				case EventDelete:
 					e.window.deleteByte(1)
+
+				case EventStartCmdline:
+					e.mode = ModeCmdline
+					e.cmdline = ""
+				case EventBackspaceCmdline:
+					runes := []rune(e.cmdline)
+					if len(runes) > 0 {
+						e.cmdline = string(runes[:len(runes)-1])
+					}
+				case EventExitCmdline:
+					e.mode = ModeNormal
+				case EventRune:
+					if e.mode == ModeCmdline {
+						e.cmdline += string(event.Rune)
+					}
 				default:
 					continue
 				}
@@ -185,6 +201,8 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventStartAppendEnd, "A")
 	km.Register(EventStartReplaceByte, "r")
 	km.Register(EventStartReplace, "R")
+
+	km.Register(EventStartCmdline, ":")
 	kms[ModeNormal] = km
 
 	km = NewKeyManager(false)
@@ -219,6 +237,13 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventDelete, "delete")
 	kms[ModeInsert] = km
 	kms[ModeReplace] = km
+
+	km = NewKeyManager(false)
+	km.Register(EventBackspaceCmdline, "backspace")
+	km.Register(EventBackspaceCmdline, "backspace2")
+	km.Register(EventExitCmdline, "escape")
+	km.Register(EventExitCmdline, "c-c")
+	kms[ModeCmdline] = km
 	return kms
 }
 
@@ -257,5 +282,6 @@ func (e *Editor) redraw() error {
 		return err
 	}
 	state.Mode = e.mode
+	state.Cmdline = e.cmdline
 	return e.ui.Redraw(state)
 }

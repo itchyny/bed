@@ -4,6 +4,7 @@ package core
 type Event struct {
 	Type  EventType
 	Count int64
+	Rune  rune
 }
 
 // EventType ...
@@ -62,4 +63,9 @@ const (
 	EventInsertF
 	EventBackspace
 	EventDelete
+
+	EventStartCmdline
+	EventBackspaceCmdline
+	EventExitCmdline
+	EventRune
 )

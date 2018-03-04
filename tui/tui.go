@@ -51,6 +51,8 @@ loop:
 					}
 					ui.ch <- event
 					continue
+				} else {
+					ui.ch <- core.Event{Type: core.EventRune, Rune: e.Ch}
 				}
 			}
 		}
@@ -61,7 +63,13 @@ loop:
 // Height returns the height for the hex view.
 func (ui *Tui) Height() int {
 	_, height := termbox.Size()
-	return height - 2
+	return height - 3
+}
+
+// Width returns the width for the hex view.
+func (ui *Tui) Width() int {
+	width, _ := termbox.Size()
+	return width
 }
 
 func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute) {
@@ -190,6 +198,10 @@ func (ui *Tui) drawFooter(state core.State) {
 		prettyMode(state.Mode), state.Name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.setLine(ui.Height()+1, 0, line, 0)
+	if state.Mode == core.ModeCmdline {
+		ui.setLine(ui.Height()+2, 0, ":"+state.Cmdline+strings.Repeat(" ", ui.Width()), 0)
+		termbox.SetCursor(len(state.Cmdline)+1, ui.Height()+2)
+	}
 }
 
 func prettyByte(b byte) byte {
