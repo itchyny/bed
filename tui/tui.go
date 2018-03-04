@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchyny/bed/core"
 	"github.com/itchyny/bed/util"
+	runewidth "github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
 
@@ -74,8 +75,9 @@ func (ui *Tui) Width() int {
 
 func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute) {
 	fg, bg := termbox.ColorDefault, termbox.ColorDefault
-	for i, c := range str {
-		termbox.SetCell(offset+i, line, c, fg|attr, bg)
+	for _, c := range str {
+		termbox.SetCell(offset, line, c, fg|attr, bg)
+		offset += runewidth.RuneWidth(c)
 	}
 }
 
@@ -200,7 +202,7 @@ func (ui *Tui) drawFooter(state core.State) {
 	ui.setLine(ui.Height()+1, 0, line, 0)
 	if state.Mode == core.ModeCmdline {
 		ui.setLine(ui.Height()+2, 0, ":"+state.Cmdline+strings.Repeat(" ", ui.Width()), 0)
-		termbox.SetCursor(state.CmdlineCursor+1, ui.Height()+2)
+		termbox.SetCursor(1+runewidth.StringWidth(string([]rune(state.Cmdline)[:state.CmdlineCursor])), ui.Height()+2)
 	}
 }
 
