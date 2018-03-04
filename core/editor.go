@@ -23,6 +23,7 @@ type Editor struct {
 type file struct {
 	name string
 	file *os.File
+	perm os.FileMode
 }
 
 // NewEditor creates a new editor.
@@ -327,7 +328,11 @@ func (e *Editor) Open(filename string) (err error) {
 	if err != nil {
 		return err
 	}
-	e.files = append(e.files, file{name: filename, file: f})
+	info, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	e.files = append(e.files, file{name: filename, file: f, perm: info.Mode().Perm()})
 	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
 		return err
 	}
@@ -356,13 +361,10 @@ func (e *Editor) writeFile(name string) error {
 	perm := os.FileMode(0644)
 	if name == "" {
 		name = e.window.filename
-	} else {
-		for _, f := range e.files {
-			if f.name == name {
-				if info, err := os.Stat(name); err == nil {
-					perm = info.Mode().Perm()
-				}
-			}
+	}
+	for _, f := range e.files {
+		if f.name == name {
+			perm = f.perm
 		}
 	}
 	tmpf, err := os.OpenFile(
