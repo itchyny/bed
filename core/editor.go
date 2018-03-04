@@ -3,15 +3,19 @@ package core
 import (
 	"os"
 	"path/filepath"
+	"unicode"
+
+	"github.com/itchyny/bed/util"
 )
 
 // Editor is the main struct for this command.
 type Editor struct {
-	ui      UI
-	window  *Window
-	files   []*os.File
-	mode    Mode
-	cmdline string
+	ui            UI
+	window        *Window
+	files         []*os.File
+	mode          Mode
+	cmdline       []rune
+	cmdlineCursor int
 }
 
 // NewEditor creates a new editor.
@@ -135,17 +139,29 @@ func (e *Editor) Init() error {
 
 				case EventStartCmdline:
 					e.mode = ModeCmdline
-					e.cmdline = ""
+					e.cmdline = nil
+					e.cmdlineCursor = 0
+				case EventCursorLeftCmdline:
+					e.cmdlineCursor = util.MaxInt(0, e.cmdlineCursor-1)
+				case EventCursorRightCmdline:
+					e.cmdlineCursor = util.MinInt(len(e.cmdline), e.cmdlineCursor+1)
+				case EventCursorHeadCmdline:
+					e.cmdlineCursor = 0
+				case EventCursorEndCmdline:
+					e.cmdlineCursor = len(e.cmdline)
 				case EventBackspaceCmdline:
-					runes := []rune(e.cmdline)
-					if len(runes) > 0 {
-						e.cmdline = string(runes[:len(runes)-1])
+					if e.cmdlineCursor > 0 {
+						e.cmdline = append(e.cmdline[:e.cmdlineCursor-1], e.cmdline[e.cmdlineCursor:]...)
+						e.cmdlineCursor -= 1
 					}
 				case EventExitCmdline:
 					e.mode = ModeNormal
 				case EventRune:
-					if e.mode == ModeCmdline {
-						e.cmdline += string(event.Rune)
+					if e.mode == ModeCmdline && unicode.IsPrint(event.Rune) {
+						e.cmdline = append(e.cmdline, '\x00')
+						copy(e.cmdline[e.cmdlineCursor+1:], e.cmdline[e.cmdlineCursor:])
+						e.cmdline[e.cmdlineCursor] = event.Rune
+						e.cmdlineCursor += 1
 					}
 				default:
 					continue
@@ -239,6 +255,13 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	kms[ModeReplace] = km
 
 	km = NewKeyManager(false)
+	km.Register(EventCursorLeftCmdline, "left")
+	km.Register(EventCursorLeftCmdline, "c-b")
+	km.Register(EventCursorRightCmdline, "right")
+	km.Register(EventCursorRightCmdline, "c-f")
+	km.Register(EventCursorHeadCmdline, "c-a")
+	km.Register(EventCursorEndCmdline, "c-e")
+	km.Register(EventBackspaceCmdline, "c-h")
 	km.Register(EventBackspaceCmdline, "backspace")
 	km.Register(EventBackspaceCmdline, "backspace2")
 	km.Register(EventExitCmdline, "escape")
@@ -282,6 +305,7 @@ func (e *Editor) redraw() error {
 		return err
 	}
 	state.Mode = e.mode
-	state.Cmdline = e.cmdline
+	state.Cmdline = string(e.cmdline)
+	state.CmdlineCursor = e.cmdlineCursor
 	return e.ui.Redraw(state)
 }

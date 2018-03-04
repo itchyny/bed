@@ -200,7 +200,7 @@ func (ui *Tui) drawFooter(state core.State) {
 	ui.setLine(ui.Height()+1, 0, line, 0)
 	if state.Mode == core.ModeCmdline {
 		ui.setLine(ui.Height()+2, 0, ":"+state.Cmdline+strings.Repeat(" ", ui.Width()), 0)
-		termbox.SetCursor(len(state.Cmdline)+1, ui.Height()+2)
+		termbox.SetCursor(state.CmdlineCursor+1, ui.Height()+2)
 	}
 }
 

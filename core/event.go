@@ -65,6 +65,10 @@ const (
 	EventDelete
 
 	EventStartCmdline
+	EventCursorLeftCmdline
+	EventCursorRightCmdline
+	EventCursorHeadCmdline
+	EventCursorEndCmdline
 	EventBackspaceCmdline
 	EventExitCmdline
 	EventRune
