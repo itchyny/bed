@@ -6,14 +6,14 @@ import (
 	"unicode"
 )
 
-func parse(cmdline []rune) (command, error) {
+func parse(cmdline []rune) (command, []string, error) {
 	i, l := 0, len(cmdline)
 	for i < l && (unicode.IsSpace(cmdline[i]) || cmdline[i] == ':') {
 		i++
 	}
 	xs := strings.Fields(string(cmdline[i:]))
 	if len(xs) == 0 {
-		return command{}, nil
+		return command{}, nil, nil
 	}
 	for _, cmd := range commands {
 		if xs[0][0] != cmd.name[0] {
@@ -21,11 +21,11 @@ func parse(cmdline []rune) (command, error) {
 		}
 		for _, c := range expand(cmd.name) {
 			if xs[0] == c {
-				return cmd, nil
+				return cmd, xs[1:], nil
 			}
 		}
 	}
-	return command{}, fmt.Errorf("unknown command: %s", string(cmdline))
+	return command{}, nil, fmt.Errorf("unknown command: %s", string(cmdline))
 }
 
 func expand(name string) []string {

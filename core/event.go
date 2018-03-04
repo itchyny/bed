@@ -5,6 +5,7 @@ type Event struct {
 	Type  EventType
 	Count int64
 	Rune  rune
+	Args  []string
 	Error error
 }
 
@@ -79,5 +80,6 @@ const (
 	EventExitCmdline
 	EventRune
 	EventExecuteCmdline
+	EventWrite
 	EventError
 )

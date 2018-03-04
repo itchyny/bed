@@ -11,6 +11,7 @@ import (
 // Window represents an editor window.
 type Window struct {
 	buffer      *buffer.Buffer
+	filename    string
 	name        string
 	height      int64
 	width       int64
@@ -31,18 +32,19 @@ type position struct {
 }
 
 // NewWindow creates a new editor window.
-func NewWindow(r io.ReadSeeker, name string, height, width int64) (*Window, error) {
+func NewWindow(r io.ReadSeeker, filename string, name string, height, width int64) (*Window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
 		return nil, err
 	}
 	return &Window{
-		buffer: buffer,
-		name:   name,
-		height: height,
-		width:  width,
-		length: length,
+		buffer:   buffer,
+		filename: filename,
+		name:     name,
+		height:   height,
+		width:    width,
+		length:   length,
 	}, nil
 }
 

@@ -1,6 +1,9 @@
 package core
 
 import (
+	"errors"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -175,6 +178,16 @@ func (e *Editor) Init() error {
 					if e.mode == ModeCmdline {
 						e.cmdline.Insert(event.Rune)
 					}
+				case EventWrite:
+					if len(event.Args) > 1 {
+						e.err = errors.New("too many arguments for write")
+					} else {
+						var name string
+						if len(event.Args) > 0 {
+							name = event.Args[0]
+						}
+						e.err = e.writeFile(name)
+					}
 				case EventError:
 					e.err = event.Error
 				default:
@@ -309,7 +322,7 @@ func (e *Editor) Open(filename string) (err error) {
 		return err
 	}
 	e.files = append(e.files, f)
-	if e.window, err = NewWindow(f, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
+	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
 		return err
 	}
 	return nil
@@ -331,4 +344,22 @@ func (e *Editor) redraw() error {
 	state.Mode, state.Error = e.mode, e.err
 	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
 	return e.ui.Redraw(state)
+}
+
+func (e *Editor) writeFile(name string) error {
+	if name == "" {
+		name = e.window.filename
+	}
+	tmpf, err := ioutil.TempFile(filepath.Dir(name), filepath.Base(name))
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmpf.Name())
+	e.window.buffer.Seek(0, io.SeekStart)
+	_, err = io.Copy(tmpf, e.window.buffer)
+	tmpf.Close()
+	if err != nil {
+		return err
+	}
+	return os.Rename(tmpf.Name(), name)
 }
