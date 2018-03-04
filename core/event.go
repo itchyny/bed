@@ -71,6 +71,7 @@ const (
 	EventCursorHeadCmdline
 	EventCursorEndCmdline
 	EventBackspaceCmdline
+	EventDeleteCmdline
 	EventClearToHeadCmdline
 	EventClearCmdline
 	EventExitCmdline
