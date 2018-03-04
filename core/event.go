@@ -2,11 +2,12 @@ package core
 
 // Event represents the event emitted by UI.
 type Event struct {
-	Type  EventType
-	Count int64
-	Rune  rune
-	Args  []string
-	Error error
+	Type    EventType
+	Count   int64
+	Rune    rune
+	CmdName string
+	Args    []string
+	Error   error
 }
 
 // EventType ...

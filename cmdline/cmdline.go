@@ -115,6 +115,6 @@ func (c *Cmdline) Execute() {
 		return
 	}
 	if cmd.name != "" {
-		c.ch <- core.Event{Type: cmd.eventType, Args: args}
+		c.ch <- core.Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
 	}
 }

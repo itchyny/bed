@@ -1,7 +1,7 @@
 package core
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -48,7 +48,11 @@ func (e *Editor) Init() error {
 				e.window.height = int64(e.ui.Height())
 				switch event.Type {
 				case EventQuit:
-					quit <- struct{}{}
+					if len(event.Args) > 0 {
+						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+					} else {
+						quit <- struct{}{}
+					}
 				case EventCursorUp:
 					e.window.cursorUp(event.Count)
 				case EventCursorDown:
@@ -187,7 +191,7 @@ func (e *Editor) Init() error {
 					}
 				case EventWrite:
 					if len(event.Args) > 1 {
-						e.err = errors.New("too many arguments for write")
+						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
 					} else {
 						var name string
 						if len(event.Args) > 0 {
@@ -197,7 +201,7 @@ func (e *Editor) Init() error {
 					}
 				case EventWriteQuit:
 					if len(event.Args) > 0 {
-						e.err = errors.New("too many arguments for x")
+						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
 					} else {
 						e.err = e.writeFile("")
 						quit <- struct{}{}
