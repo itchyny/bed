@@ -1,6 +1,8 @@
 package core
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -350,6 +352,14 @@ func (e *Editor) Open(filename string) (err error) {
 	return nil
 }
 
+// OpenEmpty creates a new window.
+func (e *Editor) OpenEmpty() (err error) {
+	if e.window, err = NewWindow(bytes.NewReader(nil), "", "", int64(e.ui.Height()), 16); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Start starts the editor.
 func (e *Editor) Start() error {
 	if err := e.redraw(); err != nil {
@@ -372,6 +382,12 @@ func (e *Editor) writeFile(name string) error {
 	perm := os.FileMode(0644)
 	if name == "" {
 		name = e.window.filename
+	}
+	if name == "" {
+		return errors.New("no file name")
+	}
+	if e.window.filename == "" {
+		e.window.filename = name
 	}
 	for _, f := range e.files {
 		if f.name == name {
