@@ -253,13 +253,52 @@ func TestExecuteQuit(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan core.Event, 1)
 	c.Init(ch)
-	for _, cmd := range []string{"quit", "q", "qall", "qa", "x"} {
+	for _, cmd := range []struct {
+		cmd  string
+		name string
+	}{
+		{"exi", "exi[t]"},
+		{"quit", "q[uit]"},
+		{"q", "q[uit]"},
+		{"qall", "qa[ll]"},
+		{"qa", "qa[ll]"},
+	} {
 		c.Clear()
-		c.cmdline = []rune(cmd)
+		c.cmdline = []rune(cmd.cmd)
 		c.Execute()
 		e := <-ch
+		if e.CmdName != cmd.name {
+			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		}
 		if e.Type != core.EventQuit {
-			t.Errorf("cmdline should emit quit event with %q", cmd)
+			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
+		}
+	}
+}
+
+func TestExecuteWriteQuit(t *testing.T) {
+	c := NewCmdline()
+	ch := make(chan core.Event, 1)
+	c.Init(ch)
+	for _, cmd := range []struct {
+		cmd  string
+		name string
+	}{
+		{"wq", "wq"},
+		{"x", "x[it]"},
+		{"xit", "x[it]"},
+		{"xa", "xa[ll]"},
+		{"xall", "xa[ll]"},
+	} {
+		c.Clear()
+		c.cmdline = []rune(cmd.cmd)
+		c.Execute()
+		e := <-ch
+		if e.CmdName != cmd.name {
+			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		}
+		if e.Type != core.EventWriteQuit {
+			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 	}
 }
