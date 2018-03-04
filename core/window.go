@@ -90,7 +90,10 @@ func (w *Window) cursorUp(count int64) {
 
 func (w *Window) cursorDown(count int64) {
 	w.cursor += util.MinInt64(
-		util.MinInt64(util.MaxInt64(count, 1), (util.MaxInt64(w.length, 1)-1)/w.width-w.cursor/w.width)*w.width,
+		util.MinInt64(
+			util.MaxInt64(count, 1),
+			(util.MaxInt64(w.length, 1)-1)/w.width-w.cursor/w.width,
+		)*w.width,
 		util.MaxInt64(w.length, 1)-1-w.cursor)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
@@ -102,7 +105,10 @@ func (w *Window) cursorLeft(count int64) {
 }
 
 func (w *Window) cursorRight(count int64) {
-	w.cursor += util.MinInt64(util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width), util.MaxInt64(w.length, 1)-1-w.cursor)
+	w.cursor += util.MinInt64(
+		util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
+		util.MaxInt64(w.length, 1)-1-w.cursor,
+	)
 }
 
 func (w *Window) cursorPrev(count int64) {
@@ -124,7 +130,10 @@ func (w *Window) cursorHead(_ int64) {
 }
 
 func (w *Window) cursorEnd(count int64) {
-	w.cursor = util.MinInt64((w.cursor/w.width+util.MaxInt64(count, 1))*w.width-1, util.MaxInt64(w.length, 1)-1)
+	w.cursor = util.MinInt64(
+		(w.cursor/w.width+util.MaxInt64(count, 1))*w.width-1,
+		util.MaxInt64(w.length, 1)-1,
+	)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
@@ -141,7 +150,10 @@ func (w *Window) scrollDown(count int64) {
 	h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
 	w.offset += util.MinInt64(util.MaxInt64(count, 1), h-w.offset/w.width) * w.width
 	if w.cursor < w.offset {
-		w.cursor += util.MinInt64((w.offset-w.cursor+w.width-1)/w.width*w.width, util.MaxInt64(w.length, 1)-1-w.cursor)
+		w.cursor += util.MinInt64(
+			(w.offset-w.cursor+w.width-1)/w.width*w.width,
+			util.MaxInt64(w.length, 1)-1-w.cursor,
+		)
 	}
 }
 
@@ -242,7 +254,10 @@ func (w *Window) deleteByte(count int64) {
 	if w.length == 0 {
 		return
 	}
-	cnt := int(util.MinInt64(util.MinInt64(util.MaxInt64(count, 1), w.width-w.cursor%w.width), w.length-w.cursor))
+	cnt := int(util.MinInt64(
+		util.MinInt64(util.MaxInt64(count, 1), w.width-w.cursor%w.width),
+		w.length-w.cursor,
+	))
 	for i := 0; i < cnt; i++ {
 		w.buffer.Delete(w.cursor)
 		w.length--
