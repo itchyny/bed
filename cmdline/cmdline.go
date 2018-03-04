@@ -89,8 +89,11 @@ func (c *Cmdline) Get() ([]rune, int) {
 
 // Execute invokes the command.
 func (c *Cmdline) Execute() {
-	cmdline := string(c.cmdline)
-	if cmdline == "quit" {
-		c.ch <- core.Event{Type: core.EventQuit}
+	cmd, err := parse(c.cmdline)
+	if err != nil {
+		return
+	}
+	if cmd.name != "" {
+		c.ch <- core.Event{Type: cmd.eventType}
 	}
 }
