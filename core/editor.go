@@ -3,9 +3,10 @@ package core
 import (
 	"errors"
 	"io"
-	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // Editor is the main struct for this command.
@@ -352,10 +353,21 @@ func (e *Editor) redraw() error {
 }
 
 func (e *Editor) writeFile(name string) error {
+	perm := os.FileMode(0644)
 	if name == "" {
 		name = e.window.filename
+	} else {
+		for _, f := range e.files {
+			if f.name == name {
+				if info, err := os.Stat(name); err == nil {
+					perm = info.Mode().Perm()
+				}
+			}
+		}
 	}
-	tmpf, err := ioutil.TempFile(filepath.Dir(name), filepath.Base(name))
+	tmpf, err := os.OpenFile(
+		name+"-"+strconv.FormatUint(rand.Uint64(), 16), os.O_RDWR|os.O_CREATE, perm,
+	)
 	if err != nil {
 		return err
 	}
