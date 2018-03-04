@@ -157,6 +157,8 @@ func (e *Editor) Init() error {
 					e.cmdline.Backspace()
 				case EventDeleteCmdline:
 					e.cmdline.Delete()
+				case EventDeleteWordCmdline:
+					e.cmdline.DeleteWord()
 				case EventClearToHeadCmdline:
 					e.cmdline.ClearToHead()
 				case EventClearCmdline:
@@ -280,6 +282,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventBackspaceCmdline, "backspace")
 	km.Register(EventBackspaceCmdline, "backspace2")
 	km.Register(EventDeleteCmdline, "delete")
+	km.Register(EventDeleteWordCmdline, "c-w")
 	km.Register(EventClearToHeadCmdline, "c-u")
 	km.Register(EventClearCmdline, "c-k")
 	km.Register(EventExitCmdline, "escape")

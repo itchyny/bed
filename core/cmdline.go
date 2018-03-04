@@ -9,6 +9,7 @@ type Cmdline interface {
 	CursorEnd()
 	Backspace()
 	Delete()
+	DeleteWord()
 	Clear()
 	ClearToHead()
 	Insert(rune)

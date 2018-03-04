@@ -60,6 +60,26 @@ func (c *Cmdline) Delete() {
 	}
 }
 
+// DeleteWord deletes one word left.
+func (c *Cmdline) DeleteWord() {
+	i := c.cursor
+	for i > 0 && unicode.IsSpace(c.cmdline[i-1]) {
+		i--
+	}
+	if i > 0 {
+		isk := isKeyword(c.cmdline[i-1])
+		for i > 0 && isKeyword(c.cmdline[i-1]) == isk {
+			i--
+		}
+	}
+	c.cmdline = append(c.cmdline[:i], c.cmdline[c.cursor:]...)
+	c.cursor = i
+}
+
+func isKeyword(c rune) bool {
+	return unicode.IsDigit(c) || unicode.IsLetter(c) || c == '_'
+}
+
 // Clear the cmdline.
 func (c *Cmdline) Clear() {
 	c.cmdline = []rune{}
