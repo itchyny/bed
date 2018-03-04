@@ -156,6 +156,9 @@ func (e *Editor) Init() error {
 					}
 				case EventExitCmdline:
 					e.mode = ModeNormal
+				case EventSpaceCmdline:
+					event.Rune = ' '
+					fallthrough
 				case EventRune:
 					if e.mode == ModeCmdline && unicode.IsPrint(event.Rune) {
 						e.cmdline = append(e.cmdline, '\x00')
@@ -255,6 +258,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	kms[ModeReplace] = km
 
 	km = NewKeyManager(false)
+	km.Register(EventSpaceCmdline, "space")
 	km.Register(EventCursorLeftCmdline, "left")
 	km.Register(EventCursorLeftCmdline, "c-b")
 	km.Register(EventCursorRightCmdline, "right")
