@@ -12,6 +12,7 @@ var commands = []command{
 	{"q[uit]", core.EventQuit},
 	{"qa[ll]", core.EventQuit},
 	{"w[rite]", core.EventWrite},
-	{"x[it]", core.EventQuit},
-	{"xa[ll]", core.EventQuit},
+	{"wq", core.EventWriteQuit},
+	{"x[it]", core.EventWriteQuit},
+	{"xa[ll]", core.EventWriteQuit},
 }

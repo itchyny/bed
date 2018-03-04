@@ -195,6 +195,13 @@ func (e *Editor) Init() error {
 						}
 						e.err = e.writeFile(name)
 					}
+				case EventWriteQuit:
+					if len(event.Args) > 0 {
+						e.err = errors.New("too many arguments for x")
+					} else {
+						e.err = e.writeFile("")
+						quit <- struct{}{}
+					}
 				case EventError:
 					e.err = event.Error
 				default:

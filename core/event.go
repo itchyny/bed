@@ -81,5 +81,6 @@ const (
 	EventRune
 	EventExecuteCmdline
 	EventWrite
+	EventWriteQuit
 	EventError
 )
