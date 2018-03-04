@@ -13,6 +13,6 @@ type State struct {
 	Pending       bool
 	PendingByte   byte
 	EditedIndices []int64
-	Cmdline       string
+	Cmdline       []rune
 	CmdlineCursor int
 }

@@ -3,9 +3,6 @@ package core
 import (
 	"os"
 	"path/filepath"
-	"unicode"
-
-	"github.com/itchyny/bed/util"
 )
 
 // Editor is the main struct for this command.
@@ -14,13 +11,13 @@ type Editor struct {
 	window        *Window
 	files         []*os.File
 	mode          Mode
-	cmdline       []rune
+	cmdline       Cmdline
 	cmdlineCursor int
 }
 
 // NewEditor creates a new editor.
-func NewEditor(ui UI) *Editor {
-	return &Editor{ui: ui}
+func NewEditor(ui UI, cmdline Cmdline) *Editor {
+	return &Editor{ui: ui, cmdline: cmdline}
 }
 
 // Init initializes the editor.
@@ -139,42 +136,31 @@ func (e *Editor) Init() error {
 
 				case EventStartCmdline:
 					e.mode = ModeCmdline
-					e.cmdline = nil
-					e.cmdlineCursor = 0
+					e.cmdline.Clear()
 				case EventCursorLeftCmdline:
-					e.cmdlineCursor = util.MaxInt(0, e.cmdlineCursor-1)
+					e.cmdline.CursorLeft()
 				case EventCursorRightCmdline:
-					e.cmdlineCursor = util.MinInt(len(e.cmdline), e.cmdlineCursor+1)
+					e.cmdline.CursorRight()
 				case EventCursorHeadCmdline:
-					e.cmdlineCursor = 0
+					e.cmdline.CursorHead()
 				case EventCursorEndCmdline:
-					e.cmdlineCursor = len(e.cmdline)
+					e.cmdline.CursorEnd()
 				case EventBackspaceCmdline:
-					if e.cmdlineCursor > 0 {
-						e.cmdline = append(e.cmdline[:e.cmdlineCursor-1], e.cmdline[e.cmdlineCursor:]...)
-						e.cmdlineCursor -= 1
-					}
+					e.cmdline.Backspace()
 				case EventDeleteCmdline:
-					if e.cmdlineCursor < len(e.cmdline) {
-						e.cmdline = append(e.cmdline[:e.cmdlineCursor], e.cmdline[e.cmdlineCursor+1:]...)
-					}
+					e.cmdline.Delete()
 				case EventClearToHeadCmdline:
-					e.cmdline = e.cmdline[e.cmdlineCursor:]
-					e.cmdlineCursor = 0
+					e.cmdline.ClearToHead()
 				case EventClearCmdline:
-					e.cmdline = nil
-					e.cmdlineCursor = 0
+					e.cmdline.Clear()
 				case EventExitCmdline:
 					e.mode = ModeNormal
 				case EventSpaceCmdline:
 					event.Rune = ' '
 					fallthrough
 				case EventRune:
-					if e.mode == ModeCmdline && unicode.IsPrint(event.Rune) {
-						e.cmdline = append(e.cmdline, '\x00')
-						copy(e.cmdline[e.cmdlineCursor+1:], e.cmdline[e.cmdlineCursor:])
-						e.cmdline[e.cmdlineCursor] = event.Rune
-						e.cmdlineCursor += 1
+					if e.mode == ModeCmdline {
+						e.cmdline.Insert(event.Rune)
 					}
 				default:
 					continue
@@ -322,7 +308,6 @@ func (e *Editor) redraw() error {
 		return err
 	}
 	state.Mode = e.mode
-	state.Cmdline = string(e.cmdline)
-	state.CmdlineCursor = e.cmdlineCursor
+	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
 	return e.ui.Redraw(state)
 }
