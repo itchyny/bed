@@ -110,6 +110,7 @@ func (e *Editor) Init() error {
 					e.mode = ModeInsert
 					e.window.startAppend()
 				case EventStartAppendEnd:
+					e.mode = ModeInsert
 					e.window.startAppendEnd()
 				case EventStartReplaceByte:
 					e.mode = ModeReplace
