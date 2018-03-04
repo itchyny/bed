@@ -13,6 +13,7 @@ type Editor struct {
 	mode          Mode
 	cmdline       Cmdline
 	cmdlineCursor int
+	err           error
 }
 
 // NewEditor creates a new editor.
@@ -142,6 +143,7 @@ func (e *Editor) Init() error {
 
 				case EventStartCmdline:
 					e.mode = ModeCmdline
+					e.err = nil
 					e.cmdline.Clear()
 				case EventCursorLeftCmdline:
 					e.cmdline.CursorLeft()
@@ -171,6 +173,8 @@ func (e *Editor) Init() error {
 					if e.mode == ModeCmdline {
 						e.cmdline.Insert(event.Rune)
 					}
+				case EventError:
+					e.err = event.Error
 				default:
 					continue
 				}
@@ -321,7 +325,7 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
-	state.Mode = e.mode
+	state.Mode, state.Error = e.mode, e.err
 	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
 	return e.ui.Redraw(state)
 }

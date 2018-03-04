@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -34,7 +35,7 @@ func parse(cmdline []rune) (command, error) {
 			}
 		}
 	}
-	return command{}, nil
+	return command{}, fmt.Errorf("unknown command: %s", string(cmdline))
 }
 
 func expand(name string) []string {

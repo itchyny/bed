@@ -15,4 +15,5 @@ type State struct {
 	EditedIndices []int64
 	Cmdline       []rune
 	CmdlineCursor int
+	Error         error
 }

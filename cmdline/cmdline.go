@@ -91,6 +91,7 @@ func (c *Cmdline) Get() ([]rune, int) {
 func (c *Cmdline) Execute() {
 	cmd, err := parse(c.cmdline)
 	if err != nil {
+		c.ch <- core.Event{Type: core.EventError, Error: err}
 		return
 	}
 	if cmd.name != "" {
