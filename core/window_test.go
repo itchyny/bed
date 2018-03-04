@@ -755,6 +755,21 @@ func TestWindowAppendEmpty(t *testing.T) {
 	if state.Cursor != 0 {
 		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
 	}
+
+	window.startAppendEnd()
+	window.insert3(ModeInsert)
+	window.insertB(ModeInsert)
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), ":;\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", ":;\x00", string(state.Bytes))
+	}
+	if state.Length != 2 {
+		t.Errorf("state.Length should be %d but got %d", 2, state.Length)
+	}
+	if state.Cursor != 1 {
+		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	}
 }
 
 func TestWindowReplaceByte(t *testing.T) {
