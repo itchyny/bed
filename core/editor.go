@@ -340,7 +340,13 @@ func (e *Editor) Close() error {
 func (e *Editor) Open(filename string) (err error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		return err
+		if !os.IsNotExist(err) {
+			return err
+		}
+		if e.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
+			return err
+		}
+		return nil
 	}
 	info, err := os.Stat(filename)
 	if err != nil {
