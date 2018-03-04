@@ -3,6 +3,7 @@ package cmdline
 import (
 	"unicode"
 
+	"github.com/itchyny/bed/core"
 	"github.com/itchyny/bed/util"
 )
 
@@ -10,11 +11,18 @@ import (
 type Cmdline struct {
 	cmdline []rune
 	cursor  int
+	ch      chan<- core.Event
 }
 
 // NewCmdline creates a new Cmdline.
 func NewCmdline() *Cmdline {
 	return &Cmdline{}
+}
+
+// Init initializes the Cmdline.
+func (c *Cmdline) Init(ch chan<- core.Event) error {
+	c.ch = ch
+	return nil
 }
 
 // CursorLeft moves the cursor left.
@@ -77,4 +85,12 @@ func (c *Cmdline) Insert(ch rune) {
 // Get returns the current state of cmdline.
 func (c *Cmdline) Get() ([]rune, int) {
 	return c.cmdline, c.cursor
+}
+
+// Execute invokes the command.
+func (c *Cmdline) Execute() {
+	cmdline := string(c.cmdline)
+	if cmdline == "quit" {
+		c.ch <- core.Event{Type: core.EventQuit}
+	}
 }

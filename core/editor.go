@@ -22,8 +22,12 @@ func NewEditor(ui UI, cmdline Cmdline) *Editor {
 
 // Init initializes the editor.
 func (e *Editor) Init() error {
-	ch := make(chan Event)
-	if err := e.ui.Init(ch); err != nil {
+	ch := make(chan Event, 1)
+	quit := make(chan struct{})
+	if err := e.ui.Init(ch, quit); err != nil {
+		return err
+	}
+	if err := e.cmdline.Init(ch); err != nil {
 		return err
 	}
 	go func() {
@@ -32,6 +36,8 @@ func (e *Editor) Init() error {
 			case event := <-ch:
 				e.window.height = int64(e.ui.Height())
 				switch event.Type {
+				case EventQuit:
+					quit <- struct{}{}
 				case EventCursorUp:
 					e.window.cursorUp(event.Count)
 				case EventCursorDown:
@@ -155,6 +161,9 @@ func (e *Editor) Init() error {
 					e.cmdline.Clear()
 				case EventExitCmdline:
 					e.mode = ModeNormal
+				case EventExecuteCmdline:
+					e.mode = ModeNormal
+					e.cmdline.Execute()
 				case EventSpaceCmdline:
 					event.Rune = ' '
 					fallthrough
@@ -271,6 +280,9 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventClearCmdline, "c-k")
 	km.Register(EventExitCmdline, "escape")
 	km.Register(EventExitCmdline, "c-c")
+	km.Register(EventExecuteCmdline, "enter")
+	km.Register(EventExecuteCmdline, "c-j")
+	km.Register(EventExecuteCmdline, "c-m")
 	kms[ModeCmdline] = km
 	return kms
 }

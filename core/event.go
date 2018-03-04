@@ -76,4 +76,5 @@ const (
 	EventClearCmdline
 	EventExitCmdline
 	EventRune
+	EventExecuteCmdline
 )

@@ -16,6 +16,7 @@ type Tui struct {
 	width  int
 	height int
 	ch     chan<- core.Event
+	quit   <-chan struct{}
 	mode   core.Mode
 }
 
@@ -25,8 +26,9 @@ func NewTui() *Tui {
 }
 
 // Init initializes the Tui.
-func (ui *Tui) Init(ch chan<- core.Event) error {
+func (ui *Tui) Init(ch chan<- core.Event, quit <-chan struct{}) error {
 	ui.ch = ch
+	ui.quit = quit
 	ui.mode = core.ModeNormal
 	return termbox.Init()
 }
@@ -47,15 +49,14 @@ loop:
 		case e := <-events:
 			if e.Type == termbox.EventKey {
 				if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
-					if event.Type == core.EventQuit {
-						break loop
-					}
 					ui.ch <- event
 					continue
 				} else {
 					ui.ch <- core.Event{Type: core.EventRune, Rune: e.Ch}
 				}
 			}
+		case <-ui.quit:
+			break loop
 		}
 	}
 	return nil
