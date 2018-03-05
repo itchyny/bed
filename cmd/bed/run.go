@@ -31,7 +31,7 @@ func run(args []string) int {
 			return 1
 		}
 	}
-	if err := editor.Start(); err != nil {
+	if err := editor.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return 1
 	}

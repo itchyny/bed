@@ -2,8 +2,8 @@ package core
 
 // UI defines the required user interface for the editor.
 type UI interface {
-	Init(ch chan<- Event, quit <-chan struct{}) error
-	Start(km map[Mode]*KeyManager) error
+	Init(eventCh chan<- Event, quit <-chan struct{}) error
+	Run(km map[Mode]*KeyManager)
 	Height() int
 	Redraw(state State) error
 	Close() error

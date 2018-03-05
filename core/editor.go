@@ -20,6 +20,8 @@ type Editor struct {
 	cmdline       Cmdline
 	cmdlineCursor int
 	err           error
+	eventCh       chan Event
+	quitCh        chan struct{}
 }
 
 type file struct {
@@ -35,190 +37,187 @@ func NewEditor(ui UI, cmdline Cmdline) *Editor {
 
 // Init initializes the editor.
 func (e *Editor) Init() error {
-	eventCh := make(chan Event, 1)
-	quitCh := make(chan struct{})
-	if err := e.ui.Init(eventCh, quitCh); err != nil {
+	e.eventCh = make(chan Event, 1)
+	e.quitCh = make(chan struct{})
+	if err := e.ui.Init(e.eventCh, e.quitCh); err != nil {
 		return err
 	}
-	if err := e.cmdline.Init(eventCh); err != nil {
-		return err
-	}
-	go func() {
-		for {
-			select {
-			case event := <-eventCh:
-				e.window.height = int64(e.ui.Height())
-				switch event.Type {
-				case EventQuit:
-					if len(event.Args) > 0 {
-						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
-					} else {
-						quitCh <- struct{}{}
-					}
-				case EventCursorUp:
-					e.window.cursorUp(event.Count)
-				case EventCursorDown:
-					e.window.cursorDown(event.Count)
-				case EventCursorLeft:
-					e.window.cursorLeft(event.Count)
-				case EventCursorRight:
-					e.window.cursorRight(event.Count)
-				case EventCursorPrev:
-					e.window.cursorPrev(event.Count)
-				case EventCursorNext:
-					e.window.cursorNext(event.Count)
-				case EventCursorHead:
-					e.window.cursorHead(event.Count)
-				case EventCursorEnd:
-					e.window.cursorEnd(event.Count)
-				case EventScrollUp:
-					e.window.scrollUp(event.Count)
-				case EventScrollDown:
-					e.window.scrollDown(event.Count)
-				case EventPageUp:
-					e.window.pageUp()
-				case EventPageDown:
-					e.window.pageDown()
-				case EventPageUpHalf:
-					e.window.pageUpHalf()
-				case EventPageDownHalf:
-					e.window.pageDownHalf()
-				case EventPageTop:
-					e.window.pageTop()
-				case EventPageEnd:
-					e.window.pageEnd()
-				case EventJumpTo:
-					e.window.jumpTo()
-				case EventJumpBack:
-					e.window.jumpBack()
-				case EventDeleteByte:
-					e.window.deleteByte(event.Count)
-				case EventDeletePrevByte:
-					e.window.deletePrevByte(event.Count)
-				case EventIncrement:
-					e.window.increment(event.Count)
-				case EventDecrement:
-					e.window.decrement(event.Count)
+	return e.cmdline.Init(e.eventCh)
+}
 
-				case EventStartInsert:
-					e.mode = ModeInsert
-					e.window.startInsert()
-				case EventStartInsertHead:
-					e.mode = ModeInsert
-					e.window.startInsertHead()
-				case EventStartAppend:
-					e.mode = ModeInsert
-					e.window.startAppend()
-				case EventStartAppendEnd:
-					e.mode = ModeInsert
-					e.window.startAppendEnd()
-				case EventStartReplaceByte:
-					e.mode = ModeReplace
-					e.window.startReplaceByte()
-				case EventStartReplace:
-					e.mode = ModeReplace
-					e.window.startReplace()
-				case EventExitInsert:
-					e.mode = ModeNormal
-					e.window.exitInsert()
-				case EventInsert0:
-					e.window.insert0(e.mode)
-				case EventInsert1:
-					e.window.insert1(e.mode)
-				case EventInsert2:
-					e.window.insert2(e.mode)
-				case EventInsert3:
-					e.window.insert3(e.mode)
-				case EventInsert4:
-					e.window.insert4(e.mode)
-				case EventInsert5:
-					e.window.insert5(e.mode)
-				case EventInsert6:
-					e.window.insert6(e.mode)
-				case EventInsert7:
-					e.window.insert7(e.mode)
-				case EventInsert8:
-					e.window.insert8(e.mode)
-				case EventInsert9:
-					e.window.insert9(e.mode)
-				case EventInsertA:
-					e.window.insertA(e.mode)
-				case EventInsertB:
-					e.window.insertB(e.mode)
-				case EventInsertC:
-					e.window.insertC(e.mode)
-				case EventInsertD:
-					e.window.insertD(e.mode)
-				case EventInsertE:
-					e.window.insertE(e.mode)
-				case EventInsertF:
-					e.window.insertF(e.mode)
-				case EventBackspace:
-					e.window.backspace()
-				case EventDelete:
-					e.window.deleteByte(1)
-
-				case EventStartCmdline:
-					e.mode = ModeCmdline
-					e.err = nil
-					e.cmdline.Clear()
-				case EventCursorLeftCmdline:
-					e.cmdline.CursorLeft()
-				case EventCursorRightCmdline:
-					e.cmdline.CursorRight()
-				case EventCursorHeadCmdline:
-					e.cmdline.CursorHead()
-				case EventCursorEndCmdline:
-					e.cmdline.CursorEnd()
-				case EventBackspaceCmdline:
-					e.cmdline.Backspace()
-				case EventDeleteCmdline:
-					e.cmdline.Delete()
-				case EventDeleteWordCmdline:
-					e.cmdline.DeleteWord()
-				case EventClearToHeadCmdline:
-					e.cmdline.ClearToHead()
-				case EventClearCmdline:
-					e.cmdline.Clear()
-				case EventExitCmdline:
-					e.mode = ModeNormal
-				case EventExecuteCmdline:
-					e.mode = ModeNormal
-					e.cmdline.Execute()
-				case EventSpaceCmdline:
-					event.Rune = ' '
-					fallthrough
-				case EventRune:
-					if e.mode == ModeCmdline {
-						e.cmdline.Insert(event.Rune)
-					}
-				case EventWrite:
-					if len(event.Args) > 1 {
-						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
-					} else {
-						var name string
-						if len(event.Args) > 0 {
-							name = event.Args[0]
-						}
-						e.err = e.writeFile(name)
-					}
-				case EventWriteQuit:
-					if len(event.Args) > 0 {
-						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
-					} else {
-						e.err = e.writeFile("")
-						quitCh <- struct{}{}
-					}
-				case EventError:
-					e.err = event.Error
-				default:
-					continue
-				}
-				e.redraw()
+func (e *Editor) listen() {
+	for event := range e.eventCh {
+		e.window.height = int64(e.ui.Height())
+		switch event.Type {
+		case EventQuit:
+			if len(event.Args) > 0 {
+				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+			} else {
+				e.quitCh <- struct{}{}
+				return
 			}
+		case EventCursorUp:
+			e.window.cursorUp(event.Count)
+		case EventCursorDown:
+			e.window.cursorDown(event.Count)
+		case EventCursorLeft:
+			e.window.cursorLeft(event.Count)
+		case EventCursorRight:
+			e.window.cursorRight(event.Count)
+		case EventCursorPrev:
+			e.window.cursorPrev(event.Count)
+		case EventCursorNext:
+			e.window.cursorNext(event.Count)
+		case EventCursorHead:
+			e.window.cursorHead(event.Count)
+		case EventCursorEnd:
+			e.window.cursorEnd(event.Count)
+		case EventScrollUp:
+			e.window.scrollUp(event.Count)
+		case EventScrollDown:
+			e.window.scrollDown(event.Count)
+		case EventPageUp:
+			e.window.pageUp()
+		case EventPageDown:
+			e.window.pageDown()
+		case EventPageUpHalf:
+			e.window.pageUpHalf()
+		case EventPageDownHalf:
+			e.window.pageDownHalf()
+		case EventPageTop:
+			e.window.pageTop()
+		case EventPageEnd:
+			e.window.pageEnd()
+		case EventJumpTo:
+			e.window.jumpTo()
+		case EventJumpBack:
+			e.window.jumpBack()
+		case EventDeleteByte:
+			e.window.deleteByte(event.Count)
+		case EventDeletePrevByte:
+			e.window.deletePrevByte(event.Count)
+		case EventIncrement:
+			e.window.increment(event.Count)
+		case EventDecrement:
+			e.window.decrement(event.Count)
+
+		case EventStartInsert:
+			e.mode = ModeInsert
+			e.window.startInsert()
+		case EventStartInsertHead:
+			e.mode = ModeInsert
+			e.window.startInsertHead()
+		case EventStartAppend:
+			e.mode = ModeInsert
+			e.window.startAppend()
+		case EventStartAppendEnd:
+			e.mode = ModeInsert
+			e.window.startAppendEnd()
+		case EventStartReplaceByte:
+			e.mode = ModeReplace
+			e.window.startReplaceByte()
+		case EventStartReplace:
+			e.mode = ModeReplace
+			e.window.startReplace()
+		case EventExitInsert:
+			e.mode = ModeNormal
+			e.window.exitInsert()
+		case EventInsert0:
+			e.window.insert0(e.mode)
+		case EventInsert1:
+			e.window.insert1(e.mode)
+		case EventInsert2:
+			e.window.insert2(e.mode)
+		case EventInsert3:
+			e.window.insert3(e.mode)
+		case EventInsert4:
+			e.window.insert4(e.mode)
+		case EventInsert5:
+			e.window.insert5(e.mode)
+		case EventInsert6:
+			e.window.insert6(e.mode)
+		case EventInsert7:
+			e.window.insert7(e.mode)
+		case EventInsert8:
+			e.window.insert8(e.mode)
+		case EventInsert9:
+			e.window.insert9(e.mode)
+		case EventInsertA:
+			e.window.insertA(e.mode)
+		case EventInsertB:
+			e.window.insertB(e.mode)
+		case EventInsertC:
+			e.window.insertC(e.mode)
+		case EventInsertD:
+			e.window.insertD(e.mode)
+		case EventInsertE:
+			e.window.insertE(e.mode)
+		case EventInsertF:
+			e.window.insertF(e.mode)
+		case EventBackspace:
+			e.window.backspace()
+		case EventDelete:
+			e.window.deleteByte(1)
+
+		case EventStartCmdline:
+			e.mode = ModeCmdline
+			e.err = nil
+			e.cmdline.Clear()
+		case EventCursorLeftCmdline:
+			e.cmdline.CursorLeft()
+		case EventCursorRightCmdline:
+			e.cmdline.CursorRight()
+		case EventCursorHeadCmdline:
+			e.cmdline.CursorHead()
+		case EventCursorEndCmdline:
+			e.cmdline.CursorEnd()
+		case EventBackspaceCmdline:
+			e.cmdline.Backspace()
+		case EventDeleteCmdline:
+			e.cmdline.Delete()
+		case EventDeleteWordCmdline:
+			e.cmdline.DeleteWord()
+		case EventClearToHeadCmdline:
+			e.cmdline.ClearToHead()
+		case EventClearCmdline:
+			e.cmdline.Clear()
+		case EventExitCmdline:
+			e.mode = ModeNormal
+		case EventExecuteCmdline:
+			e.mode = ModeNormal
+			e.cmdline.Execute()
+		case EventSpaceCmdline:
+			event.Rune = ' '
+			fallthrough
+		case EventRune:
+			if e.mode == ModeCmdline {
+				e.cmdline.Insert(event.Rune)
+			}
+		case EventWrite:
+			if len(event.Args) > 1 {
+				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+			} else {
+				var name string
+				if len(event.Args) > 0 {
+					name = event.Args[0]
+				}
+				e.err = e.writeFile(name)
+			}
+		case EventWriteQuit:
+			if len(event.Args) > 0 {
+				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+			} else {
+				e.err = e.writeFile("")
+				e.quitCh <- struct{}{}
+				return
+			}
+		case EventError:
+			e.err = event.Error
+		default:
+			continue
 		}
-	}()
-	return nil
+		e.redraw()
+	}
 }
 
 func defaultKeyManagers() map[Mode]*KeyManager {
@@ -333,6 +332,8 @@ func (e *Editor) Close() error {
 	for _, f := range e.files {
 		f.file.Close()
 	}
+	close(e.eventCh)
+	close(e.quitCh)
 	return e.ui.Close()
 }
 
@@ -367,12 +368,14 @@ func (e *Editor) OpenEmpty() (err error) {
 	return nil
 }
 
-// Start starts the editor.
-func (e *Editor) Start() error {
+// Run the editor.
+func (e *Editor) Run() error {
 	if err := e.redraw(); err != nil {
 		return err
 	}
-	return e.ui.Start(defaultKeyManagers())
+	go e.ui.Run(defaultKeyManagers())
+	e.listen()
+	return nil
 }
 
 func (e *Editor) redraw() error {

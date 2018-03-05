@@ -33,33 +33,34 @@ func (ui *Tui) Init(eventCh chan<- core.Event, quitCh <-chan struct{}) error {
 	return termbox.Init()
 }
 
-// Start starts the Tui.
-func (ui *Tui) Start(kms map[core.Mode]*core.KeyManager) error {
+// Run the Tui.
+func (ui *Tui) Run(kms map[core.Mode]*core.KeyManager) {
+	kms[core.ModeNormal].Register(core.EventQuit, "q")
+	kms[core.ModeNormal].Register(core.EventQuit, "c-c")
 	events := make(chan termbox.Event)
 	go func() {
 		for {
 			events <- termbox.PollEvent()
 		}
 	}()
-	kms[core.ModeNormal].Register(core.EventQuit, "q")
-	kms[core.ModeNormal].Register(core.EventQuit, "c-c")
-loop:
-	for {
-		select {
-		case e := <-events:
-			if e.Type == termbox.EventKey {
-				if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
-					ui.eventCh <- event
-					continue
-				} else {
-					ui.eventCh <- core.Event{Type: core.EventRune, Rune: e.Ch}
+	go func() {
+		for {
+			select {
+			case e := <-events:
+				if e.Type == termbox.EventKey {
+					if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
+						ui.eventCh <- event
+						continue
+					} else {
+						ui.eventCh <- core.Event{Type: core.EventRune, Rune: e.Ch}
+					}
 				}
+			case <-ui.quitCh:
+				close(events)
+				return
 			}
-		case <-ui.quitCh:
-			break loop
 		}
-	}
-	return nil
+	}()
 }
 
 // Height returns the height for the hex view.
@@ -263,6 +264,5 @@ func prettyMode(mode core.Mode) string {
 // Close terminates the Tui.
 func (ui *Tui) Close() error {
 	termbox.Close()
-	close(ui.eventCh)
 	return nil
 }
