@@ -11,7 +11,7 @@ import (
 type Cmdline struct {
 	cmdline []rune
 	cursor  int
-	ch      chan<- core.Event
+	eventCh chan<- core.Event
 }
 
 // NewCmdline creates a new Cmdline.
@@ -20,8 +20,8 @@ func NewCmdline() *Cmdline {
 }
 
 // Init initializes the Cmdline.
-func (c *Cmdline) Init(ch chan<- core.Event) error {
-	c.ch = ch
+func (c *Cmdline) Init(eventCh chan<- core.Event) error {
+	c.eventCh = eventCh
 	return nil
 }
 
@@ -111,10 +111,10 @@ func (c *Cmdline) Get() ([]rune, int) {
 func (c *Cmdline) Execute() {
 	cmd, args, err := parse(c.cmdline)
 	if err != nil {
-		c.ch <- core.Event{Type: core.EventError, Error: err}
+		c.eventCh <- core.Event{Type: core.EventError, Error: err}
 		return
 	}
 	if cmd.name != "" {
-		c.ch <- core.Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
+		c.eventCh <- core.Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
 	}
 }

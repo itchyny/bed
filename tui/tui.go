@@ -13,11 +13,11 @@ import (
 
 // Tui implements UI
 type Tui struct {
-	width  int
-	height int
-	ch     chan<- core.Event
-	quit   <-chan struct{}
-	mode   core.Mode
+	width   int
+	height  int
+	eventCh chan<- core.Event
+	quitCh  <-chan struct{}
+	mode    core.Mode
 }
 
 // NewTui creates a new Tui.
@@ -26,9 +26,9 @@ func NewTui() *Tui {
 }
 
 // Init initializes the Tui.
-func (ui *Tui) Init(ch chan<- core.Event, quit <-chan struct{}) error {
-	ui.ch = ch
-	ui.quit = quit
+func (ui *Tui) Init(eventCh chan<- core.Event, quitCh <-chan struct{}) error {
+	ui.eventCh = eventCh
+	ui.quitCh = quitCh
 	ui.mode = core.ModeNormal
 	return termbox.Init()
 }
@@ -49,13 +49,13 @@ loop:
 		case e := <-events:
 			if e.Type == termbox.EventKey {
 				if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
-					ui.ch <- event
+					ui.eventCh <- event
 					continue
 				} else {
-					ui.ch <- core.Event{Type: core.EventRune, Rune: e.Ch}
+					ui.eventCh <- core.Event{Type: core.EventRune, Rune: e.Ch}
 				}
 			}
-		case <-ui.quit:
+		case <-ui.quitCh:
 			break loop
 		}
 	}
@@ -263,6 +263,6 @@ func prettyMode(mode core.Mode) string {
 // Close terminates the Tui.
 func (ui *Tui) Close() error {
 	termbox.Close()
-	close(ui.ch)
+	close(ui.eventCh)
 	return nil
 }

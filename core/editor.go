@@ -35,25 +35,25 @@ func NewEditor(ui UI, cmdline Cmdline) *Editor {
 
 // Init initializes the editor.
 func (e *Editor) Init() error {
-	ch := make(chan Event, 1)
-	quit := make(chan struct{})
-	if err := e.ui.Init(ch, quit); err != nil {
+	eventCh := make(chan Event, 1)
+	quitCh := make(chan struct{})
+	if err := e.ui.Init(eventCh, quitCh); err != nil {
 		return err
 	}
-	if err := e.cmdline.Init(ch); err != nil {
+	if err := e.cmdline.Init(eventCh); err != nil {
 		return err
 	}
 	go func() {
 		for {
 			select {
-			case event := <-ch:
+			case event := <-eventCh:
 				e.window.height = int64(e.ui.Height())
 				switch event.Type {
 				case EventQuit:
 					if len(event.Args) > 0 {
 						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
 					} else {
-						quit <- struct{}{}
+						quitCh <- struct{}{}
 					}
 				case EventCursorUp:
 					e.window.cursorUp(event.Count)
@@ -207,7 +207,7 @@ func (e *Editor) Init() error {
 						e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
 					} else {
 						e.err = e.writeFile("")
-						quit <- struct{}{}
+						quitCh <- struct{}{}
 					}
 				case EventError:
 					e.err = event.Error
