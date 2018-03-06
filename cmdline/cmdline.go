@@ -49,7 +49,7 @@ func (c *Cmdline) Run() {
 			c.clearToHead()
 		case core.EventClearCmdline:
 			c.clear()
-		case core.EventSpaceCmdline:
+		case core.EventSpace:
 			c.insert(' ')
 		case core.EventRune:
 			c.insert(e.Rune)

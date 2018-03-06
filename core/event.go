@@ -53,6 +53,7 @@ const (
 	EventBackspace
 	EventDelete
 	EventRune
+	EventSpace
 
 	EventStartCmdline
 	EventBackspaceCmdline
@@ -60,7 +61,6 @@ const (
 	EventDeleteWordCmdline
 	EventClearToHeadCmdline
 	EventClearCmdline
-	EventSpaceCmdline
 	EventExitCmdline
 	EventExecuteCmdline
 	EventWrite

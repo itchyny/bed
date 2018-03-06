@@ -148,7 +148,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	kms[ModeReplace] = km
 
 	km = NewKeyManager(false)
-	km.Register(EventSpaceCmdline, "space")
+	km.Register(EventSpace, "space")
 	km.Register(EventCursorLeft, "left")
 	km.Register(EventCursorLeft, "c-b")
 	km.Register(EventCursorRight, "right")
