@@ -104,17 +104,10 @@ func (e *Editor) listen() {
 				e.cmdlineCh <- event
 			} else {
 				switch event.Type {
-				case EventStartInsert:
+				case EventStartInsert, EventStartInsertHead,
+					EventStartAppend, EventStartAppendEnd:
 					e.mode = ModeInsert
-				case EventStartInsertHead:
-					e.mode = ModeInsert
-				case EventStartAppend:
-					e.mode = ModeInsert
-				case EventStartAppendEnd:
-					e.mode = ModeInsert
-				case EventStartReplaceByte:
-					e.mode = ModeReplace
-				case EventStartReplace:
+				case EventStartReplaceByte, EventStartReplace:
 					e.mode = ModeReplace
 				case EventExitInsert:
 					e.mode = ModeNormal
