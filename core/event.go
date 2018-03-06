@@ -71,10 +71,6 @@ const (
 	EventDelete
 
 	EventStartCmdline
-	EventCursorLeftCmdline
-	EventCursorRightCmdline
-	EventCursorHeadCmdline
-	EventCursorEndCmdline
 	EventBackspaceCmdline
 	EventDeleteCmdline
 	EventDeleteWordCmdline

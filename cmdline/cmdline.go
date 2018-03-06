@@ -30,13 +30,13 @@ func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event) e
 func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
-		case core.EventCursorLeftCmdline:
+		case core.EventCursorLeft:
 			c.cursorLeft()
-		case core.EventCursorRightCmdline:
+		case core.EventCursorRight:
 			c.cursorRight()
-		case core.EventCursorHeadCmdline:
+		case core.EventCursorHead:
 			c.cursorHead()
-		case core.EventCursorEndCmdline:
+		case core.EventCursorEnd:
 			c.cursorEnd()
 		case core.EventBackspaceCmdline:
 			c.backspace()
