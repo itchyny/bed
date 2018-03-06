@@ -40,7 +40,7 @@ func NewEditor(ui UI, cmdline Cmdline) *Editor {
 func (e *Editor) Init() error {
 	e.eventCh = make(chan Event, 1)
 	e.quitCh = make(chan struct{})
-	e.cmdlineCh = make(chan Event, 1)
+	e.cmdlineCh = make(chan Event)
 	if err := e.ui.Init(e.eventCh, e.quitCh); err != nil {
 		return err
 	}

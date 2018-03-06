@@ -48,7 +48,7 @@ func NewWindow(r io.ReadSeeker, filename string, name string, height, width int6
 		width:    width,
 		length:   length,
 		eventCh:  eventCh,
-		ch:       make(chan Event, 1),
+		ch:       make(chan Event),
 	}, nil
 }
 
