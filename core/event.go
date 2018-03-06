@@ -51,24 +51,9 @@ const (
 	EventStartReplace
 
 	EventExitInsert
-	EventInsert0
-	EventInsert1
-	EventInsert2
-	EventInsert3
-	EventInsert4
-	EventInsert5
-	EventInsert6
-	EventInsert7
-	EventInsert8
-	EventInsert9
-	EventInsertA
-	EventInsertB
-	EventInsertC
-	EventInsertD
-	EventInsertE
-	EventInsertF
 	EventBackspace
 	EventDelete
+	EventRune
 
 	EventStartCmdline
 	EventBackspaceCmdline
@@ -77,7 +62,6 @@ const (
 	EventClearToHeadCmdline
 	EventClearCmdline
 	EventSpaceCmdline
-	EventRune
 	EventExitCmdline
 	EventExecuteCmdline
 	EventWrite

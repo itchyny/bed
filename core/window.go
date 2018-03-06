@@ -114,38 +114,14 @@ func (w *Window) Run() {
 			w.startReplace()
 		case EventExitInsert:
 			w.exitInsert()
-		case EventInsert0:
-			w.insert0(e.Mode)
-		case EventInsert1:
-			w.insert1(e.Mode)
-		case EventInsert2:
-			w.insert2(e.Mode)
-		case EventInsert3:
-			w.insert3(e.Mode)
-		case EventInsert4:
-			w.insert4(e.Mode)
-		case EventInsert5:
-			w.insert5(e.Mode)
-		case EventInsert6:
-			w.insert6(e.Mode)
-		case EventInsert7:
-			w.insert7(e.Mode)
-		case EventInsert8:
-			w.insert8(e.Mode)
-		case EventInsert9:
-			w.insert9(e.Mode)
-		case EventInsertA:
-			w.insertA(e.Mode)
-		case EventInsertB:
-			w.insertB(e.Mode)
-		case EventInsertC:
-			w.insertC(e.Mode)
-		case EventInsertD:
-			w.insertD(e.Mode)
-		case EventInsertE:
-			w.insertE(e.Mode)
-		case EventInsertF:
-			w.insertF(e.Mode)
+		case EventRune:
+			if e.Mode == ModeInsert || e.Mode == ModeReplace {
+				if '0' <= e.Rune && e.Rune <= '9' {
+					w.insert(e.Mode, byte(e.Rune-'0'))
+				} else if 'a' <= e.Rune && e.Rune <= 'f' {
+					w.insert(e.Mode, byte(e.Rune-'a'+0x0a))
+				}
+			}
 		case EventBackspace:
 			w.backspace()
 		case EventDelete:
@@ -501,70 +477,6 @@ func (w *Window) insert(mode Mode, b byte) {
 		w.pending = true
 		w.pendingByte = b << 4
 	}
-}
-
-func (w *Window) insert0(mode Mode) {
-	w.insert(mode, 0x00)
-}
-
-func (w *Window) insert1(mode Mode) {
-	w.insert(mode, 0x01)
-}
-
-func (w *Window) insert2(mode Mode) {
-	w.insert(mode, 0x02)
-}
-
-func (w *Window) insert3(mode Mode) {
-	w.insert(mode, 0x03)
-}
-
-func (w *Window) insert4(mode Mode) {
-	w.insert(mode, 0x04)
-}
-
-func (w *Window) insert5(mode Mode) {
-	w.insert(mode, 0x05)
-}
-
-func (w *Window) insert6(mode Mode) {
-	w.insert(mode, 0x06)
-}
-
-func (w *Window) insert7(mode Mode) {
-	w.insert(mode, 0x07)
-}
-
-func (w *Window) insert8(mode Mode) {
-	w.insert(mode, 0x08)
-}
-
-func (w *Window) insert9(mode Mode) {
-	w.insert(mode, 0x09)
-}
-
-func (w *Window) insertA(mode Mode) {
-	w.insert(mode, 0x0a)
-}
-
-func (w *Window) insertB(mode Mode) {
-	w.insert(mode, 0x0b)
-}
-
-func (w *Window) insertC(mode Mode) {
-	w.insert(mode, 0x0c)
-}
-
-func (w *Window) insertD(mode Mode) {
-	w.insert(mode, 0x0d)
-}
-
-func (w *Window) insertE(mode Mode) {
-	w.insert(mode, 0x0e)
-}
-
-func (w *Window) insertF(mode Mode) {
-	w.insert(mode, 0x0f)
 }
 
 func (w *Window) backspace() {
