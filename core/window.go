@@ -24,6 +24,8 @@ type Window struct {
 	extending   bool
 	pending     bool
 	pendingByte byte
+	eventCh     chan<- Event
+	ch          chan Event
 }
 
 type position struct {
@@ -32,7 +34,7 @@ type position struct {
 }
 
 // NewWindow creates a new editor window.
-func NewWindow(r io.ReadSeeker, filename string, name string, height, width int64) (*Window, error) {
+func NewWindow(r io.ReadSeeker, filename string, name string, height, width int64, eventCh chan<- Event) (*Window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -45,7 +47,116 @@ func NewWindow(r io.ReadSeeker, filename string, name string, height, width int6
 		height:   height,
 		width:    width,
 		length:   length,
+		eventCh:  eventCh,
+		ch:       make(chan Event, 1),
 	}, nil
+}
+
+func (w *Window) Run() {
+	for e := range w.ch {
+		switch e.Type {
+		case EventCursorUp:
+			w.cursorUp(e.Count)
+		case EventCursorDown:
+			w.cursorDown(e.Count)
+		case EventCursorLeft:
+			w.cursorLeft(e.Count)
+		case EventCursorRight:
+			w.cursorRight(e.Count)
+		case EventCursorPrev:
+			w.cursorPrev(e.Count)
+		case EventCursorNext:
+			w.cursorNext(e.Count)
+		case EventCursorHead:
+			w.cursorHead(e.Count)
+		case EventCursorEnd:
+			w.cursorEnd(e.Count)
+		case EventScrollUp:
+			w.scrollUp(e.Count)
+		case EventScrollDown:
+			w.scrollDown(e.Count)
+		case EventPageUp:
+			w.pageUp()
+		case EventPageDown:
+			w.pageDown()
+		case EventPageUpHalf:
+			w.pageUpHalf()
+		case EventPageDownHalf:
+			w.pageDownHalf()
+		case EventPageTop:
+			w.pageTop()
+		case EventPageEnd:
+			w.pageEnd()
+		case EventJumpTo:
+			w.jumpTo()
+		case EventJumpBack:
+			w.jumpBack()
+		case EventDeleteByte:
+			w.deleteByte(e.Count)
+		case EventDeletePrevByte:
+			w.deletePrevByte(e.Count)
+		case EventIncrement:
+			w.increment(e.Count)
+		case EventDecrement:
+			w.decrement(e.Count)
+
+		case EventStartInsert:
+			w.startInsert()
+		case EventStartInsertHead:
+			w.startInsertHead()
+		case EventStartAppend:
+			w.startAppend()
+		case EventStartAppendEnd:
+			w.startAppendEnd()
+		case EventStartReplaceByte:
+			w.startReplaceByte()
+		case EventStartReplace:
+			w.startReplace()
+		case EventExitInsert:
+			w.exitInsert()
+		case EventInsert0:
+			w.insert0(e.Mode)
+		case EventInsert1:
+			w.insert1(e.Mode)
+		case EventInsert2:
+			w.insert2(e.Mode)
+		case EventInsert3:
+			w.insert3(e.Mode)
+		case EventInsert4:
+			w.insert4(e.Mode)
+		case EventInsert5:
+			w.insert5(e.Mode)
+		case EventInsert6:
+			w.insert6(e.Mode)
+		case EventInsert7:
+			w.insert7(e.Mode)
+		case EventInsert8:
+			w.insert8(e.Mode)
+		case EventInsert9:
+			w.insert9(e.Mode)
+		case EventInsertA:
+			w.insertA(e.Mode)
+		case EventInsertB:
+			w.insertB(e.Mode)
+		case EventInsertC:
+			w.insertC(e.Mode)
+		case EventInsertD:
+			w.insertD(e.Mode)
+		case EventInsertE:
+			w.insertE(e.Mode)
+		case EventInsertF:
+			w.insertF(e.Mode)
+		case EventBackspace:
+			w.backspace()
+		case EventDelete:
+			w.deleteByte(1)
+		default:
+			continue
+		}
+		go func() {
+			w.eventCh <- Event{Type: EventRedraw}
+		}()
+	}
 }
 
 func (w *Window) readBytes(pos int64, len int) (int, []byte, error) {

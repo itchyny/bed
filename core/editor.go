@@ -49,7 +49,6 @@ func (e *Editor) Init() error {
 
 func (e *Editor) listen() {
 	for event := range e.eventCh {
-		e.window.height = int64(e.ui.Height())
 		switch event.Type {
 		case EventQuit:
 			if len(event.Args) > 0 {
@@ -58,109 +57,6 @@ func (e *Editor) listen() {
 				e.quitCh <- struct{}{}
 				return
 			}
-		case EventCursorUp:
-			e.window.cursorUp(event.Count)
-		case EventCursorDown:
-			e.window.cursorDown(event.Count)
-		case EventCursorLeft:
-			e.window.cursorLeft(event.Count)
-		case EventCursorRight:
-			e.window.cursorRight(event.Count)
-		case EventCursorPrev:
-			e.window.cursorPrev(event.Count)
-		case EventCursorNext:
-			e.window.cursorNext(event.Count)
-		case EventCursorHead:
-			e.window.cursorHead(event.Count)
-		case EventCursorEnd:
-			e.window.cursorEnd(event.Count)
-		case EventScrollUp:
-			e.window.scrollUp(event.Count)
-		case EventScrollDown:
-			e.window.scrollDown(event.Count)
-		case EventPageUp:
-			e.window.pageUp()
-		case EventPageDown:
-			e.window.pageDown()
-		case EventPageUpHalf:
-			e.window.pageUpHalf()
-		case EventPageDownHalf:
-			e.window.pageDownHalf()
-		case EventPageTop:
-			e.window.pageTop()
-		case EventPageEnd:
-			e.window.pageEnd()
-		case EventJumpTo:
-			e.window.jumpTo()
-		case EventJumpBack:
-			e.window.jumpBack()
-		case EventDeleteByte:
-			e.window.deleteByte(event.Count)
-		case EventDeletePrevByte:
-			e.window.deletePrevByte(event.Count)
-		case EventIncrement:
-			e.window.increment(event.Count)
-		case EventDecrement:
-			e.window.decrement(event.Count)
-
-		case EventStartInsert:
-			e.mode = ModeInsert
-			e.window.startInsert()
-		case EventStartInsertHead:
-			e.mode = ModeInsert
-			e.window.startInsertHead()
-		case EventStartAppend:
-			e.mode = ModeInsert
-			e.window.startAppend()
-		case EventStartAppendEnd:
-			e.mode = ModeInsert
-			e.window.startAppendEnd()
-		case EventStartReplaceByte:
-			e.mode = ModeReplace
-			e.window.startReplaceByte()
-		case EventStartReplace:
-			e.mode = ModeReplace
-			e.window.startReplace()
-		case EventExitInsert:
-			e.mode = ModeNormal
-			e.window.exitInsert()
-		case EventInsert0:
-			e.window.insert0(e.mode)
-		case EventInsert1:
-			e.window.insert1(e.mode)
-		case EventInsert2:
-			e.window.insert2(e.mode)
-		case EventInsert3:
-			e.window.insert3(e.mode)
-		case EventInsert4:
-			e.window.insert4(e.mode)
-		case EventInsert5:
-			e.window.insert5(e.mode)
-		case EventInsert6:
-			e.window.insert6(e.mode)
-		case EventInsert7:
-			e.window.insert7(e.mode)
-		case EventInsert8:
-			e.window.insert8(e.mode)
-		case EventInsert9:
-			e.window.insert9(e.mode)
-		case EventInsertA:
-			e.window.insertA(e.mode)
-		case EventInsertB:
-			e.window.insertB(e.mode)
-		case EventInsertC:
-			e.window.insertC(e.mode)
-		case EventInsertD:
-			e.window.insertD(e.mode)
-		case EventInsertE:
-			e.window.insertE(e.mode)
-		case EventInsertF:
-			e.window.insertF(e.mode)
-		case EventBackspace:
-			e.window.backspace()
-		case EventDelete:
-			e.window.deleteByte(1)
-
 		case EventStartCmdline:
 			e.mode = ModeCmdline
 			e.err = nil
@@ -195,22 +91,30 @@ func (e *Editor) listen() {
 			if e.mode == ModeCmdline {
 				e.cmdlineCh <- event
 			} else {
-				continue
+				switch event.Type {
+				case EventStartInsert:
+					e.mode = ModeInsert
+				case EventStartInsertHead:
+					e.mode = ModeInsert
+				case EventStartAppend:
+					e.mode = ModeInsert
+				case EventStartAppendEnd:
+					e.mode = ModeInsert
+				case EventStartReplaceByte:
+					e.mode = ModeReplace
+				case EventStartReplace:
+					e.mode = ModeReplace
+				case EventExitInsert:
+					e.mode = ModeNormal
+				}
+				e.window.height = int64(e.ui.Height())
+				event.Mode = e.mode
+				e.window.ch <- event
 			}
+			continue
 		}
 		e.redraw()
 	}
-}
-
-// Close terminates the editor.
-func (e *Editor) Close() error {
-	for _, f := range e.files {
-		f.file.Close()
-	}
-	close(e.eventCh)
-	close(e.quitCh)
-	close(e.cmdlineCh)
-	return e.ui.Close()
 }
 
 // Open opens a new file.
@@ -220,7 +124,7 @@ func (e *Editor) Open(filename string) (err error) {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		if e.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
+		if e.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.eventCh); err != nil {
 			return err
 		}
 		return nil
@@ -230,7 +134,7 @@ func (e *Editor) Open(filename string) (err error) {
 		return err
 	}
 	e.files = append(e.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16); err != nil {
+	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.eventCh); err != nil {
 		return err
 	}
 	return nil
@@ -238,7 +142,7 @@ func (e *Editor) Open(filename string) (err error) {
 
 // OpenEmpty creates a new window.
 func (e *Editor) OpenEmpty() (err error) {
-	if e.window, err = NewWindow(bytes.NewReader(nil), "", "", int64(e.ui.Height()), 16); err != nil {
+	if e.window, err = NewWindow(bytes.NewReader(nil), "", "", int64(e.ui.Height()), 16, e.eventCh); err != nil {
 		return err
 	}
 	return nil
@@ -251,6 +155,7 @@ func (e *Editor) Run() error {
 	}
 	go e.ui.Run(defaultKeyManagers())
 	go e.cmdline.Run()
+	go e.window.Run()
 	e.listen()
 	return nil
 }
@@ -263,6 +168,18 @@ func (e *Editor) redraw() error {
 	state.Mode, state.Error = e.mode, e.err
 	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
 	return e.ui.Redraw(state)
+}
+
+// Close terminates the editor.
+func (e *Editor) Close() error {
+	for _, f := range e.files {
+		f.file.Close()
+	}
+	close(e.eventCh)
+	close(e.quitCh)
+	close(e.cmdlineCh)
+	close(e.window.ch)
+	return e.ui.Close()
 }
 
 func (e *Editor) writeFile(name string) error {

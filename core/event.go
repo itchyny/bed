@@ -8,6 +8,7 @@ type Event struct {
 	CmdName string
 	Args    []string
 	Error   error
+	Mode    Mode
 }
 
 // EventType ...
