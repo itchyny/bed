@@ -79,7 +79,6 @@ func (e *Editor) listen() {
 		case EventWrite:
 			if len(event.Args) > 1 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
-				e.redrawCh <- struct{}{}
 			} else {
 				var name string
 				if len(event.Args) > 0 {
@@ -87,6 +86,7 @@ func (e *Editor) listen() {
 				}
 				e.err = e.writeFile(name)
 			}
+			e.redrawCh <- struct{}{}
 		case EventWriteQuit:
 			if len(event.Args) > 0 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
