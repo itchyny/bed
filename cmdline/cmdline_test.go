@@ -97,7 +97,7 @@ func TestCursorBackspaceDelete(t *testing.T) {
 		t.Errorf("cursor should be 3 but got %v", cursor)
 	}
 
-	c.delete()
+	c.deleteRune()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "abc" {
@@ -107,7 +107,7 @@ func TestCursorBackspaceDelete(t *testing.T) {
 		t.Errorf("cursor should be 3 but got %v", cursor)
 	}
 
-	c.delete()
+	c.deleteRune()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "abc" {

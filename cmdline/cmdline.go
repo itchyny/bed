@@ -41,7 +41,7 @@ func (c *Cmdline) Run() {
 		case core.EventBackspaceCmdline:
 			c.backspace()
 		case core.EventDeleteCmdline:
-			c.delete()
+			c.deleteRune()
 		case core.EventDeleteWordCmdline:
 			c.deleteWord()
 		case core.EventClearToHeadCmdline:
@@ -82,7 +82,7 @@ func (c *Cmdline) backspace() {
 	}
 }
 
-func (c *Cmdline) delete() {
+func (c *Cmdline) deleteRune() {
 	if c.cursor < len(c.cmdline) {
 		c.cmdline = append(c.cmdline[:c.cursor], c.cmdline[c.cursor+1:]...)
 	}
