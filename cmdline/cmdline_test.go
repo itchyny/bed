@@ -252,7 +252,7 @@ func TestCursorInsert(t *testing.T) {
 func TestExecuteQuit(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan core.Event, 1)
-	c.Init(ch)
+	c.Init(ch, make(chan core.Event, 1))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
@@ -279,7 +279,7 @@ func TestExecuteQuit(t *testing.T) {
 func TestExecuteWriteQuit(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan core.Event, 1)
-	c.Init(ch)
+	c.Init(ch, make(chan core.Event, 1))
 	for _, cmd := range []struct {
 		cmd  string
 		name string

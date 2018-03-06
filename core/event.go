@@ -16,7 +16,9 @@ type EventType int
 // Event types
 const (
 	EventNop = iota
+	EventRedraw
 	EventQuit
+
 	EventCursorUp
 	EventCursorDown
 	EventCursorLeft
@@ -68,7 +70,6 @@ const (
 	EventDelete
 
 	EventStartCmdline
-	EventSpaceCmdline
 	EventCursorLeftCmdline
 	EventCursorRightCmdline
 	EventCursorHeadCmdline
@@ -78,8 +79,9 @@ const (
 	EventDeleteWordCmdline
 	EventClearToHeadCmdline
 	EventClearCmdline
-	EventExitCmdline
+	EventSpaceCmdline
 	EventRune
+	EventExitCmdline
 	EventExecuteCmdline
 	EventWrite
 	EventWriteQuit

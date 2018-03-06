@@ -9,9 +9,10 @@ import (
 
 // Cmdline implements core.Cmdline
 type Cmdline struct {
-	cmdline []rune
-	cursor  int
-	eventCh chan<- core.Event
+	cmdline   []rune
+	cursor    int
+	eventCh   chan<- core.Event
+	cmdlineCh <-chan core.Event
 }
 
 // NewCmdline creates a new Cmdline.
@@ -20,9 +21,42 @@ func NewCmdline() *Cmdline {
 }
 
 // Init initializes the Cmdline.
-func (c *Cmdline) Init(eventCh chan<- core.Event) error {
-	c.eventCh = eventCh
+func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event) error {
+	c.eventCh, c.cmdlineCh = eventCh, cmdlineCh
 	return nil
+}
+
+// Run the cmdline.
+func (c *Cmdline) Run() {
+	for e := range c.cmdlineCh {
+		switch e.Type {
+		case core.EventCursorLeftCmdline:
+			c.CursorLeft()
+		case core.EventCursorRightCmdline:
+			c.CursorRight()
+		case core.EventCursorHeadCmdline:
+			c.CursorHead()
+		case core.EventCursorEndCmdline:
+			c.CursorEnd()
+		case core.EventBackspaceCmdline:
+			c.Backspace()
+		case core.EventDeleteCmdline:
+			c.Delete()
+		case core.EventDeleteWordCmdline:
+			c.DeleteWord()
+		case core.EventClearToHeadCmdline:
+			c.ClearToHead()
+		case core.EventClearCmdline:
+			c.Clear()
+		case core.EventSpaceCmdline:
+			c.Insert(' ')
+		case core.EventRune:
+			c.Insert(e.Rune)
+		default:
+			continue
+		}
+		c.eventCh <- core.Event{Type: core.EventRedraw}
+	}
 }
 
 // CursorLeft moves the cursor left.

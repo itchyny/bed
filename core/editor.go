@@ -21,6 +21,7 @@ type Editor struct {
 	cmdlineCursor int
 	err           error
 	eventCh       chan Event
+	cmdlineCh     chan Event
 	quitCh        chan struct{}
 }
 
@@ -39,10 +40,11 @@ func NewEditor(ui UI, cmdline Cmdline) *Editor {
 func (e *Editor) Init() error {
 	e.eventCh = make(chan Event, 1)
 	e.quitCh = make(chan struct{})
+	e.cmdlineCh = make(chan Event, 1)
 	if err := e.ui.Init(e.eventCh, e.quitCh); err != nil {
 		return err
 	}
-	return e.cmdline.Init(e.eventCh)
+	return e.cmdline.Init(e.eventCh, e.cmdlineCh)
 }
 
 func (e *Editor) listen() {
@@ -163,36 +165,11 @@ func (e *Editor) listen() {
 			e.mode = ModeCmdline
 			e.err = nil
 			e.cmdline.Clear()
-		case EventCursorLeftCmdline:
-			e.cmdline.CursorLeft()
-		case EventCursorRightCmdline:
-			e.cmdline.CursorRight()
-		case EventCursorHeadCmdline:
-			e.cmdline.CursorHead()
-		case EventCursorEndCmdline:
-			e.cmdline.CursorEnd()
-		case EventBackspaceCmdline:
-			e.cmdline.Backspace()
-		case EventDeleteCmdline:
-			e.cmdline.Delete()
-		case EventDeleteWordCmdline:
-			e.cmdline.DeleteWord()
-		case EventClearToHeadCmdline:
-			e.cmdline.ClearToHead()
-		case EventClearCmdline:
-			e.cmdline.Clear()
 		case EventExitCmdline:
 			e.mode = ModeNormal
 		case EventExecuteCmdline:
 			e.mode = ModeNormal
 			e.cmdline.Execute()
-		case EventSpaceCmdline:
-			event.Rune = ' '
-			fallthrough
-		case EventRune:
-			if e.mode == ModeCmdline {
-				e.cmdline.Insert(event.Rune)
-			}
 		case EventWrite:
 			if len(event.Args) > 1 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
@@ -213,8 +190,13 @@ func (e *Editor) listen() {
 			}
 		case EventError:
 			e.err = event.Error
+		case EventRedraw:
 		default:
-			continue
+			if e.mode == ModeCmdline {
+				e.cmdlineCh <- event
+			} else {
+				continue
+			}
 		}
 		e.redraw()
 	}
@@ -227,6 +209,7 @@ func (e *Editor) Close() error {
 	}
 	close(e.eventCh)
 	close(e.quitCh)
+	close(e.cmdlineCh)
 	return e.ui.Close()
 }
 
@@ -267,6 +250,7 @@ func (e *Editor) Run() error {
 		return err
 	}
 	go e.ui.Run(defaultKeyManagers())
+	go e.cmdline.Run()
 	e.listen()
 	return nil
 }
