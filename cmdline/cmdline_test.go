@@ -21,7 +21,7 @@ func TestCursorMotion(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
-		c.Insert(ch)
+		c.insert(ch)
 	}
 	cmdline, cursor := c.Get()
 	if string(cmdline) != "abcde" {
@@ -31,41 +31,41 @@ func TestCursorMotion(t *testing.T) {
 		t.Errorf("cursor should be 5 but got %v", cursor)
 	}
 
-	c.CursorLeft()
+	c.cursorLeft()
 	_, cursor = c.Get()
 	if cursor != 4 {
 		t.Errorf("cursor should be 4 but got %v", cursor)
 	}
 
 	for i := 0; i < 10; i++ {
-		c.CursorLeft()
+		c.cursorLeft()
 	}
 	_, cursor = c.Get()
 	if cursor != 0 {
 		t.Errorf("cursor should be 0 but got %v", cursor)
 	}
 
-	c.CursorRight()
+	c.cursorRight()
 	_, cursor = c.Get()
 	if cursor != 1 {
 		t.Errorf("cursor should be 1 but got %v", cursor)
 	}
 
 	for i := 0; i < 10; i++ {
-		c.CursorRight()
+		c.cursorRight()
 	}
 	_, cursor = c.Get()
 	if cursor != 5 {
 		t.Errorf("cursor should be 5 but got %v", cursor)
 	}
 
-	c.CursorHead()
+	c.cursorHead()
 	_, cursor = c.Get()
 	if cursor != 0 {
 		t.Errorf("cursor should be 0 but got %v", cursor)
 	}
 
-	c.CursorEnd()
+	c.cursorEnd()
 	_, cursor = c.Get()
 	if cursor != 5 {
 		t.Errorf("cursor should be 5 but got %v", cursor)
@@ -76,7 +76,7 @@ func TestCursorBackspaceDelete(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
-		c.Insert(ch)
+		c.insert(ch)
 	}
 	cmdline, cursor := c.Get()
 	if string(cmdline) != "abcde" {
@@ -86,8 +86,8 @@ func TestCursorBackspaceDelete(t *testing.T) {
 		t.Errorf("cursor should be 5 but got %v", cursor)
 	}
 
-	c.CursorLeft()
-	c.Backspace()
+	c.cursorLeft()
+	c.backspace()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "abce" {
@@ -97,7 +97,7 @@ func TestCursorBackspaceDelete(t *testing.T) {
 		t.Errorf("cursor should be 3 but got %v", cursor)
 	}
 
-	c.Delete()
+	c.delete()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "abc" {
@@ -107,7 +107,7 @@ func TestCursorBackspaceDelete(t *testing.T) {
 		t.Errorf("cursor should be 3 but got %v", cursor)
 	}
 
-	c.Delete()
+	c.delete()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "abc" {
@@ -117,10 +117,10 @@ func TestCursorBackspaceDelete(t *testing.T) {
 		t.Errorf("cursor should be 3 but got %v", cursor)
 	}
 
-	c.CursorLeft()
-	c.CursorLeft()
-	c.Backspace()
-	c.Backspace()
+	c.cursorLeft()
+	c.cursorLeft()
+	c.backspace()
+	c.backspace()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "bc" {
@@ -134,12 +134,12 @@ func TestCursorBackspaceDelete(t *testing.T) {
 func TestCursorDeleteWord(t *testing.T) {
 	c := NewCmdline()
 	for _, ch := range "abcde" {
-		c.Insert(ch)
+		c.insert(ch)
 	}
 
-	c.CursorLeft()
-	c.CursorLeft()
-	c.DeleteWord()
+	c.cursorLeft()
+	c.cursorLeft()
+	c.deleteWord()
 
 	cmdline, cursor := c.Get()
 	if string(cmdline) != "de" {
@@ -150,10 +150,10 @@ func TestCursorDeleteWord(t *testing.T) {
 	}
 
 	for _, ch := range "x0z!123  " {
-		c.Insert(ch)
+		c.insert(ch)
 	}
-	c.CursorLeft()
-	c.DeleteWord()
+	c.cursorLeft()
+	c.deleteWord()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "x0z! de" {
@@ -163,7 +163,7 @@ func TestCursorDeleteWord(t *testing.T) {
 		t.Errorf("cursor should be 4 but got %v", cursor)
 	}
 
-	c.DeleteWord()
+	c.deleteWord()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "x0z de" {
@@ -178,7 +178,7 @@ func TestCursorClear(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
-		c.Insert(ch)
+		c.insert(ch)
 	}
 	cmdline, cursor := c.Get()
 	if string(cmdline) != "abcde" {
@@ -188,8 +188,8 @@ func TestCursorClear(t *testing.T) {
 		t.Errorf("cursor should be 5 but got %v", cursor)
 	}
 
-	c.CursorLeft()
-	c.Clear()
+	c.cursorLeft()
+	c.clear()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "" {
@@ -204,7 +204,7 @@ func TestCursorClearToHead(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
-		c.Insert(ch)
+		c.insert(ch)
 	}
 	cmdline, cursor := c.Get()
 	if string(cmdline) != "abcde" {
@@ -214,9 +214,9 @@ func TestCursorClearToHead(t *testing.T) {
 		t.Errorf("cursor should be 5 but got %v", cursor)
 	}
 
-	c.CursorLeft()
-	c.CursorLeft()
-	c.ClearToHead()
+	c.cursorLeft()
+	c.cursorLeft()
+	c.clearToHead()
 
 	cmdline, cursor = c.Get()
 	if string(cmdline) != "de" {
@@ -231,14 +231,14 @@ func TestCursorInsert(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
-		c.Insert(ch)
+		c.insert(ch)
 	}
 
-	c.CursorLeft()
-	c.CursorLeft()
-	c.Backspace()
-	c.Insert('x')
-	c.Insert('y')
+	c.cursorLeft()
+	c.cursorLeft()
+	c.backspace()
+	c.insert('x')
+	c.insert('y')
 
 	cmdline, cursor := c.Get()
 	if string(cmdline) != "abxyde" {
@@ -263,7 +263,7 @@ func TestExecuteQuit(t *testing.T) {
 		{"qall", "qa[ll]"},
 		{"qa", "qa[ll]"},
 	} {
-		c.Clear()
+		c.clear()
 		c.cmdline = []rune(cmd.cmd)
 		c.Execute()
 		e := <-ch
@@ -290,7 +290,7 @@ func TestExecuteWriteQuit(t *testing.T) {
 		{"xa", "xa[ll]"},
 		{"xall", "xa[ll]"},
 	} {
-		c.Clear()
+		c.clear()
 		c.cmdline = []rune(cmd.cmd)
 		c.Execute()
 		e := <-ch

@@ -164,7 +164,7 @@ func (e *Editor) listen() {
 		case EventStartCmdline:
 			e.mode = ModeCmdline
 			e.err = nil
-			e.cmdline.Clear()
+			e.cmdlineCh <- Event{Type: EventClearCmdline}
 		case EventExitCmdline:
 			e.mode = ModeNormal
 		case EventExecuteCmdline:

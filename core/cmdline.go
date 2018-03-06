@@ -4,16 +4,6 @@ package core
 type Cmdline interface {
 	Init(eventCh chan<- Event, cmdlineCh <-chan Event) error
 	Run()
-	CursorLeft()
-	CursorRight()
-	CursorHead()
-	CursorEnd()
-	Backspace()
-	Delete()
-	DeleteWord()
-	Clear()
-	ClearToHead()
-	Insert(rune)
 	Get() ([]rune, int)
 	Execute()
 }

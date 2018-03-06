@@ -31,27 +31,27 @@ func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
 		case core.EventCursorLeftCmdline:
-			c.CursorLeft()
+			c.cursorLeft()
 		case core.EventCursorRightCmdline:
-			c.CursorRight()
+			c.cursorRight()
 		case core.EventCursorHeadCmdline:
-			c.CursorHead()
+			c.cursorHead()
 		case core.EventCursorEndCmdline:
-			c.CursorEnd()
+			c.cursorEnd()
 		case core.EventBackspaceCmdline:
-			c.Backspace()
+			c.backspace()
 		case core.EventDeleteCmdline:
-			c.Delete()
+			c.delete()
 		case core.EventDeleteWordCmdline:
-			c.DeleteWord()
+			c.deleteWord()
 		case core.EventClearToHeadCmdline:
-			c.ClearToHead()
+			c.clearToHead()
 		case core.EventClearCmdline:
-			c.Clear()
+			c.clear()
 		case core.EventSpaceCmdline:
-			c.Insert(' ')
+			c.insert(' ')
 		case core.EventRune:
-			c.Insert(e.Rune)
+			c.insert(e.Rune)
 		default:
 			continue
 		}
@@ -59,43 +59,36 @@ func (c *Cmdline) Run() {
 	}
 }
 
-// CursorLeft moves the cursor left.
-func (c *Cmdline) CursorLeft() {
+func (c *Cmdline) cursorLeft() {
 	c.cursor = util.MaxInt(0, c.cursor-1)
 }
 
-// CursorRight moves the cursor right.
-func (c *Cmdline) CursorRight() {
+func (c *Cmdline) cursorRight() {
 	c.cursor = util.MinInt(len(c.cmdline), c.cursor+1)
 }
 
-// CursorHead moves the cursor to the head.
-func (c *Cmdline) CursorHead() {
+func (c *Cmdline) cursorHead() {
 	c.cursor = 0
 }
 
-// CursorEnd moves the cursor to the end.
-func (c *Cmdline) CursorEnd() {
+func (c *Cmdline) cursorEnd() {
 	c.cursor = len(c.cmdline)
 }
 
-// Backspace deletes one character left.
-func (c *Cmdline) Backspace() {
+func (c *Cmdline) backspace() {
 	if c.cursor > 0 {
 		c.cmdline = append(c.cmdline[:c.cursor-1], c.cmdline[c.cursor:]...)
 		c.cursor--
 	}
 }
 
-// Delete deletes one character right.
-func (c *Cmdline) Delete() {
+func (c *Cmdline) delete() {
 	if c.cursor < len(c.cmdline) {
 		c.cmdline = append(c.cmdline[:c.cursor], c.cmdline[c.cursor+1:]...)
 	}
 }
 
-// DeleteWord deletes one word left.
-func (c *Cmdline) DeleteWord() {
+func (c *Cmdline) deleteWord() {
 	i := c.cursor
 	for i > 0 && unicode.IsSpace(c.cmdline[i-1]) {
 		i--
@@ -114,20 +107,17 @@ func isKeyword(c rune) bool {
 	return unicode.IsDigit(c) || unicode.IsLetter(c) || c == '_'
 }
 
-// Clear the cmdline.
-func (c *Cmdline) Clear() {
+func (c *Cmdline) clear() {
 	c.cmdline = []rune{}
 	c.cursor = 0
 }
 
-// ClearToHead delete all the characters left.
-func (c *Cmdline) ClearToHead() {
+func (c *Cmdline) clearToHead() {
 	c.cmdline = c.cmdline[c.cursor:]
 	c.cursor = 0
 }
 
-// Insert inserts one rune at the cursor.
-func (c *Cmdline) Insert(ch rune) {
+func (c *Cmdline) insert(ch rune) {
 	if unicode.IsPrint(ch) {
 		c.cmdline = append(c.cmdline, '\x00')
 		copy(c.cmdline[c.cursor+1:], c.cmdline[c.cursor:])
