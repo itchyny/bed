@@ -55,7 +55,9 @@ func (c *Cmdline) Run() {
 		default:
 			continue
 		}
-		c.eventCh <- core.Event{Type: core.EventRedraw}
+		go func() {
+			c.eventCh <- core.Event{Type: core.EventRedraw}
+		}()
 	}
 }
 
