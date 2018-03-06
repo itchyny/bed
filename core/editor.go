@@ -99,8 +99,6 @@ func (e *Editor) listen() {
 		case EventError:
 			e.err = event.Error
 			e.redrawCh <- struct{}{}
-		case EventRedraw:
-			e.redrawCh <- struct{}{}
 		default:
 			if e.mode == ModeCmdline {
 				e.cmdlineCh <- event
