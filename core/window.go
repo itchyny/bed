@@ -24,7 +24,7 @@ type Window struct {
 	extending   bool
 	pending     bool
 	pendingByte byte
-	eventCh     chan<- Event
+	redrawCh    chan<- struct{}
 	ch          chan Event
 }
 
@@ -34,7 +34,7 @@ type position struct {
 }
 
 // NewWindow creates a new editor window.
-func NewWindow(r io.ReadSeeker, filename string, name string, height, width int64, eventCh chan<- Event) (*Window, error) {
+func NewWindow(r io.ReadSeeker, filename string, name string, height, width int64, redrawCh chan<- struct{}) (*Window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -47,7 +47,7 @@ func NewWindow(r io.ReadSeeker, filename string, name string, height, width int6
 		height:   height,
 		width:    width,
 		length:   length,
-		eventCh:  eventCh,
+		redrawCh: redrawCh,
 		ch:       make(chan Event),
 	}, nil
 }
@@ -129,9 +129,7 @@ func (w *Window) Run() {
 		default:
 			continue
 		}
-		go func() {
-			w.eventCh <- Event{Type: EventRedraw}
-		}()
+		w.redrawCh <- struct{}{}
 	}
 }
 

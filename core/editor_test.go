@@ -28,7 +28,9 @@ func (ui *testUI) Emit(t EventType, r rune) { ui.eventCh <- Event{Type: t, Rune:
 
 type testCmdline struct{}
 
-func (c *testCmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event) error { return nil }
+func (c *testCmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh chan<- struct{}) error {
+	return nil
+}
 
 func (c *testCmdline) Run() {}
 

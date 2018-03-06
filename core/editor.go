@@ -21,6 +21,7 @@ type Editor struct {
 	cmdlineCursor int
 	err           error
 	eventCh       chan Event
+	redrawCh      chan struct{}
 	cmdlineCh     chan Event
 	quitCh        chan struct{}
 }
@@ -39,20 +40,28 @@ func NewEditor(ui UI, cmdline Cmdline) *Editor {
 // Init initializes the editor.
 func (e *Editor) Init() error {
 	e.eventCh = make(chan Event, 1)
+	e.redrawCh = make(chan struct{})
 	e.quitCh = make(chan struct{})
 	e.cmdlineCh = make(chan Event)
 	if err := e.ui.Init(e.eventCh, e.quitCh); err != nil {
 		return err
 	}
-	return e.cmdline.Init(e.eventCh, e.cmdlineCh)
+	return e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh)
 }
 
 func (e *Editor) listen() {
+	go func() {
+		for {
+			<-e.redrawCh
+			e.redraw()
+		}
+	}()
 	for event := range e.eventCh {
 		switch event.Type {
 		case EventQuit:
 			if len(event.Args) > 0 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+				e.redrawCh <- struct{}{}
 			} else {
 				e.quitCh <- struct{}{}
 				return
@@ -63,12 +72,14 @@ func (e *Editor) listen() {
 			e.cmdlineCh <- Event{Type: EventClearCmdline}
 		case EventExitCmdline:
 			e.mode = ModeNormal
+			e.redrawCh <- struct{}{}
 		case EventExecuteCmdline:
 			e.mode = ModeNormal
 			e.cmdline.Execute()
 		case EventWrite:
 			if len(event.Args) > 1 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+				e.redrawCh <- struct{}{}
 			} else {
 				var name string
 				if len(event.Args) > 0 {
@@ -79,6 +90,7 @@ func (e *Editor) listen() {
 		case EventWriteQuit:
 			if len(event.Args) > 0 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+				e.redrawCh <- struct{}{}
 			} else {
 				e.err = e.writeFile("")
 				e.quitCh <- struct{}{}
@@ -86,7 +98,9 @@ func (e *Editor) listen() {
 			}
 		case EventError:
 			e.err = event.Error
+			e.redrawCh <- struct{}{}
 		case EventRedraw:
+			e.redrawCh <- struct{}{}
 		default:
 			if e.mode == ModeCmdline {
 				e.cmdlineCh <- event
@@ -111,9 +125,7 @@ func (e *Editor) listen() {
 				event.Mode = e.mode
 				e.window.ch <- event
 			}
-			continue
 		}
-		e.redraw()
 	}
 }
 
@@ -124,7 +136,7 @@ func (e *Editor) Open(filename string) (err error) {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		if e.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.eventCh); err != nil {
+		if e.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.redrawCh); err != nil {
 			return err
 		}
 		return nil
@@ -134,7 +146,7 @@ func (e *Editor) Open(filename string) (err error) {
 		return err
 	}
 	e.files = append(e.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.eventCh); err != nil {
+	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.redrawCh); err != nil {
 		return err
 	}
 	return nil
@@ -142,7 +154,7 @@ func (e *Editor) Open(filename string) (err error) {
 
 // OpenEmpty creates a new window.
 func (e *Editor) OpenEmpty() (err error) {
-	if e.window, err = NewWindow(bytes.NewReader(nil), "", "", int64(e.ui.Height()), 16, e.eventCh); err != nil {
+	if e.window, err = NewWindow(bytes.NewReader(nil), "", "", int64(e.ui.Height()), 16, e.redrawCh); err != nil {
 		return err
 	}
 	return nil
@@ -176,6 +188,7 @@ func (e *Editor) Close() error {
 		f.file.Close()
 	}
 	close(e.eventCh)
+	close(e.redrawCh)
 	close(e.quitCh)
 	close(e.cmdlineCh)
 	close(e.window.ch)

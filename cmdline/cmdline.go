@@ -13,6 +13,7 @@ type Cmdline struct {
 	cursor    int
 	eventCh   chan<- core.Event
 	cmdlineCh <-chan core.Event
+	redrawCh  chan<- struct{}
 }
 
 // NewCmdline creates a new Cmdline.
@@ -21,8 +22,8 @@ func NewCmdline() *Cmdline {
 }
 
 // Init initializes the Cmdline.
-func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event) error {
-	c.eventCh, c.cmdlineCh = eventCh, cmdlineCh
+func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event, redrawCh chan<- struct{}) error {
+	c.eventCh, c.cmdlineCh, c.redrawCh = eventCh, cmdlineCh, redrawCh
 	return nil
 }
 
@@ -55,9 +56,7 @@ func (c *Cmdline) Run() {
 		default:
 			continue
 		}
-		go func() {
-			c.eventCh <- core.Event{Type: core.EventRedraw}
-		}()
+		c.redrawCh <- struct{}{}
 	}
 }
 
