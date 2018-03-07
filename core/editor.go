@@ -90,25 +90,22 @@ func (e *Editor) listen() {
 			e.err = event.Error
 			e.redrawCh <- struct{}{}
 		default:
-			if event.Type == EventStartCmdline {
+			switch event.Type {
+			case EventStartInsert, EventStartInsertHead, EventStartAppend, EventStartAppendEnd:
+				e.mode = ModeInsert
+			case EventStartReplaceByte, EventStartReplace:
+				e.mode = ModeReplace
+			case EventExitInsert:
+				e.mode = ModeNormal
+			case EventStartCmdline:
 				e.mode = ModeCmdline
 				e.err = nil
+			case EventExitCmdline, EventExecuteCmdline:
+				e.mode = ModeNormal
 			}
-			if e.mode == ModeCmdline {
-				if event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
-					e.mode = ModeNormal
-				}
+			if e.mode == ModeCmdline || event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
 				e.cmdlineCh <- event
 			} else {
-				switch event.Type {
-				case EventStartInsert, EventStartInsertHead,
-					EventStartAppend, EventStartAppendEnd:
-					e.mode = ModeInsert
-				case EventStartReplaceByte, EventStartReplace:
-					e.mode = ModeReplace
-				case EventExitInsert:
-					e.mode = ModeNormal
-				}
 				e.window.height = int64(e.ui.Height())
 				event.Mode = e.mode
 				e.window.ch <- event
