@@ -265,7 +265,7 @@ func TestExecuteQuit(t *testing.T) {
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
-		c.Execute()
+		c.execute()
 		e := <-ch
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
@@ -292,7 +292,7 @@ func TestExecuteWriteQuit(t *testing.T) {
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
-		c.Execute()
+		c.execute()
 		e := <-ch
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)

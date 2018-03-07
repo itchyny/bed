@@ -66,16 +66,6 @@ func (e *Editor) listen() {
 				e.quitCh <- struct{}{}
 				return
 			}
-		case EventStartCmdline:
-			e.mode = ModeCmdline
-			e.err = nil
-			e.cmdlineCh <- Event{Type: EventClearCmdline}
-		case EventExitCmdline:
-			e.mode = ModeNormal
-			e.redrawCh <- struct{}{}
-		case EventExecuteCmdline:
-			e.mode = ModeNormal
-			e.cmdline.Execute()
 		case EventWrite:
 			if len(event.Args) > 1 {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
@@ -100,7 +90,14 @@ func (e *Editor) listen() {
 			e.err = event.Error
 			e.redrawCh <- struct{}{}
 		default:
+			if event.Type == EventStartCmdline {
+				e.mode = ModeCmdline
+				e.err = nil
+			}
 			if e.mode == ModeCmdline {
+				if event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
+					e.mode = ModeNormal
+				}
 				e.cmdlineCh <- event
 			} else {
 				switch event.Type {

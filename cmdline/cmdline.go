@@ -31,6 +31,9 @@ func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event, r
 func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
+		case core.EventStartCmdline:
+			c.clear()
+		case core.EventExitCmdline:
 		case core.EventCursorLeft:
 			c.cursorLeft()
 		case core.EventCursorRight:
@@ -53,6 +56,8 @@ func (c *Cmdline) Run() {
 			c.insert(' ')
 		case core.EventRune:
 			c.insert(e.Rune)
+		case core.EventExecuteCmdline:
+			c.execute()
 		default:
 			continue
 		}
@@ -127,13 +132,7 @@ func (c *Cmdline) insert(ch rune) {
 	}
 }
 
-// Get returns the current state of cmdline.
-func (c *Cmdline) Get() ([]rune, int) {
-	return c.cmdline, c.cursor
-}
-
-// Execute invokes the command.
-func (c *Cmdline) Execute() {
+func (c *Cmdline) execute() {
 	cmd, args, err := parse(c.cmdline)
 	if err != nil {
 		c.eventCh <- core.Event{Type: core.EventError, Error: err}
@@ -142,4 +141,9 @@ func (c *Cmdline) Execute() {
 	if cmd.name != "" {
 		c.eventCh <- core.Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
 	}
+}
+
+// Get returns the current state of cmdline.
+func (c *Cmdline) Get() ([]rune, int) {
+	return c.cmdline, c.cursor
 }

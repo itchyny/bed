@@ -5,5 +5,4 @@ type Cmdline interface {
 	Init(chan<- Event, <-chan Event, chan<- struct{}) error
 	Run()
 	Get() ([]rune, int)
-	Execute()
 }
