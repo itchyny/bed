@@ -50,7 +50,6 @@ func (ui *Tui) Run(kms map[core.Mode]*core.KeyManager) {
 				if e.Type == termbox.EventKey {
 					if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
 						ui.eventCh <- event
-						continue
 					} else {
 						ui.eventCh <- core.Event{Type: core.EventRune, Rune: e.Ch}
 					}
