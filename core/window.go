@@ -52,6 +52,7 @@ func NewWindow(r io.ReadSeeker, filename string, name string, height, width int6
 	}, nil
 }
 
+// Run the window.
 func (w *Window) Run() {
 	for e := range w.ch {
 		switch e.Type {
