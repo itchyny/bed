@@ -13,17 +13,16 @@ import (
 
 // Editor is the main struct for this command.
 type Editor struct {
-	ui            UI
-	window        *Window
-	files         []file
-	mode          Mode
-	cmdline       Cmdline
-	cmdlineCursor int
-	err           error
-	eventCh       chan Event
-	redrawCh      chan struct{}
-	cmdlineCh     chan Event
-	quitCh        chan struct{}
+	ui        UI
+	window    *Window
+	files     []file
+	mode      Mode
+	cmdline   Cmdline
+	err       error
+	eventCh   chan Event
+	redrawCh  chan struct{}
+	cmdlineCh chan Event
+	quitCh    chan struct{}
 }
 
 type file struct {
