@@ -25,7 +25,7 @@ type Window struct {
 	pending     bool
 	pendingByte byte
 	redrawCh    chan<- struct{}
-	ch          chan Event
+	eventCh     chan Event
 }
 
 type position struct {
@@ -48,13 +48,13 @@ func NewWindow(r io.ReadSeeker, filename string, name string, height, width int6
 		width:    width,
 		length:   length,
 		redrawCh: redrawCh,
-		ch:       make(chan Event),
+		eventCh:  make(chan Event),
 	}, nil
 }
 
 // Run the window.
 func (w *Window) Run() {
-	for e := range w.ch {
+	for e := range w.eventCh {
 		switch e.Type {
 		case EventCursorUp:
 			w.cursorUp(e.Count)

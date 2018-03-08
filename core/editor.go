@@ -107,7 +107,7 @@ func (e *Editor) listen() {
 			} else {
 				e.window.height = int64(e.ui.Height())
 				event.Mode = e.mode
-				e.window.ch <- event
+				e.window.eventCh <- event
 			}
 		}
 	}
@@ -175,7 +175,7 @@ func (e *Editor) Close() error {
 	close(e.redrawCh)
 	close(e.quitCh)
 	close(e.cmdlineCh)
-	close(e.window.ch)
+	close(e.window.eventCh)
 	return e.ui.Close()
 }
 
