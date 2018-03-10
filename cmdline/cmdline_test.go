@@ -3,7 +3,7 @@ package cmdline
 import (
 	"testing"
 
-	"github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/core"
 )
 
 func TestNewCmdline(t *testing.T) {
@@ -251,8 +251,8 @@ func TestCursorInsert(t *testing.T) {
 
 func TestExecuteQuit(t *testing.T) {
 	c := NewCmdline()
-	ch := make(chan core.Event, 1)
-	c.Init(ch, make(chan core.Event), make(chan struct{}))
+	ch := make(chan Event, 1)
+	c.Init(ch, make(chan Event), make(chan struct{}))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
@@ -270,7 +270,7 @@ func TestExecuteQuit(t *testing.T) {
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
-		if e.Type != core.EventQuit {
+		if e.Type != EventQuit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 	}
@@ -278,8 +278,8 @@ func TestExecuteQuit(t *testing.T) {
 
 func TestExecuteWriteQuit(t *testing.T) {
 	c := NewCmdline()
-	ch := make(chan core.Event, 1)
-	c.Init(ch, make(chan core.Event), make(chan struct{}))
+	ch := make(chan Event, 1)
+	c.Init(ch, make(chan Event), make(chan struct{}))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
@@ -297,7 +297,7 @@ func TestExecuteWriteQuit(t *testing.T) {
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
-		if e.Type != core.EventWriteQuit {
+		if e.Type != EventWriteQuit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 	}

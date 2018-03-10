@@ -3,16 +3,16 @@ package cmdline
 import (
 	"unicode"
 
-	"github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/core"
 	"github.com/itchyny/bed/util"
 )
 
-// Cmdline implements core.Cmdline
+// Cmdline implements editor.Cmdline
 type Cmdline struct {
 	cmdline   []rune
 	cursor    int
-	eventCh   chan<- core.Event
-	cmdlineCh <-chan core.Event
+	eventCh   chan<- Event
+	cmdlineCh <-chan Event
 	redrawCh  chan<- struct{}
 }
 
@@ -22,7 +22,7 @@ func NewCmdline() *Cmdline {
 }
 
 // Init initializes the Cmdline.
-func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event, redrawCh chan<- struct{}) error {
+func (c *Cmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh chan<- struct{}) error {
 	c.eventCh, c.cmdlineCh, c.redrawCh = eventCh, cmdlineCh, redrawCh
 	return nil
 }
@@ -31,32 +31,32 @@ func (c *Cmdline) Init(eventCh chan<- core.Event, cmdlineCh <-chan core.Event, r
 func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
-		case core.EventStartCmdline:
+		case EventStartCmdline:
 			c.clear()
-		case core.EventExitCmdline:
-		case core.EventCursorLeft:
+		case EventExitCmdline:
+		case EventCursorLeft:
 			c.cursorLeft()
-		case core.EventCursorRight:
+		case EventCursorRight:
 			c.cursorRight()
-		case core.EventCursorHead:
+		case EventCursorHead:
 			c.cursorHead()
-		case core.EventCursorEnd:
+		case EventCursorEnd:
 			c.cursorEnd()
-		case core.EventBackspaceCmdline:
+		case EventBackspaceCmdline:
 			c.backspace()
-		case core.EventDeleteCmdline:
+		case EventDeleteCmdline:
 			c.deleteRune()
-		case core.EventDeleteWordCmdline:
+		case EventDeleteWordCmdline:
 			c.deleteWord()
-		case core.EventClearToHeadCmdline:
+		case EventClearToHeadCmdline:
 			c.clearToHead()
-		case core.EventClearCmdline:
+		case EventClearCmdline:
 			c.clear()
-		case core.EventSpace:
+		case EventSpace:
 			c.insert(' ')
-		case core.EventRune:
+		case EventRune:
 			c.insert(e.Rune)
-		case core.EventExecuteCmdline:
+		case EventExecuteCmdline:
 			c.execute()
 		default:
 			continue
@@ -135,11 +135,11 @@ func (c *Cmdline) insert(ch rune) {
 func (c *Cmdline) execute() {
 	cmd, args, err := parse(c.cmdline)
 	if err != nil {
-		c.eventCh <- core.Event{Type: core.EventError, Error: err}
+		c.eventCh <- Event{Type: EventError, Error: err}
 		return
 	}
 	if cmd.name != "" {
-		c.eventCh <- core.Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
+		c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
 	}
 }
 

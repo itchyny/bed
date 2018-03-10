@@ -5,19 +5,20 @@ import (
 	"math"
 	"strings"
 
-	"github.com/itchyny/bed/core"
-	"github.com/itchyny/bed/util"
-	runewidth "github.com/mattn/go-runewidth"
+	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
+
+	. "github.com/itchyny/bed/core"
+	"github.com/itchyny/bed/util"
 )
 
 // Tui implements UI
 type Tui struct {
 	width   int
 	height  int
-	eventCh chan<- core.Event
+	eventCh chan<- Event
 	quitCh  <-chan struct{}
-	mode    core.Mode
+	mode    Mode
 }
 
 // NewTui creates a new Tui.
@@ -26,17 +27,17 @@ func NewTui() *Tui {
 }
 
 // Init initializes the Tui.
-func (ui *Tui) Init(eventCh chan<- core.Event, quitCh <-chan struct{}) error {
+func (ui *Tui) Init(eventCh chan<- Event, quitCh <-chan struct{}) error {
 	ui.eventCh = eventCh
 	ui.quitCh = quitCh
-	ui.mode = core.ModeNormal
+	ui.mode = ModeNormal
 	return termbox.Init()
 }
 
 // Run the Tui.
-func (ui *Tui) Run(kms map[core.Mode]*core.KeyManager) {
-	kms[core.ModeNormal].Register(core.EventQuit, "q")
-	kms[core.ModeNormal].Register(core.EventQuit, "c-c")
+func (ui *Tui) Run(kms map[Mode]*KeyManager) {
+	kms[ModeNormal].Register(EventQuit, "q")
+	kms[ModeNormal].Register(EventQuit, "c-c")
 	events := make(chan termbox.Event)
 	go func() {
 		for {
@@ -48,10 +49,10 @@ func (ui *Tui) Run(kms map[core.Mode]*core.KeyManager) {
 			select {
 			case e := <-events:
 				if e.Type == termbox.EventKey {
-					if event := kms[ui.mode].Press(eventToKey(e)); event.Type != core.EventNop {
+					if event := kms[ui.mode].Press(eventToKey(e)); event.Type != EventNop {
 						ui.eventCh <- event
 					} else {
-						ui.eventCh <- core.Event{Type: core.EventRune, Rune: e.Ch}
+						ui.eventCh <- Event{Type: EventRune, Rune: e.Ch}
 					}
 				}
 			case <-ui.quitCh:
@@ -83,7 +84,7 @@ func (ui *Tui) setLine(line int, offset int, str string, attr termbox.Attribute)
 }
 
 // Redraw redraws the state.
-func (ui *Tui) Redraw(state core.State) error {
+func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
 	height, width := ui.Height(), state.Width
 	bytes, attrs := ui.bytesArray(height, width, state)
@@ -132,7 +133,7 @@ func (ui *Tui) Redraw(state core.State) error {
 	return termbox.Flush()
 }
 
-func (ui *Tui) bytesArray(height, width int, state core.State) ([][]byte, [][]termbox.Attribute) {
+func (ui *Tui) bytesArray(height, width int, state State) ([][]byte, [][]termbox.Attribute) {
 	var k int
 	eis := state.EditedIndices
 	bytes := make([][]byte, height)
@@ -147,7 +148,7 @@ func (ui *Tui) bytesArray(height, width int, state core.State) ([][]byte, [][]te
 			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
 				bytes[i][j] = state.PendingByte
 				attrs[i][j] = termbox.ColorCyan
-				if state.Mode == core.ModeReplace {
+				if state.Mode == ModeReplace {
 					k++
 				}
 				continue
@@ -164,7 +165,7 @@ func (ui *Tui) bytesArray(height, width int, state core.State) ([][]byte, [][]te
 	return bytes, attrs
 }
 
-func (ui *Tui) drawHeader(state core.State) {
+func (ui *Tui) drawHeader(state State) {
 	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+15), termbox.AttrUnderline)
 	cursor := int(state.Cursor % int64(state.Width))
 	for i := 0; i < state.Width; i++ {
@@ -178,7 +179,7 @@ func (ui *Tui) drawHeader(state core.State) {
 	ui.setLine(0, 3*state.Width+11, "|", termbox.AttrUnderline)
 }
 
-func (ui *Tui) drawScrollBar(state core.State, height int, offset int) {
+func (ui *Tui) drawScrollBar(state State, height int, offset int) {
 	total := int64((state.Size + state.Width - 1) / state.Width)
 	len := util.MaxInt64((state.Length+int64(state.Width)-1)/int64(state.Width), 1)
 	size := util.MaxInt64(total*total/len, 1)
@@ -195,7 +196,7 @@ func (ui *Tui) drawScrollBar(state core.State, height int, offset int) {
 	}
 }
 
-func (ui *Tui) drawFooter(state core.State) {
+func (ui *Tui) drawFooter(state State) {
 	j := int(state.Cursor - state.Offset)
 	name := state.Name
 	if name == "" {
@@ -207,7 +208,7 @@ func (ui *Tui) drawFooter(state core.State) {
 	ui.setLine(ui.Height()+1, 0, line, 0)
 	if state.Error != nil {
 		ui.setLine(ui.Height()+2, 0, state.Error.Error()+strings.Repeat(" ", ui.Width()), termbox.ColorRed)
-	} else if state.Mode == core.ModeCmdline {
+	} else if state.Mode == ModeCmdline {
 		ui.setLine(ui.Height()+2, 0, ":"+string(state.Cmdline)+strings.Repeat(" ", ui.Width()), 0)
 		termbox.SetCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), ui.Height()+2)
 	}
@@ -249,11 +250,11 @@ func prettyRune(b byte) string {
 	}
 }
 
-func prettyMode(mode core.Mode) string {
+func prettyMode(mode Mode) string {
 	switch mode {
-	case core.ModeInsert:
+	case ModeInsert:
 		return "[INSERT] "
-	case core.ModeReplace:
+	case ModeReplace:
 		return "[REPLACE] "
 	default:
 		return ""
