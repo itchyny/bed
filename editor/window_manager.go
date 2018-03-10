@@ -10,6 +10,5 @@ type WindowManager interface {
 	Run()
 	Emit(event Event)
 	State() (State, error)
-	WriteFile(name string) error
 	Close()
 }

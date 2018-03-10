@@ -96,7 +96,7 @@ func (m *Manager) Emit(event Event) {
 			if len(event.Args) > 0 {
 				name = event.Args[0]
 			}
-			if err := m.WriteFile(name); err != nil {
+			if err := m.writeFile(name); err != nil {
 				m.eventCh <- Event{Type: EventError, Error: err}
 			}
 		}
@@ -104,7 +104,7 @@ func (m *Manager) Emit(event Event) {
 		if len(event.Args) > 0 {
 			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
 		} else {
-			if err := m.WriteFile(""); err != nil {
+			if err := m.writeFile(""); err != nil {
 				m.eventCh <- Event{Type: EventError, Error: err}
 			} else {
 				m.eventCh <- Event{Type: EventQuit}
@@ -119,7 +119,7 @@ func (m *Manager) State() (State, error) {
 	return m.window.State()
 }
 
-func (m *Manager) WriteFile(name string) error {
+func (m *Manager) writeFile(name string) error {
 	perm := os.FileMode(0644)
 	if name == "" {
 		name = m.window.filename
