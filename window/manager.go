@@ -33,11 +33,13 @@ func NewManager() *Manager {
 	return &Manager{}
 }
 
+// Init initializes the Manager.
 func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
 	m.eventCh, m.redrawCh = eventCh, redrawCh
 	return nil
 }
 
+// Open a new window.
 func (m *Manager) Open(filename string) (err error) {
 	if filename == "" {
 		if m.window, err = NewWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh); err != nil {
@@ -66,14 +68,17 @@ func (m *Manager) Open(filename string) (err error) {
 	return nil
 }
 
+// SetHeight sets the height.
 func (m *Manager) SetHeight(height int) {
 	m.height = int64(height)
 }
 
+// Run the Manager.
 func (m *Manager) Run() {
 	m.window.Run()
 }
 
+// Emit an event to the current window.
 func (m *Manager) Emit(event Event) {
 	switch event.Type {
 	case EventEdit:
@@ -115,6 +120,7 @@ func (m *Manager) Emit(event Event) {
 	}
 }
 
+// State returns the state of the windows.
 func (m *Manager) State() (State, error) {
 	return m.window.State()
 }
@@ -151,6 +157,7 @@ func (m *Manager) writeFile(name string) error {
 	return os.Rename(tmpf.Name(), name)
 }
 
+// Close the Manager.
 func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
