@@ -180,7 +180,11 @@ func (ui *Tui) drawHeader(state State) {
 }
 
 func (ui *Tui) drawScrollBar(state State, height int, offset int) {
-	total := int64((state.Size + state.Width - 1) / state.Width)
+	stateSize := state.Size
+	if state.Cursor+1 == state.Length && state.Cursor == state.Offset+int64(state.Size) {
+		stateSize++
+	}
+	total := int64((stateSize + state.Width - 1) / state.Width)
 	len := util.MaxInt64((state.Length+int64(state.Width)-1)/int64(state.Width), 1)
 	size := util.MaxInt64(total*total/len, 1)
 	pad := (total*total + len - len*size - 1) / util.MaxInt64(total-size+1, 1)
