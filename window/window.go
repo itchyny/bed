@@ -9,8 +9,7 @@ import (
 	"github.com/itchyny/bed/util"
 )
 
-// Window represents an editor window.
-type Window struct {
+type window struct {
 	buffer      *buffer.Buffer
 	filename    string
 	name        string
@@ -34,14 +33,13 @@ type position struct {
 	offset int64
 }
 
-// NewWindow creates a new editor window.
-func NewWindow(r io.ReadSeeker, filename string, name string, height, width int64, redrawCh chan<- struct{}) (*Window, error) {
+func newWindow(r io.ReadSeeker, filename string, name string, height, width int64, redrawCh chan<- struct{}) (*window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
 		return nil, err
 	}
-	return &Window{
+	return &window{
 		buffer:   buffer,
 		filename: filename,
 		name:     name,
@@ -54,7 +52,7 @@ func NewWindow(r io.ReadSeeker, filename string, name string, height, width int6
 }
 
 // Run the window.
-func (w *Window) Run() {
+func (w *window) Run() {
 	for e := range w.eventCh {
 		switch e.Type {
 		case EventCursorUp:
@@ -135,7 +133,7 @@ func (w *Window) Run() {
 	}
 }
 
-func (w *Window) readBytes(pos int64, len int) (int, []byte, error) {
+func (w *window) readBytes(pos int64, len int) (int, []byte, error) {
 	bytes := make([]byte, len)
 	_, err := w.buffer.Seek(pos, io.SeekStart)
 	if err != nil {
@@ -149,7 +147,7 @@ func (w *Window) readBytes(pos int64, len int) (int, []byte, error) {
 }
 
 // State returns the current state of the buffer.
-func (w *Window) State() (State, error) {
+func (w *window) State() (State, error) {
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
 		return State{}, err
@@ -168,14 +166,14 @@ func (w *Window) State() (State, error) {
 	}, nil
 }
 
-func (w *Window) cursorUp(count int64) {
+func (w *window) cursorUp(count int64) {
 	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor/w.width) * w.width
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
 }
 
-func (w *Window) cursorDown(count int64) {
+func (w *window) cursorDown(count int64) {
 	w.cursor += util.MinInt64(
 		util.MinInt64(
 			util.MaxInt64(count, 1),
@@ -187,36 +185,36 @@ func (w *Window) cursorDown(count int64) {
 	}
 }
 
-func (w *Window) cursorLeft(count int64) {
+func (w *window) cursorLeft(count int64) {
 	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width)
 }
 
-func (w *Window) cursorRight(count int64) {
+func (w *window) cursorRight(count int64) {
 	w.cursor += util.MinInt64(
 		util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
 		util.MaxInt64(w.length, 1)-1-w.cursor,
 	)
 }
 
-func (w *Window) cursorPrev(count int64) {
+func (w *window) cursorPrev(count int64) {
 	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor)
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
 }
 
-func (w *Window) cursorNext(count int64) {
+func (w *window) cursorNext(count int64) {
 	w.cursor += util.MinInt64(util.MaxInt64(count, 1), util.MaxInt64(w.length, 1)-1-w.cursor)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
 }
 
-func (w *Window) cursorHead(_ int64) {
+func (w *window) cursorHead(_ int64) {
 	w.cursor -= w.cursor % w.width
 }
 
-func (w *Window) cursorEnd(count int64) {
+func (w *window) cursorEnd(count int64) {
 	w.cursor = util.MinInt64(
 		(w.cursor/w.width+util.MaxInt64(count, 1))*w.width-1,
 		util.MaxInt64(w.length, 1)-1,
@@ -226,14 +224,14 @@ func (w *Window) cursorEnd(count int64) {
 	}
 }
 
-func (w *Window) scrollUp(count int64) {
+func (w *window) scrollUp(count int64) {
 	w.offset -= util.MinInt64(util.MaxInt64(count, 1), w.offset/w.width) * w.width
 	if w.cursor >= w.offset+w.height*w.width {
 		w.cursor -= ((w.cursor-w.offset-w.height*w.width)/w.width + 1) * w.width
 	}
 }
 
-func (w *Window) scrollDown(count int64) {
+func (w *window) scrollDown(count int64) {
 	h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
 	w.offset += util.MinInt64(util.MaxInt64(count, 1), h-w.offset/w.width) * w.width
 	if w.cursor < w.offset {
@@ -244,7 +242,7 @@ func (w *Window) scrollDown(count int64) {
 	}
 }
 
-func (w *Window) pageUp() {
+func (w *window) pageUp() {
 	w.offset = util.MaxInt64(w.offset-(w.height-2)*w.width, 0)
 	if w.offset == 0 {
 		w.cursor = 0
@@ -253,7 +251,7 @@ func (w *Window) pageUp() {
 	}
 }
 
-func (w *Window) pageDown() {
+func (w *window) pageDown() {
 	offset := util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
 	w.offset = util.MinInt64(w.offset+(w.height-2)*w.width, offset)
 	if w.cursor < w.offset {
@@ -263,7 +261,7 @@ func (w *Window) pageDown() {
 	}
 }
 
-func (w *Window) pageUpHalf() {
+func (w *window) pageUpHalf() {
 	w.offset = util.MaxInt64(w.offset-util.MaxInt64(w.height/2, 1)*w.width, 0)
 	if w.offset == 0 {
 		w.cursor = 0
@@ -272,7 +270,7 @@ func (w *Window) pageUpHalf() {
 	}
 }
 
-func (w *Window) pageDownHalf() {
+func (w *window) pageDownHalf() {
 	offset := util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
 	w.offset = util.MinInt64(w.offset+util.MaxInt64(w.height/2, 1)*w.width, offset)
 	if w.cursor < w.offset {
@@ -282,12 +280,12 @@ func (w *Window) pageDownHalf() {
 	}
 }
 
-func (w *Window) pageTop() {
+func (w *window) pageTop() {
 	w.offset = 0
 	w.cursor = 0
 }
 
-func (w *Window) pageEnd() {
+func (w *window) pageEnd() {
 	w.offset = util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
 	w.cursor = ((util.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
 }
@@ -300,7 +298,7 @@ func isWhite(b byte) bool {
 	return b == '\x00' || b == '\x09' || b == '\x0a' || b == '\x0d' || b == '\x20'
 }
 
-func (w *Window) jumpTo() {
+func (w *window) jumpTo() {
 	s := 50
 	_, bytes, err := w.readBytes(util.MaxInt64(w.cursor-int64(s), 0), 2*s)
 	if err != nil {
@@ -328,7 +326,7 @@ func (w *Window) jumpTo() {
 	w.offset = util.MaxInt64(offset-offset%w.width-util.MaxInt64(w.height/3, 0)*w.width, 0)
 }
 
-func (w *Window) jumpBack() {
+func (w *window) jumpBack() {
 	if len(w.stack) == 0 {
 		return
 	}
@@ -337,7 +335,7 @@ func (w *Window) jumpBack() {
 	w.stack = w.stack[:len(w.stack)-1]
 }
 
-func (w *Window) deleteByte(count int64) {
+func (w *window) deleteByte(count int64) {
 	if w.length == 0 {
 		return
 	}
@@ -354,7 +352,7 @@ func (w *Window) deleteByte(count int64) {
 	}
 }
 
-func (w *Window) deletePrevByte(count int64) {
+func (w *window) deletePrevByte(count int64) {
 	cnt := int(util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width))
 	for i := 0; i < cnt; i++ {
 		w.buffer.Delete(w.cursor - 1)
@@ -363,7 +361,7 @@ func (w *Window) deletePrevByte(count int64) {
 	}
 }
 
-func (w *Window) increment(count int64) {
+func (w *window) increment(count int64) {
 	_, bytes, err := w.readBytes(w.cursor, 1)
 	if err != nil {
 		return
@@ -374,7 +372,7 @@ func (w *Window) increment(count int64) {
 	}
 }
 
-func (w *Window) decrement(count int64) {
+func (w *window) decrement(count int64) {
 	_, bytes, err := w.readBytes(w.cursor, 1)
 	if err != nil {
 		return
@@ -385,20 +383,20 @@ func (w *Window) decrement(count int64) {
 	}
 }
 
-func (w *Window) startInsert() {
+func (w *window) startInsert() {
 	w.append = w.length == 0
 	w.extending = false
 	w.pending = false
 }
 
-func (w *Window) startInsertHead() {
+func (w *window) startInsertHead() {
 	w.cursorHead(0)
 	w.append = w.length == 0
 	w.extending = false
 	w.pending = false
 }
 
-func (w *Window) startAppend() {
+func (w *window) startAppend() {
 	w.append = true
 	w.extending = false
 	w.pending = false
@@ -414,26 +412,26 @@ func (w *Window) startAppend() {
 	}
 }
 
-func (w *Window) startAppendEnd() {
+func (w *window) startAppendEnd() {
 	w.cursorEnd(0)
 	w.startAppend()
 }
 
-func (w *Window) startReplaceByte() {
+func (w *window) startReplaceByte() {
 	w.replaceByte = true
 	w.append = false
 	w.extending = false
 	w.pending = false
 }
 
-func (w *Window) startReplace() {
+func (w *window) startReplace() {
 	w.replaceByte = false
 	w.append = false
 	w.extending = false
 	w.pending = false
 }
 
-func (w *Window) exitInsert() {
+func (w *window) exitInsert() {
 	w.pending = false
 	if w.append {
 		if w.extending && w.length > 0 {
@@ -445,7 +443,7 @@ func (w *Window) exitInsert() {
 	}
 }
 
-func (w *Window) insert(mode Mode, b byte) {
+func (w *window) insert(mode Mode, b byte) {
 	if w.pending {
 		switch mode {
 		case ModeInsert:
@@ -479,7 +477,7 @@ func (w *Window) insert(mode Mode, b byte) {
 	}
 }
 
-func (w *Window) backspace() {
+func (w *window) backspace() {
 	if w.pending {
 		w.pending = false
 		w.pendingByte = '\x00'

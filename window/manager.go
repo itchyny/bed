@@ -16,7 +16,7 @@ import (
 // Manager manages the windows and files.
 type Manager struct {
 	height   int64
-	window   *Window
+	window   *window
 	files    []file
 	eventCh  chan<- Event
 	redrawCh chan<- struct{}
@@ -42,7 +42,7 @@ func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
 // Open a new window.
 func (m *Manager) Open(filename string) (err error) {
 	if filename == "" {
-		if m.window, err = NewWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh); err != nil {
+		if m.window, err = newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh); err != nil {
 			return err
 		}
 		return nil
@@ -52,7 +52,7 @@ func (m *Manager) Open(filename string) (err error) {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		if m.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh); err != nil {
+		if m.window, err = newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh); err != nil {
 			return err
 		}
 		return nil
@@ -62,7 +62,7 @@ func (m *Manager) Open(filename string) (err error) {
 		return err
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	if m.window, err = NewWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh); err != nil {
+	if m.window, err = newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh); err != nil {
 		return err
 	}
 	return nil

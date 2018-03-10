@@ -12,7 +12,7 @@ import (
 func TestWindowState(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, err := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestWindowState(t *testing.T) {
 func TestWindowEmptyState(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, err := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestWindowEmptyState(t *testing.T) {
 func TestWindowCursorMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
 	height, width := int64(10), int64(16)
-	window, err := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -299,7 +299,7 @@ func TestWindowCursorMotions(t *testing.T) {
 func TestWindowScreenMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
 	height, width := int64(10), int64(16)
-	window, err := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -403,7 +403,7 @@ func TestWindowScreenMotions(t *testing.T) {
 func TestWindowDeleteBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(7)
 	window.deleteByte(0)
@@ -464,7 +464,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 func TestWindowDeletePrevBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(5)
 	window.deletePrevByte(0)
@@ -498,7 +498,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 func TestWindowIncrementDecrement(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.increment(0)
 	state, _ := window.State()
@@ -547,7 +547,7 @@ func TestWindowIncrementDecrement(t *testing.T) {
 func TestWindowIncrementDecrementEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	state, _ := window.State()
 	if state.Size != 0 {
@@ -569,7 +569,7 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
 	}
 
-	window, _ = NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ = newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.decrement(0)
 	state, _ = window.State()
@@ -587,7 +587,7 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 func TestWindowInsert(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(7)
 	window.startInsert()
@@ -621,7 +621,7 @@ func TestWindowInsert(t *testing.T) {
 func TestWindowInsertEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startInsert()
 	window.insert(ModeInsert, 0x04)
@@ -656,7 +656,7 @@ func TestWindowInsertEmpty(t *testing.T) {
 func TestWindowInsertHead(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 2))
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.pageEnd()
 	window.startInsertHead()
@@ -688,7 +688,7 @@ func TestWindowInsertHead(t *testing.T) {
 func TestWindowAppend(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(7)
 	window.startAppend()
@@ -731,7 +731,7 @@ func TestWindowAppend(t *testing.T) {
 func TestWindowAppendEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startAppend()
 	window.exitInsert()
@@ -777,7 +777,7 @@ func TestWindowAppendEmpty(t *testing.T) {
 func TestWindowReplaceByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(7)
 	window.startReplaceByte()
@@ -803,7 +803,7 @@ func TestWindowReplaceByte(t *testing.T) {
 func TestWindowReplaceByteEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startReplaceByte()
 	state, _ := window.State()
@@ -828,7 +828,7 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 func TestWindowReplace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(10)
 	window.startReplace()
@@ -874,7 +874,7 @@ func TestWindowReplace(t *testing.T) {
 func TestWindowReplaceEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startReplace()
 	state, _ := window.State()
@@ -902,7 +902,7 @@ func TestWindowReplaceEmpty(t *testing.T) {
 func TestWindowInsertX(t *testing.T) {
 	r := strings.NewReader("")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startInsert()
 	window.insert(ModeInsert, 0x00)
@@ -931,7 +931,7 @@ func TestWindowInsertX(t *testing.T) {
 func TestWindowBackspace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(5)
 	window.startInsert()
@@ -954,7 +954,7 @@ func TestWindowBackspace(t *testing.T) {
 func TestWindowBackspacePending(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	height, width := int64(10), int64(16)
-	window, _ := NewWindow(r, "test", "test", height, width, make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(5)
 	window.startInsert()
