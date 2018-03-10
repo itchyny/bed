@@ -5,8 +5,9 @@ import (
 	"os"
 
 	"github.com/itchyny/bed/cmdline"
-	"github.com/itchyny/bed/core"
+	"github.com/itchyny/bed/editor"
 	"github.com/itchyny/bed/tui"
+	"github.com/itchyny/bed/window"
 )
 
 func run(args []string) int {
@@ -14,7 +15,7 @@ func run(args []string) int {
 		fmt.Fprintf(os.Stderr, "%s: too many files\n", name)
 		return 1
 	}
-	editor := core.NewEditor(tui.NewTui(), cmdline.NewCmdline())
+	editor := editor.NewEditor(tui.NewTui(), window.NewWindowManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return 1

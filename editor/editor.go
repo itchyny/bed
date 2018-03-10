@@ -1,11 +1,15 @@
-package core
+package editor
 
-import "fmt"
+import (
+	"fmt"
+
+	. "github.com/itchyny/bed/core"
+)
 
 // Editor is the main struct for this command.
 type Editor struct {
 	ui        UI
-	wm        *WindowManager
+	wm        WindowManager
 	mode      Mode
 	cmdline   Cmdline
 	err       error
@@ -16,8 +20,8 @@ type Editor struct {
 }
 
 // NewEditor creates a new editor.
-func NewEditor(ui UI, cmdline Cmdline) *Editor {
-	return &Editor{ui: ui, wm: &WindowManager{}, cmdline: cmdline}
+func NewEditor(ui UI, wm WindowManager, cmdline Cmdline) *Editor {
+	return &Editor{ui: ui, wm: wm, cmdline: cmdline}
 }
 
 // Init initializes the editor.

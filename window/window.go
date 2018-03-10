@@ -1,10 +1,11 @@
-package core
+package window
 
 import (
 	"io"
 	"strconv"
 
 	"github.com/itchyny/bed/buffer"
+	. "github.com/itchyny/bed/core"
 	"github.com/itchyny/bed/util"
 )
 

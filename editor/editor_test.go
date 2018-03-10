@@ -1,9 +1,12 @@
-package core
+package editor
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
+
+	. "github.com/itchyny/bed/core"
+	"github.com/itchyny/bed/window"
 )
 
 type testUI struct {
@@ -40,7 +43,7 @@ func (c *testCmdline) Execute() {}
 
 func TestEditorOpenWriteQuit(t *testing.T) {
 	ui := &testUI{}
-	editor := NewEditor(ui, &testCmdline{})
+	editor := NewEditor(ui, window.NewWindowManager(), &testCmdline{})
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}

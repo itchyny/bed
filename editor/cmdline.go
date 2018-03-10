@@ -1,4 +1,6 @@
-package core
+package editor
+
+import . "github.com/itchyny/bed/core"
 
 // Cmdline defines the required cmdline interface for the editor.
 type Cmdline interface {

@@ -1,10 +1,12 @@
-package core
+package window
 
 import (
 	"math"
 	"reflect"
 	"strings"
 	"testing"
+
+	. "github.com/itchyny/bed/core"
 )
 
 func TestWindowState(t *testing.T) {

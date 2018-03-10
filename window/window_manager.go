@@ -1,4 +1,4 @@
-package core
+package window
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	. "github.com/itchyny/bed/core"
 )
 
 // WindowManager manages the windows and files.
@@ -22,6 +24,11 @@ type file struct {
 	name string
 	file *os.File
 	perm os.FileMode
+}
+
+// NewWindowManager creates a new WindowManager.
+func NewWindowManager() *WindowManager {
+	return &WindowManager{}
 }
 
 func (wm *WindowManager) Init(redrawCh chan<- struct{}) error {
