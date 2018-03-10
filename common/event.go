@@ -26,6 +26,8 @@ const (
 	EventCursorNext
 	EventCursorHead
 	EventCursorEnd
+	EventCursorGotoAbs
+	EventCursorGotoRel
 	EventScrollUp
 	EventScrollDown
 	EventPageUp

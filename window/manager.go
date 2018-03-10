@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -81,6 +82,15 @@ func (m *Manager) Run() {
 // Emit an event to the current window.
 func (m *Manager) Emit(event Event) {
 	switch event.Type {
+	case EventCursorGotoAbs:
+		fallthrough
+	case EventCursorGotoRel:
+		if len(event.Args) > 1 {
+			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else if len(event.Args) == 1 {
+			event.Count = parseGotoPos(event.Args[0])
+			m.window.eventCh <- event
+		}
 	case EventEdit:
 		if len(event.Args) > 1 {
 			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
@@ -118,6 +128,24 @@ func (m *Manager) Emit(event Event) {
 	default:
 		m.window.eventCh <- event
 	}
+}
+
+func parseGotoPos(pos string) int64 {
+	if pos == "$" {
+		return math.MaxInt64
+	}
+	count, sign := int64(0), int64(1)
+	for _, c := range pos {
+		count *= 0x10
+		if '0' <= c && c <= '9' {
+			count += int64(c - '0')
+		} else if 'a' <= c && c <= 'f' {
+			count += int64(c - 'a' + 0x0a)
+		} else if c == '-' {
+			sign = -1
+		}
+	}
+	return sign * count
 }
 
 // State returns the state of the windows.

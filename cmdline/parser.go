@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	. "github.com/itchyny/bed/common"
 )
 
 func parse(cmdline []rune) (command, []string, error) {
@@ -23,6 +25,24 @@ func parse(cmdline []rune) (command, []string, error) {
 			if xs[0] == c {
 				return cmd, xs[1:], nil
 			}
+		}
+	}
+	if len(xs) == 1 {
+		if xs[0] == "$" {
+			return command{xs[0], EventCursorGotoAbs}, xs, nil
+		}
+		relative, eventType := false, EventCursorGotoAbs
+		for _, c := range xs[0] {
+			if !relative && (c == '-' || c == '+') {
+				relative = true
+				eventType = EventCursorGotoRel
+			} else if !('0' <= c && c <= '9' || 'a' <= c && c <= 'f') {
+				eventType = EventNop
+				break
+			}
+		}
+		if eventType != EventNop {
+			return command{xs[0], EventType(eventType)}, xs, nil
 		}
 	}
 	return command{}, nil, fmt.Errorf("unknown command: %s", string(cmdline))

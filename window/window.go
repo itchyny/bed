@@ -71,6 +71,10 @@ func (w *window) Run() {
 			w.cursorHead(e.Count)
 		case EventCursorEnd:
 			w.cursorEnd(e.Count)
+		case EventCursorGotoAbs:
+			w.cursorGotoAbs(e.Count)
+		case EventCursorGotoRel:
+			w.cursorGotoRel(e.Count)
 		case EventScrollUp:
 			w.scrollUp(e.Count)
 		case EventScrollDown:
@@ -221,6 +225,26 @@ func (w *window) cursorEnd(count int64) {
 	)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+}
+
+func (w *window) cursorGotoAbs(count int64) {
+	w.cursor = util.MinInt64(count, util.MaxInt64(w.length, 1)-1)
+	if w.cursor < w.offset {
+		w.offset = (util.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+		w.offset = util.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
+	}
+}
+
+func (w *window) cursorGotoRel(count int64) {
+	w.cursor += util.MaxInt64(util.MinInt64(count, util.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
+	if w.cursor < w.offset {
+		w.offset = (util.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+		w.offset = util.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
 	}
 }
 
