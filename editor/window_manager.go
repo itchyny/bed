@@ -6,9 +6,9 @@ import . "github.com/itchyny/bed/core"
 type WindowManager interface {
 	Init(chan<- Event, chan<- struct{}) error
 	Open(string) error
-	SetHeight(height int)
+	SetHeight(int)
 	Run()
-	Emit(event Event)
+	Emit(Event)
 	State() (State, error)
 	Close()
 }
