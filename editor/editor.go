@@ -73,6 +73,10 @@ func (e *Editor) listen() {
 				e.redrawCh <- struct{}{}
 			} else {
 				e.err = e.wm.WriteFile("")
+				if e.err != nil {
+					e.redrawCh <- struct{}{}
+					continue
+				}
 				e.quitCh <- struct{}{}
 				return
 			}
