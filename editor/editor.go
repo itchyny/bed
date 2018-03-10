@@ -10,8 +10,8 @@ import (
 type Editor struct {
 	ui        UI
 	wm        WindowManager
-	mode      Mode
 	cmdline   Cmdline
+	mode      Mode
 	err       error
 	eventCh   chan Event
 	redrawCh  chan struct{}
@@ -21,7 +21,7 @@ type Editor struct {
 
 // NewEditor creates a new editor.
 func NewEditor(ui UI, wm WindowManager, cmdline Cmdline) *Editor {
-	return &Editor{ui: ui, wm: wm, cmdline: cmdline}
+	return &Editor{ui: ui, wm: wm, cmdline: cmdline, mode: ModeNormal}
 }
 
 // Init initializes the editor.
