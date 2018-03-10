@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/itchyny/bed/buffer"
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/util"
 )
 

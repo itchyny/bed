@@ -1,6 +1,6 @@
 package editor
 
-import . "github.com/itchyny/bed/core"
+import . "github.com/itchyny/bed/common"
 
 func defaultKeyManagers() map[Mode]*KeyManager {
 	kms := make(map[Mode]*KeyManager)

@@ -3,7 +3,7 @@ package cmdline
 import (
 	"testing"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 )
 
 func TestNewCmdline(t *testing.T) {

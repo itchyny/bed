@@ -8,7 +8,7 @@ import (
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/util"
 )
 

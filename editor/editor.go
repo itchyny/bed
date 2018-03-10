@@ -3,7 +3,7 @@ package editor
 import (
 	"fmt"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 )
 
 // Editor is the main struct for this command.

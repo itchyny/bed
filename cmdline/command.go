@@ -1,6 +1,6 @@
 package cmdline
 
-import . "github.com/itchyny/bed/core"
+import . "github.com/itchyny/bed/common"
 
 type command struct {
 	name      string

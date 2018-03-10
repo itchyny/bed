@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/itchyny/bed/cmdline"
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/window"
 )
 

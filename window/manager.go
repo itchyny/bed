@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 )
 
 // Manager manages the windows and files.

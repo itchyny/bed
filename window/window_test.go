@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 )
 
 func TestWindowState(t *testing.T) {

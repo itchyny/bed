@@ -1,4 +1,4 @@
-package core
+package common
 
 // Mode ...
 type Mode int

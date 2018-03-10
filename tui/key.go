@@ -3,7 +3,7 @@ package tui
 import (
 	"github.com/nsf/termbox-go"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 )
 
 func eventToKey(event termbox.Event) Key {

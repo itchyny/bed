@@ -1,4 +1,4 @@
-package core
+package common
 
 // Event represents the event emitted by UI.
 type Event struct {

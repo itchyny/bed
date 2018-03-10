@@ -3,7 +3,7 @@ package cmdline
 import (
 	"unicode"
 
-	. "github.com/itchyny/bed/core"
+	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/util"
 )
 

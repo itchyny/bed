@@ -1,6 +1,6 @@
 package editor
 
-import . "github.com/itchyny/bed/core"
+import . "github.com/itchyny/bed/common"
 
 // Manager defines the required window manager interface for the editor.
 type Manager interface {
