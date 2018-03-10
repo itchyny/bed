@@ -3,6 +3,7 @@ package window
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -17,6 +18,7 @@ type WindowManager struct {
 	height   int64
 	window   *Window
 	files    []file
+	eventCh  chan<- Event
 	redrawCh chan<- struct{}
 }
 
@@ -31,8 +33,8 @@ func NewWindowManager() *WindowManager {
 	return &WindowManager{}
 }
 
-func (wm *WindowManager) Init(redrawCh chan<- struct{}) error {
-	wm.redrawCh = redrawCh
+func (wm *WindowManager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
+	wm.eventCh, wm.redrawCh = eventCh, redrawCh
 	return nil
 }
 
@@ -73,7 +75,32 @@ func (wm *WindowManager) Run() {
 }
 
 func (wm *WindowManager) Emit(event Event) {
-	wm.window.eventCh <- event
+	switch event.Type {
+	case EventWrite:
+		if len(event.Args) > 1 {
+			wm.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else {
+			var name string
+			if len(event.Args) > 0 {
+				name = event.Args[0]
+			}
+			if err := wm.WriteFile(name); err != nil {
+				wm.eventCh <- Event{Type: EventError, Error: err}
+			}
+		}
+	case EventWriteQuit:
+		if len(event.Args) > 0 {
+			wm.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else {
+			if err := wm.WriteFile(""); err != nil {
+				wm.eventCh <- Event{Type: EventError, Error: err}
+			} else {
+				wm.eventCh <- Event{Type: EventQuit}
+			}
+		}
+	default:
+		wm.window.eventCh <- event
+	}
 }
 
 func (wm *WindowManager) State() (State, error) {

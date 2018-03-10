@@ -4,7 +4,7 @@ import . "github.com/itchyny/bed/core"
 
 // WindowManager defines the required window manager interface for the editor.
 type WindowManager interface {
-	Init(chan<- struct{}) error
+	Init(chan<- Event, chan<- struct{}) error
 	Open(string) error
 	SetHeight(height int)
 	Run()

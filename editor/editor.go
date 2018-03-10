@@ -36,7 +36,7 @@ func (e *Editor) Init() error {
 	if err := e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh); err != nil {
 		return err
 	}
-	return e.wm.Init(e.redrawCh)
+	return e.wm.Init(e.eventCh, e.redrawCh)
 }
 
 func (e *Editor) listen() {
@@ -53,30 +53,6 @@ func (e *Editor) listen() {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
 				e.redrawCh <- struct{}{}
 			} else {
-				e.quitCh <- struct{}{}
-				return
-			}
-		case EventWrite:
-			if len(event.Args) > 1 {
-				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
-			} else {
-				var name string
-				if len(event.Args) > 0 {
-					name = event.Args[0]
-				}
-				e.err = e.wm.WriteFile(name)
-			}
-			e.redrawCh <- struct{}{}
-		case EventWriteQuit:
-			if len(event.Args) > 0 {
-				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
-				e.redrawCh <- struct{}{}
-			} else {
-				e.err = e.wm.WriteFile("")
-				if e.err != nil {
-					e.redrawCh <- struct{}{}
-					continue
-				}
 				e.quitCh <- struct{}{}
 				return
 			}
