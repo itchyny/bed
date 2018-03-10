@@ -9,7 +9,7 @@ import (
 // Editor is the main struct for this command.
 type Editor struct {
 	ui        UI
-	wm        WindowManager
+	wm        Manager
 	cmdline   Cmdline
 	mode      Mode
 	err       error
@@ -20,7 +20,7 @@ type Editor struct {
 }
 
 // NewEditor creates a new editor.
-func NewEditor(ui UI, wm WindowManager, cmdline Cmdline) *Editor {
+func NewEditor(ui UI, wm Manager, cmdline Cmdline) *Editor {
 	return &Editor{ui: ui, wm: wm, cmdline: cmdline, mode: ModeNormal}
 }
 
