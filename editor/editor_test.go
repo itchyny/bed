@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/itchyny/bed/cmdline"
 	. "github.com/itchyny/bed/core"
 	"github.com/itchyny/bed/window"
 )
@@ -27,7 +28,7 @@ func (ui *testUI) Redraw(state State) error { return nil }
 
 func (ui *testUI) Close() error { return nil }
 
-func (ui *testUI) Emit(t EventType, r rune) { ui.eventCh <- Event{Type: t, Rune: r} }
+func (ui *testUI) Emit(e Event) { ui.eventCh <- e }
 
 type testCmdline struct{}
 
@@ -41,13 +42,52 @@ func (c *testCmdline) Get() ([]rune, int) { return nil, 0 }
 
 func (c *testCmdline) Execute() {}
 
+func TestEditorOpenEmptyWriteQuit(t *testing.T) {
+	ui := &testUI{}
+	editor := NewEditor(ui, window.NewWindowManager(), &testCmdline{})
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	f, err := ioutil.TempFile("", "bed-test-editor-open-empty-write-quit")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	f.Close()
+	if err := editor.OpenEmpty(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, t := range []EventType{EventIncrement, EventIncrement, EventDecrement} {
+			ui.Emit(Event{Type: t})
+		}
+		ui.Emit(Event{Type: EventWrite, Args: []string{f.Name()}})
+		ui.Emit(Event{Type: EventQuit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if string(bs) != "\x01" {
+		t.Errorf("file contents should be %q but got %q", "\x12\x48\xff", string(bs))
+	}
+}
+
 func TestEditorOpenWriteQuit(t *testing.T) {
 	ui := &testUI{}
 	editor := NewEditor(ui, window.NewWindowManager(), &testCmdline{})
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-open")
+	f, err := ioutil.TempFile("", "bed-test-editor-open-write-quit")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -66,7 +106,7 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 			{EventStartInsertHead, '-'}, {EventRune, '1'}, {EventRune, '2'}, {EventExitInsert, '-'},
 			{EventCursorEnd, '-'}, {EventDelete, '-'}, {EventWriteQuit, '-'},
 		} {
-			ui.Emit(e.typ, e.ch)
+			ui.Emit(Event{Type: e.typ, Rune: e.ch})
 		}
 	}()
 	if err := editor.Run(); err != nil {
@@ -84,5 +124,36 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	}
 	if string(bs) != "\x12\x48\xff" {
 		t.Errorf("file contents should be %q but got %q", "\x12\x48\xff", string(bs))
+	}
+}
+
+func TestEditorCmdlineQuit(t *testing.T) {
+	ui := &testUI{}
+	editor := NewEditor(ui, window.NewWindowManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.OpenEmpty(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ EventType
+			ch  rune
+		}{
+			{EventStartCmdline, '-'}, {EventRune, 'q'}, {EventRune, 'u'}, {EventRune, 'i'},
+			{EventRune, 't'}, {EventExecuteCmdline, '-'},
+		} {
+			ui.Emit(Event{Type: e.typ, Rune: e.ch})
+		}
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
 	}
 }
