@@ -1,21 +1,11 @@
 package core
 
-import (
-	"bytes"
-	"errors"
-	"fmt"
-	"io"
-	"math/rand"
-	"os"
-	"path/filepath"
-	"strconv"
-)
+import "fmt"
 
 // Editor is the main struct for this command.
 type Editor struct {
 	ui        UI
-	window    *Window
-	files     []file
+	wm        *WindowManager
 	mode      Mode
 	cmdline   Cmdline
 	err       error
@@ -25,15 +15,9 @@ type Editor struct {
 	quitCh    chan struct{}
 }
 
-type file struct {
-	name string
-	file *os.File
-	perm os.FileMode
-}
-
 // NewEditor creates a new editor.
 func NewEditor(ui UI, cmdline Cmdline) *Editor {
-	return &Editor{ui: ui, cmdline: cmdline}
+	return &Editor{ui: ui, wm: &WindowManager{}, cmdline: cmdline}
 }
 
 // Init initializes the editor.
@@ -45,7 +29,10 @@ func (e *Editor) Init() error {
 	if err := e.ui.Init(e.eventCh, e.quitCh); err != nil {
 		return err
 	}
-	return e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh)
+	if err := e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh); err != nil {
+		return err
+	}
+	return e.wm.Init(e.redrawCh)
 }
 
 func (e *Editor) listen() {
@@ -73,7 +60,7 @@ func (e *Editor) listen() {
 				if len(event.Args) > 0 {
 					name = event.Args[0]
 				}
-				e.err = e.writeFile(name)
+				e.err = e.wm.WriteFile(name)
 			}
 			e.redrawCh <- struct{}{}
 		case EventWriteQuit:
@@ -81,7 +68,7 @@ func (e *Editor) listen() {
 				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
 				e.redrawCh <- struct{}{}
 			} else {
-				e.err = e.writeFile("")
+				e.err = e.wm.WriteFile("")
 				e.quitCh <- struct{}{}
 				return
 			}
@@ -105,9 +92,9 @@ func (e *Editor) listen() {
 			if e.mode == ModeCmdline || event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
 				e.cmdlineCh <- event
 			} else {
-				e.window.height = int64(e.ui.Height())
 				event.Mode = e.mode
-				e.window.eventCh <- event
+				e.wm.SetHeight(e.ui.Height())
+				e.wm.Emit(event)
 			}
 		}
 	}
@@ -115,33 +102,14 @@ func (e *Editor) listen() {
 
 // Open opens a new file.
 func (e *Editor) Open(filename string) (err error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		if e.window, err = NewWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.redrawCh); err != nil {
-			return err
-		}
-		return nil
-	}
-	info, err := os.Stat(filename)
-	if err != nil {
-		return err
-	}
-	e.files = append(e.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	if e.window, err = NewWindow(f, filename, filepath.Base(filename), int64(e.ui.Height()), 16, e.redrawCh); err != nil {
-		return err
-	}
-	return nil
+	e.wm.SetHeight(e.ui.Height())
+	return e.wm.Open(filename)
 }
 
 // OpenEmpty creates a new window.
 func (e *Editor) OpenEmpty() (err error) {
-	if e.window, err = NewWindow(bytes.NewReader(nil), "", "", int64(e.ui.Height()), 16, e.redrawCh); err != nil {
-		return err
-	}
-	return nil
+	e.wm.SetHeight(e.ui.Height())
+	return e.wm.Open("")
 }
 
 // Run the editor.
@@ -151,13 +119,13 @@ func (e *Editor) Run() error {
 	}
 	go e.ui.Run(defaultKeyManagers())
 	go e.cmdline.Run()
-	go e.window.Run()
+	go e.wm.Run()
 	e.listen()
 	return nil
 }
 
 func (e *Editor) redraw() error {
-	state, err := e.window.State()
+	state, err := e.wm.State()
 	if err != nil {
 		return err
 	}
@@ -168,45 +136,10 @@ func (e *Editor) redraw() error {
 
 // Close terminates the editor.
 func (e *Editor) Close() error {
-	for _, f := range e.files {
-		f.file.Close()
-	}
 	close(e.eventCh)
 	close(e.redrawCh)
 	close(e.quitCh)
 	close(e.cmdlineCh)
-	close(e.window.eventCh)
+	e.wm.Close()
 	return e.ui.Close()
-}
-
-func (e *Editor) writeFile(name string) error {
-	perm := os.FileMode(0644)
-	if name == "" {
-		name = e.window.filename
-	}
-	if name == "" {
-		return errors.New("no file name")
-	}
-	if e.window.filename == "" {
-		e.window.filename = name
-	}
-	for _, f := range e.files {
-		if f.name == name {
-			perm = f.perm
-		}
-	}
-	tmpf, err := os.OpenFile(
-		name+"-"+strconv.FormatUint(rand.Uint64(), 16), os.O_RDWR|os.O_CREATE|os.O_EXCL, perm,
-	)
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmpf.Name())
-	e.window.buffer.Seek(0, io.SeekStart)
-	_, err = io.Copy(tmpf, e.window.buffer)
-	tmpf.Close()
-	if err != nil {
-		return err
-	}
-	return os.Rename(tmpf.Name(), name)
 }
