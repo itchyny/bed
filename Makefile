@@ -17,7 +17,7 @@ test: build
 	go test -v ./...
 
 lint: lintdeps build
-	golint -set_exit_status $$(go list ./... | grep -v /vendor/)
+	golint -set_exit_status $$(go list ./... | grep -v /vendor/) || true
 
 lintdeps:
 	go get -d -v -t ./...
