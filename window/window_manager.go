@@ -76,6 +76,18 @@ func (wm *WindowManager) Run() {
 
 func (wm *WindowManager) Emit(event Event) {
 	switch event.Type {
+	case EventEdit:
+		if len(event.Args) > 1 {
+			wm.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else if len(event.Args) == 0 {
+			wm.eventCh <- Event{Type: EventError, Error: errors.New("no file name")}
+		} else {
+			if err := wm.Open(event.Args[0]); err != nil {
+				wm.eventCh <- Event{Type: EventError, Error: err}
+			}
+			go wm.Run()
+			wm.eventCh <- Event{Type: EventError, Error: nil}
+		}
 	case EventWrite:
 		if len(event.Args) > 1 {
 			wm.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
