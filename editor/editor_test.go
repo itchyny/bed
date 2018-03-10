@@ -44,7 +44,7 @@ func (c *testCmdline) Execute() {}
 
 func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	ui := &testUI{}
-	editor := NewEditor(ui, window.NewWindowManager(), &testCmdline{})
+	editor := NewEditor(ui, window.NewManager(), &testCmdline{})
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -83,7 +83,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 
 func TestEditorOpenWriteQuit(t *testing.T) {
 	ui := &testUI{}
-	editor := NewEditor(ui, window.NewWindowManager(), &testCmdline{})
+	editor := NewEditor(ui, window.NewManager(), &testCmdline{})
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -129,7 +129,7 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 
 func TestEditorCmdlineQuit(t *testing.T) {
 	ui := &testUI{}
-	editor := NewEditor(ui, window.NewWindowManager(), cmdline.NewCmdline())
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
