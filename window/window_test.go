@@ -162,13 +162,13 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("state.Bytes should start with %q but got %q", " world!", string(state.Bytes))
 	}
 
-	window.cursorRight(3)
+	window.cursorRight(ModeNormal, 3)
 	state, _ = window.State()
 	if state.Cursor != width*11+3 {
 		t.Errorf("state.Cursor should be %d but got %d", width*11+3, state.Cursor)
 	}
 
-	window.cursorRight(20)
+	window.cursorRight(ModeNormal, 20)
 	state, _ = window.State()
 	if state.Cursor != width*12-1 {
 		t.Errorf("state.Cursor should be %d but got %d", width*12-1, state.Cursor)
@@ -195,7 +195,7 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("state.Offset should be %d but got %d", width, state.Offset)
 	}
 
-	window.cursorNext(200)
+	window.cursorNext(ModeNormal, 200)
 	state, _ = window.State()
 	if state.Cursor != 222 {
 		t.Errorf("state.Cursor should be %d but got %d", 222, state.Cursor)
@@ -204,7 +204,7 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("state.Offset should be %d but got %d", width*4, state.Offset)
 	}
 
-	window.cursorNext(2000)
+	window.cursorNext(ModeNormal, 2000)
 	state, _ = window.State()
 	if state.Cursor != 1299 {
 		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
@@ -277,7 +277,7 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
-	window.cursorRight(1000)
+	window.cursorRight(ModeNormal, 1000)
 	state, _ = window.State()
 	if state.Cursor != 1299 {
 		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
@@ -430,7 +430,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(7)
+	window.cursorNext(ModeNormal, 7)
 	window.deleteByte(0)
 	state, _ := window.State()
 	if !strings.HasPrefix(string(state.Bytes), "Hello, orld!\x00") {
@@ -491,7 +491,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(5)
+	window.cursorNext(ModeNormal, 5)
 	window.deletePrevByte(0)
 	state, _ := window.State()
 	if !strings.HasPrefix(string(state.Bytes), "Hell, world!\x00") {
@@ -561,7 +561,7 @@ func TestWindowIncrementDecrement(t *testing.T) {
 		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
 	}
 
-	window.cursorNext(7)
+	window.cursorNext(ModeNormal, 7)
 	window.increment(1000)
 	state, _ = window.State()
 	if !strings.HasPrefix(string(state.Bytes), "Hello, _orld!\x00") {
@@ -614,7 +614,7 @@ func TestWindowInsert(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(7)
+	window.cursorNext(ModeNormal, 7)
 	window.startInsert()
 	state, _ := window.State()
 
@@ -715,7 +715,7 @@ func TestWindowAppend(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(7)
+	window.cursorNext(ModeNormal, 7)
 	window.startAppend()
 	state, _ := window.State()
 	if state.Cursor != 8 {
@@ -736,7 +736,7 @@ func TestWindowAppend(t *testing.T) {
 		t.Errorf("state.Cursor should be %d but got %d", 8, state.Cursor)
 	}
 
-	window.cursorNext(10)
+	window.cursorNext(ModeNormal, 10)
 	window.startAppend()
 	window.insert(ModeInsert, 0x03)
 	window.insert(ModeInsert, 0x0A)
@@ -804,7 +804,7 @@ func TestWindowReplaceByte(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(7)
+	window.cursorNext(ModeNormal, 7)
 	window.startReplaceByte()
 	state, _ := window.State()
 	if state.Cursor != 7 {
@@ -855,7 +855,7 @@ func TestWindowReplace(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(10)
+	window.cursorNext(ModeNormal, 10)
 	window.startReplace()
 	state, _ := window.State()
 	if state.Cursor != 10 {
@@ -958,7 +958,7 @@ func TestWindowBackspace(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(5)
+	window.cursorNext(ModeNormal, 5)
 	window.startInsert()
 	window.backspace()
 	state, _ := window.State()
@@ -981,7 +981,7 @@ func TestWindowBackspacePending(t *testing.T) {
 	height, width := int64(10), int64(16)
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
-	window.cursorNext(5)
+	window.cursorNext(ModeNormal, 5)
 	window.startInsert()
 	window.insert(ModeInsert, 0x03)
 	state, _ := window.State()
