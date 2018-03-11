@@ -302,3 +302,31 @@ func TestExecuteWriteQuit(t *testing.T) {
 		}
 	}
 }
+
+func TestExecuteGoto(t *testing.T) {
+	c := NewCmdline()
+	ch := make(chan Event, 1)
+	c.Init(ch, make(chan Event), make(chan struct{}))
+	for _, cmd := range []struct {
+		cmd  string
+		name string
+		typ  EventType
+	}{
+		{"  :  :  $  ", "$", EventCursorGotoAbs},
+		{"  :  123456789abcdef  ", "123456789abcdef", EventCursorGotoAbs},
+		{"  fedcba  ", "fedcba", EventCursorGotoAbs},
+		{"  +44ef ", "+44ef", EventCursorGotoRel},
+		{"  -ff ", "-ff", EventCursorGotoRel},
+	} {
+		c.clear()
+		c.cmdline = []rune(cmd.cmd)
+		c.execute()
+		e := <-ch
+		if e.CmdName != cmd.name {
+			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		}
+		if e.Type != cmd.typ {
+			t.Errorf("cmdline should emit %q but got %q with %q", cmd.typ, e.Type, cmd.cmd)
+		}
+	}
+}
