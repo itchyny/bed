@@ -111,15 +111,17 @@ func (m *Manager) Emit(event Event) {
 			if len(event.Args) > 0 {
 				name = event.Args[0]
 			}
-			if err := m.writeFile(name); err != nil {
+			if filename, n, err := m.writeFile(name); err != nil {
 				m.eventCh <- Event{Type: EventError, Error: err}
+			} else {
+				m.eventCh <- Event{Type: EventInfo, Error: fmt.Errorf("%s: %d (0x%x) bytes written", filename, n, n)}
 			}
 		}
 	case EventWriteQuit:
 		if len(event.Args) > 0 {
 			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
 		} else {
-			if err := m.writeFile(""); err != nil {
+			if _, _, err := m.writeFile(""); err != nil {
 				m.eventCh <- Event{Type: EventError, Error: err}
 			} else {
 				m.eventCh <- Event{Type: EventQuit}
@@ -158,13 +160,13 @@ func (m *Manager) State() (State, error) {
 	return m.window.State()
 }
 
-func (m *Manager) writeFile(name string) error {
+func (m *Manager) writeFile(name string) (string, int64, error) {
 	perm := os.FileMode(0644)
 	if name == "" {
 		name = m.window.filename
 	}
 	if name == "" {
-		return errors.New("no file name")
+		return name, 0, errors.New("no file name")
 	}
 	if m.window.filename == "" {
 		m.window.filename = name
@@ -178,16 +180,16 @@ func (m *Manager) writeFile(name string) error {
 		name+"-"+strconv.FormatUint(rand.Uint64(), 16), os.O_RDWR|os.O_CREATE|os.O_EXCL, perm,
 	)
 	if err != nil {
-		return err
+		return name, 0, err
 	}
 	defer os.Remove(tmpf.Name())
 	m.window.buffer.Seek(0, io.SeekStart)
-	_, err = io.Copy(tmpf, m.window.buffer)
+	n, err := io.Copy(tmpf, m.window.buffer)
 	tmpf.Close()
 	if err != nil {
-		return err
+		return name, 0, err
 	}
-	return os.Rename(tmpf.Name(), name)
+	return name, n, os.Rename(tmpf.Name(), name)
 }
 
 // Close the Manager.
