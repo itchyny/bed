@@ -62,11 +62,11 @@ func (w *window) Run() {
 		case EventCursorLeft:
 			w.cursorLeft(e.Count)
 		case EventCursorRight:
-			w.cursorRight(e.Count)
+			w.cursorRight(e.Mode, e.Count)
 		case EventCursorPrev:
 			w.cursorPrev(e.Count)
 		case EventCursorNext:
-			w.cursorNext(e.Count)
+			w.cursorNext(e.Mode, e.Count)
 		case EventCursorHead:
 			w.cursorHead(e.Count)
 		case EventCursorEnd:
@@ -191,13 +191,32 @@ func (w *window) cursorDown(count int64) {
 
 func (w *window) cursorLeft(count int64) {
 	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width)
+	if w.append && w.extending {
+		w.append = false
+		w.extending = false
+		if w.length > 0 {
+			w.length--
+		}
+	}
 }
 
-func (w *window) cursorRight(count int64) {
-	w.cursor += util.MinInt64(
-		util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
-		util.MaxInt64(w.length, 1)-1-w.cursor,
-	)
+func (w *window) cursorRight(mode Mode, count int64) {
+	if mode == ModeNormal {
+		w.cursor += util.MinInt64(
+			util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
+			util.MaxInt64(w.length, 1)-1-w.cursor,
+		)
+	} else if !w.extending {
+		w.cursor += util.MinInt64(
+			util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
+			w.length-w.cursor,
+		)
+		if w.cursor == w.length {
+			w.append = true
+			w.extending = true
+			w.length++
+		}
+	}
 }
 
 func (w *window) cursorPrev(count int64) {
@@ -205,10 +224,26 @@ func (w *window) cursorPrev(count int64) {
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
+	if w.append && w.extending {
+		w.append = false
+		w.extending = false
+		if w.length > 0 {
+			w.length--
+		}
+	}
 }
 
-func (w *window) cursorNext(count int64) {
-	w.cursor += util.MinInt64(util.MaxInt64(count, 1), util.MaxInt64(w.length, 1)-1-w.cursor)
+func (w *window) cursorNext(mode Mode, count int64) {
+	if mode == ModeNormal {
+		w.cursor += util.MinInt64(util.MaxInt64(count, 1), util.MaxInt64(w.length, 1)-1-w.cursor)
+	} else if !w.extending {
+		w.cursor += util.MinInt64(util.MaxInt64(count, 1), w.length-w.cursor)
+		if w.cursor == w.length {
+			w.append = true
+			w.extending = true
+			w.length++
+		}
+	}
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
@@ -464,6 +499,10 @@ func (w *window) exitInsert() {
 		if w.cursor > 0 {
 			w.cursor--
 		}
+		w.replaceByte = false
+		w.append = false
+		w.extending = false
+		w.pending = false
 	}
 }
 
