@@ -131,8 +131,13 @@ func (m *Manager) Emit(event Event) {
 }
 
 func parseGotoPos(pos string) int64 {
-	if pos == "$" {
+	switch pos {
+	case "$":
 		return math.MaxInt64
+	case "+":
+		return 1
+	case "-":
+		return -1
 	}
 	count, sign := int64(0), int64(1)
 	for _, c := range pos {
