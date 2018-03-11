@@ -211,7 +211,11 @@ func (ui *Tui) drawFooter(state State) {
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.setLine(ui.Height()+1, 0, line, 0)
 	if state.Error != nil {
-		ui.setLine(ui.Height()+2, 0, state.Error.Error()+strings.Repeat(" ", ui.Width()), termbox.ColorRed)
+		attr := termbox.ColorRed
+		if state.ErrorType == MessageInfo {
+			attr = termbox.ColorYellow
+		}
+		ui.setLine(ui.Height()+2, 0, state.Error.Error()+strings.Repeat(" ", ui.Width()), attr)
 	} else if state.Mode == ModeCmdline {
 		ui.setLine(ui.Height()+2, 0, ":"+string(state.Cmdline)+strings.Repeat(" ", ui.Width()), 0)
 		termbox.SetCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), ui.Height()+2)

@@ -68,5 +68,6 @@ const (
 	EventQuit
 	EventWrite
 	EventWriteQuit
+	EventInfo
 	EventError
 )

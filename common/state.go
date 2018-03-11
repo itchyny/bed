@@ -16,4 +16,10 @@ type State struct {
 	Cmdline       []rune
 	CmdlineCursor int
 	Error         error
+	ErrorType     int
 }
+
+const (
+	MessageInfo = iota
+	MessageError
+)

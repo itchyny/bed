@@ -13,6 +13,7 @@ type Editor struct {
 	cmdline   Cmdline
 	mode      Mode
 	err       error
+	errtyp    int
 	eventCh   chan Event
 	redrawCh  chan struct{}
 	cmdlineCh chan Event
@@ -50,14 +51,17 @@ func (e *Editor) listen() {
 		switch event.Type {
 		case EventQuit:
 			if len(event.Args) > 0 {
-				e.err = fmt.Errorf("too many arguments for %s", event.CmdName)
+				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", event.CmdName), MessageError
 				e.redrawCh <- struct{}{}
 			} else {
 				e.quitCh <- struct{}{}
 				return
 			}
+		case EventInfo:
+			e.err, e.errtyp = event.Error, MessageInfo
+			e.redrawCh <- struct{}{}
 		case EventError:
-			e.err = event.Error
+			e.err, e.errtyp = event.Error, MessageError
 			e.redrawCh <- struct{}{}
 		default:
 			switch event.Type {
@@ -113,7 +117,7 @@ func (e *Editor) redraw() error {
 	if err != nil {
 		return err
 	}
-	state.Mode, state.Error = e.mode, e.err
+	state.Mode, state.Error, state.ErrorType = e.mode, e.err, e.errtyp
 	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
 	return e.ui.Redraw(state)
 }
