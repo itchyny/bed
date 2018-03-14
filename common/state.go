@@ -19,6 +19,7 @@ type State struct {
 	ErrorType     int
 }
 
+// Message types
 const (
 	MessageInfo = iota
 	MessageError
