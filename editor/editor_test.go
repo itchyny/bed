@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/itchyny/bed/cmdline"
 	. "github.com/itchyny/bed/common"
@@ -61,13 +62,14 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 			ui.Emit(Event{Type: t})
 		}
 		ui.Emit(Event{Type: EventWrite, Args: []string{f.Name()}})
+		time.Sleep(100 * time.Millisecond)
 		ui.Emit(Event{Type: EventQuit})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+	if editor.errtyp != MessageInfo {
+		t.Errorf("errtyp should be MessageInfo but got: %v", editor.errtyp)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
