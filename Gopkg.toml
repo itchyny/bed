@@ -20,3 +20,6 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
+# Use the latest until a release including 8fa68ef023c6a27854ba5ca5f2894f322880f544.
+# Also there seem to have problems on case insensitive filesystem.
+ignored = ["github.com/gdamore/tcell"]

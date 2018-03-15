@@ -54,7 +54,6 @@ func (e *Editor) listen() {
 				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", event.CmdName), MessageError
 				e.redrawCh <- struct{}{}
 			} else {
-				e.quitCh <- struct{}{}
 				return
 			}
 		case EventInfo:

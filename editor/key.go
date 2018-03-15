@@ -31,7 +31,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventPageDownHalf, "c-d")
 	km.Register(EventPageTop, "g", "g")
 	km.Register(EventPageEnd, "G")
-	km.Register(EventJumpTo, "c-]")
+	km.Register(EventJumpTo, "\x1d")
 	km.Register(EventJumpBack, "c-t")
 	km.Register(EventDeleteByte, "x")
 	km.Register(EventDeletePrevByte, "X")
@@ -72,7 +72,6 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	kms[ModeReplace] = km
 
 	km = NewKeyManager(false)
-	km.Register(EventSpace, "space")
 	km.Register(EventCursorLeft, "left")
 	km.Register(EventCursorLeft, "c-b")
 	km.Register(EventCursorRight, "right")

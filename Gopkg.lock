@@ -7,15 +7,9 @@
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
 
-[[projects]]
-  branch = "master"
-  name = "github.com/nsf/termbox-go"
-  packages = ["."]
-  revision = "e2050e41c8847748ec5288741c0b19a8cb26d084"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "715f89db2e50dac4839e27d7089bff8d93f4da358e10562dbd3bf7c86d52b1bc"
+  inputs-digest = "f8081d33144af9635a2b3bdc6a476f26ba83b6f5e875fa1779777b758a561bae"
   solver-name = "gps-cdcl"
   solver-version = 1

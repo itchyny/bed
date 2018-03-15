@@ -20,7 +20,6 @@ func run(args []string) int {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return 1
 	}
-	defer editor.Close()
 	if len(args) > 1 {
 		if err := editor.Open(args[1]); err != nil {
 			fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
@@ -33,6 +32,10 @@ func run(args []string) int {
 		}
 	}
 	if err := editor.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
+		return 1
+	}
+	if err := editor.Close(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return 1
 	}
