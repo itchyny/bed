@@ -52,8 +52,6 @@ func (c *Cmdline) Run() {
 			c.clearToHead()
 		case EventClearCmdline:
 			c.clear()
-		case EventSpace:
-			c.insert(' ')
 		case EventRune:
 			c.insert(e.Rune)
 		case EventExecuteCmdline:
