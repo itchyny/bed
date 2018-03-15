@@ -187,7 +187,7 @@ func (ui *Tui) drawFooter(state State) {
 	if name == "" {
 		name = "[No name]"
 	}
-	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']               ",
+	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.Width()),
 		prettyMode(state.Mode), name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.setLine(ui.Height()+1, 0, line, 0)
