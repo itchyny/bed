@@ -13,15 +13,14 @@ import (
 
 type testUI struct {
 	eventCh chan<- Event
-	quitCh  <-chan struct{}
 }
 
-func (ui *testUI) Init(eventCh chan<- Event, quitCh <-chan struct{}) error {
-	ui.eventCh, ui.quitCh = eventCh, quitCh
+func (ui *testUI) Init(eventCh chan<- Event) error {
+	ui.eventCh = eventCh
 	return nil
 }
 
-func (ui *testUI) Run(km map[Mode]*KeyManager) { <-ui.quitCh }
+func (ui *testUI) Run(km map[Mode]*KeyManager) {}
 
 func (ui *testUI) Height() int { return 0 }
 

@@ -17,7 +17,6 @@ type Tui struct {
 	width   int
 	height  int
 	eventCh chan<- Event
-	quitCh  <-chan struct{}
 	mode    Mode
 	screen  tcell.Screen
 }
@@ -28,9 +27,8 @@ func NewTui() *Tui {
 }
 
 // Init initializes the Tui.
-func (ui *Tui) Init(eventCh chan<- Event, quitCh <-chan struct{}) (err error) {
+func (ui *Tui) Init(eventCh chan<- Event) (err error) {
 	ui.eventCh = eventCh
-	ui.quitCh = quitCh
 	ui.mode = ModeNormal
 	if ui.screen, err = tcell.NewScreen(); err != nil {
 		return

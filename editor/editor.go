@@ -17,7 +17,6 @@ type Editor struct {
 	eventCh   chan Event
 	redrawCh  chan struct{}
 	cmdlineCh chan Event
-	quitCh    chan struct{}
 }
 
 // NewEditor creates a new editor.
@@ -29,9 +28,8 @@ func NewEditor(ui UI, wm Manager, cmdline Cmdline) *Editor {
 func (e *Editor) Init() error {
 	e.eventCh = make(chan Event, 1)
 	e.redrawCh = make(chan struct{})
-	e.quitCh = make(chan struct{})
 	e.cmdlineCh = make(chan Event)
-	if err := e.ui.Init(e.eventCh, e.quitCh); err != nil {
+	if err := e.ui.Init(e.eventCh); err != nil {
 		return err
 	}
 	if err := e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh); err != nil {
@@ -125,7 +123,6 @@ func (e *Editor) redraw() error {
 func (e *Editor) Close() error {
 	close(e.eventCh)
 	close(e.redrawCh)
-	close(e.quitCh)
 	close(e.cmdlineCh)
 	e.wm.Close()
 	return e.ui.Close()
