@@ -121,7 +121,12 @@ func (w *window) Run() {
 			w.exitInsert()
 		case EventRune:
 			if e.Mode == ModeInsert || e.Mode == ModeReplace {
-				if '0' <= e.Rune && e.Rune <= '9' {
+				if w.focusText {
+					if '\x00' <= e.Rune && e.Rune <= '\xff' {
+						w.insert(e.Mode, byte(e.Rune>>4))
+						w.insert(e.Mode, byte(e.Rune&0x0f))
+					}
+				} else if '0' <= e.Rune && e.Rune <= '9' {
 					w.insert(e.Mode, byte(e.Rune-'0'))
 				} else if 'a' <= e.Rune && e.Rune <= 'f' {
 					w.insert(e.Mode, byte(e.Rune-'a'+0x0a))
@@ -133,6 +138,10 @@ func (w *window) Run() {
 			w.deleteByte(1)
 		case EventSwitchFocus:
 			w.focusText = !w.focusText
+			if w.pending {
+				w.pending = false
+				w.pendingByte = '\x00'
+			}
 		default:
 			continue
 		}
