@@ -13,6 +13,7 @@ type State struct {
 	Pending       bool
 	PendingByte   byte
 	EditedIndices []int64
+	FocusText     bool
 	Cmdline       []rune
 	CmdlineCursor int
 	Error         error

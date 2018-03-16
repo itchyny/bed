@@ -55,6 +55,7 @@ const (
 	EventDelete
 	EventRune
 
+	EventSwitchFocus
 	EventStartCmdline
 	EventBackspaceCmdline
 	EventDeleteCmdline

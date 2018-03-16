@@ -88,11 +88,11 @@ func (ui *Tui) Redraw(state State) error {
 			} else {
 				ui.setLine(i+1, 3*j+10, " ", styles[i][j]|style)
 				if i*width+j == int(state.Cursor-state.Offset) {
-					styles[i][j] = styles[i][j].Reverse(true)
+					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText)
 				}
 				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j]|style)
 				if i*width+j == int(state.Cursor-state.Offset) {
-					styles[i][j] = styles[i][j].Reverse(false).Bold(true)
+					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText)
 				}
 				ui.setLine(i+1, 3*width+j+13, string(prettyByte(bytes[i][j])), styles[i][j]|style)
 			}
@@ -105,7 +105,9 @@ func (ui *Tui) Redraw(state State) error {
 	cursorLine := j / width
 	style := tcell.StyleDefault.Bold(true).Underline(cursorLine == height-1)
 	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), style)
-	if state.Pending {
+	if state.FocusText {
+		ui.screen.ShowCursor(3*width+i+13, cursorLine+1)
+	} else if state.Pending {
 		ui.screen.ShowCursor(3*i+12, cursorLine+1)
 	} else {
 		ui.screen.ShowCursor(3*i+11, cursorLine+1)

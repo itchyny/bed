@@ -24,6 +24,7 @@ type window struct {
 	extending   bool
 	pending     bool
 	pendingByte byte
+	focusText   bool
 	redrawCh    chan<- struct{}
 	eventCh     chan Event
 }
@@ -130,6 +131,8 @@ func (w *window) Run() {
 			w.backspace()
 		case EventDelete:
 			w.deleteByte(1)
+		case EventSwitchFocus:
+			w.focusText = !w.focusText
 		default:
 			continue
 		}
@@ -167,6 +170,7 @@ func (w *window) State() (State, error) {
 		Pending:       w.pending,
 		PendingByte:   w.pendingByte,
 		EditedIndices: w.buffer.EditedIndices(),
+		FocusText:     w.focusText,
 	}, nil
 }
 
