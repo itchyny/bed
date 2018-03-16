@@ -79,6 +79,8 @@ func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
 	height, width := ui.Height(), state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
+	cursorPos := int(state.Cursor - state.Offset)
+	cursorLine := cursorPos / width
 	for i := 0; i < height; i++ {
 		style := tcell.StyleDefault.Underline(i == height-1)
 		for j := 0; j < width; j++ {
@@ -87,24 +89,22 @@ func (ui *Tui) Redraw(state State) error {
 				ui.setLine(i+1, 3*width+j+13, " ", style)
 			} else {
 				ui.setLine(i+1, 3*j+10, " ", styles[i][j]|style)
-				if i*width+j == int(state.Cursor-state.Offset) {
+				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText).Underline(state.FocusText)
 				}
 				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j]|style)
-				if i*width+j == int(state.Cursor-state.Offset) {
+				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText).Underline(!state.FocusText)
 				}
 				ui.setLine(i+1, 3*width+j+13, string(prettyByte(bytes[i][j])), styles[i][j]|style)
 			}
 		}
-		ui.setLine(i+1, 0, fmt.Sprintf("%08x |", state.Offset+int64(i*width)), style)
+		ui.setLine(i+1, 0, fmt.Sprintf("%08x", state.Offset+int64(i*width)), style.Bold(i == cursorLine))
+		ui.setLine(i+1, 8, " | ", style)
 		ui.setLine(i+1, 3*width+10, " | ", style)
 		ui.setLine(i+1, 4*width+13, " ", style)
 	}
-	i, j := int(state.Cursor%int64(width)), int(state.Cursor-state.Offset)
-	cursorLine := j / width
-	style := tcell.StyleDefault.Bold(true).Underline(cursorLine == height-1)
-	ui.setLine(cursorLine+1, 0, fmt.Sprintf("%08x", state.Offset+int64(cursorLine*width)), style)
+	i := int(state.Cursor % int64(width))
 	if state.FocusText {
 		ui.screen.ShowCursor(3*width+i+13, cursorLine+1)
 	} else if state.Pending {
