@@ -88,11 +88,11 @@ func (ui *Tui) Redraw(state State) error {
 			} else {
 				ui.setLine(i+1, 3*j+10, " ", styles[i][j]|style)
 				if i*width+j == int(state.Cursor-state.Offset) {
-					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText)
+					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText).Underline(state.FocusText)
 				}
 				ui.setLine(i+1, 3*j+11, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j]|style)
 				if i*width+j == int(state.Cursor-state.Offset) {
-					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText)
+					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText).Underline(!state.FocusText)
 				}
 				ui.setLine(i+1, 3*width+j+13, string(prettyByte(bytes[i][j])), styles[i][j]|style)
 			}
