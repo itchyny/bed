@@ -88,7 +88,7 @@ func (ui *Tui) Redraw(state State) error {
 
 func (ui *Tui) screenRegion() region {
 	width, height := ui.Size()
-	return region{top: 0, left: 0, height: height, width: width}
+	return region{top: 0, left: 0, height: height - 1, width: width}
 }
 
 func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) {

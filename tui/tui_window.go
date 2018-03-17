@@ -31,7 +31,7 @@ func (ui *tuiWindow) setCursor(line int, offset int) {
 }
 
 func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
-	height, width := ui.region.height-3, state.Width
+	height, width := ui.region.height-2, state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
 	cursorPos := int(state.Cursor - state.Offset)
 	cursorLine := cursorPos / width
@@ -146,5 +146,5 @@ func (ui *tuiWindow) drawFooter(state WindowState) {
 	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
 		prettyMode(state.Mode), name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
-	ui.setLine(ui.region.height-2, 0, line, 0)
+	ui.setLine(ui.region.height-1, 0, line, 0)
 }
