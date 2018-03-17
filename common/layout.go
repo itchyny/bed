@@ -6,6 +6,7 @@ import "github.com/itchyny/bed/util"
 type Layout interface {
 	isLayout()
 	Indices() []int
+	Replace(int) Layout
 	SplitTop(int) Layout
 	SplitBottom(int) Layout
 	SplitLeft(int) Layout
@@ -32,6 +33,14 @@ func (l LayoutWindow) isLayout() {}
 // Indices returns all the window indeces.
 func (l LayoutWindow) Indices() []int {
 	return []int{l.Index}
+}
+
+// Replace the active window with new window index.
+func (l LayoutWindow) Replace(index int) Layout {
+	if l.Active {
+		return NewLayout(index)
+	}
+	return l
 }
 
 // SplitTop splits the layout and opens a new window to the top.
@@ -116,6 +125,14 @@ func (l LayoutHorizontal) isLayout() {}
 // Indices returns all the window indeces.
 func (l LayoutHorizontal) Indices() []int {
 	return append(l.Top.Indices(), l.Bottom.Indices()...)
+}
+
+// Replace the active window with new window index.
+func (l LayoutHorizontal) Replace(index int) Layout {
+	return LayoutHorizontal{
+		Top:    l.Top.Replace(index),
+		Bottom: l.Bottom.Replace(index),
+	}
 }
 
 // SplitTop splits the layout and opens a new window to the top.
@@ -204,6 +221,14 @@ func (l LayoutVertical) isLayout() {}
 // Indices returns all the window indeces.
 func (l LayoutVertical) Indices() []int {
 	return append(l.Left.Indices(), l.Right.Indices()...)
+}
+
+// Replace the active window with new window index.
+func (l LayoutVertical) Replace(index int) Layout {
+	return LayoutVertical{
+		Left:  l.Left.Replace(index),
+		Right: l.Right.Replace(index),
+	}
 }
 
 // SplitTop splits the layout and opens a new window to the top.
