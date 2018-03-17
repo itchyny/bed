@@ -99,15 +99,27 @@ func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) 
 		regions := region.splitHorizontally()
 		ui.drawWindows(windows, l.Top, regions[0])
 		ui.drawWindows(windows, l.Bottom, regions[1])
+		ui.drawHorizontalSplit(regions[0])
 	case LayoutVertical:
 		regions := region.splitVertically()
 		ui.drawWindows(windows, l.Left, regions[0])
 		ui.drawWindows(windows, l.Right, regions[1])
+		ui.drawVerticalSplit(regions[0])
 	}
 }
 
 func (ui *Tui) newTuiWindow(region region) *tuiWindow {
 	return &tuiWindow{region: region, screen: ui.screen}
+}
+
+func (ui *Tui) drawHorizontalSplit(region region) {
+	ui.setLine(region.top+region.height, region.left, strings.Repeat("-", region.width), tcell.StyleDefault.Reverse(true))
+}
+
+func (ui *Tui) drawVerticalSplit(region region) {
+	for i := 0; i < region.height; i++ {
+		ui.setLine(region.top+i, region.left+region.width, "|", tcell.StyleDefault.Reverse(true))
+	}
 }
 
 func (ui *Tui) drawCmdline(state State) {

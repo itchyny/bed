@@ -14,9 +14,9 @@ func (r region) splitHorizontally() []region {
 			width:  r.width,
 		},
 		region{
-			top:    r.top + height,
+			top:    r.top + height + 2,
 			left:   r.left,
-			height: r.height - height,
+			height: r.height - height - 2,
 			width:  r.width,
 		},
 	}
@@ -33,9 +33,9 @@ func (r region) splitVertically() []region {
 		},
 		region{
 			top:    r.top,
-			left:   r.left + width,
+			left:   r.left + width + 2,
 			height: r.height,
-			width:  r.width - width,
+			width:  r.width - width - 2,
 		},
 	}
 }
