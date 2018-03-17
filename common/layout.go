@@ -10,6 +10,8 @@ type Layout interface {
 	SplitLeft(int) Layout
 	SplitRight(int) Layout
 	Count() (int, int)
+	Activate() Layout
+	Close() Layout
 }
 
 type LayoutWindow struct {
@@ -71,6 +73,18 @@ func (l LayoutWindow) Count() (int, int) {
 	return 1, 1
 }
 
+func (l LayoutWindow) Activate() Layout {
+	l.Active = true
+	return l
+}
+
+func (l LayoutWindow) Close() Layout {
+	if l.Active {
+		panic("Active LayoutWindow should not be closed")
+	}
+	return l
+}
+
 type LayoutHorizontal struct {
 	Top    Layout
 	Bottom Layout
@@ -116,6 +130,32 @@ func (l LayoutHorizontal) Count() (int, int) {
 	return util.MaxInt(w1, w2), h1 + h2
 }
 
+func (l LayoutHorizontal) Activate() Layout {
+	return LayoutHorizontal{
+		Top:    l.Top.Activate(),
+		Bottom: l.Bottom,
+	}
+}
+
+func (l LayoutHorizontal) Close() Layout {
+	switch m := l.Top.(type) {
+	case LayoutWindow:
+		if m.Active {
+			return l.Bottom.Activate()
+		}
+	}
+	switch m := l.Bottom.(type) {
+	case LayoutWindow:
+		if m.Active {
+			return l.Top.Activate()
+		}
+	}
+	return LayoutHorizontal{
+		Top:    l.Top.Close(),
+		Bottom: l.Bottom.Close(),
+	}
+}
+
 type LayoutVertical struct {
 	Left  Layout
 	Right Layout
@@ -159,4 +199,30 @@ func (l LayoutVertical) Count() (int, int) {
 	w1, h1 := l.Left.Count()
 	w2, h2 := l.Right.Count()
 	return w1 + w2, util.MaxInt(h1, h2)
+}
+
+func (l LayoutVertical) Activate() Layout {
+	return LayoutVertical{
+		Left:  l.Left.Activate(),
+		Right: l.Right,
+	}
+}
+
+func (l LayoutVertical) Close() Layout {
+	switch m := l.Left.(type) {
+	case LayoutWindow:
+		if m.Active {
+			return l.Right.Activate()
+		}
+	}
+	switch m := l.Right.(type) {
+	case LayoutWindow:
+		if m.Active {
+			return l.Left.Activate()
+		}
+	}
+	return LayoutVertical{
+		Left:  l.Left.Close(),
+		Right: l.Right.Close(),
+	}
 }
