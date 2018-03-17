@@ -3,6 +3,7 @@ package window
 import (
 	"io"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/itchyny/bed/buffer"
 	. "github.com/itchyny/bed/common"
@@ -122,9 +123,11 @@ func (w *window) Run() {
 		case EventRune:
 			if e.Mode == ModeInsert || e.Mode == ModeReplace {
 				if w.focusText {
-					if '\x00' <= e.Rune && e.Rune <= '\xff' {
-						w.insert(e.Mode, byte(e.Rune>>4))
-						w.insert(e.Mode, byte(e.Rune&0x0f))
+					buf := make([]byte, 4)
+					n := utf8.EncodeRune(buf, e.Rune)
+					for i := 0; i < n; i++ {
+						w.insert(e.Mode, byte(buf[i]>>4))
+						w.insert(e.Mode, byte(buf[i]&0x0f))
 					}
 				} else if '0' <= e.Rune && e.Rune <= '9' {
 					w.insert(e.Mode, byte(e.Rune-'0'))
