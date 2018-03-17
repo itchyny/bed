@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"errors"
 	"fmt"
 
 	. "github.com/itchyny/bed/common"
@@ -115,6 +116,9 @@ func (e *Editor) redraw() (err error) {
 	var state State
 	var index int
 	state.Windows, state.Layout, index, err = e.wm.State()
+	if index < 0 || len(state.Windows) <= index {
+		return errors.New("index out of windows")
+	}
 	state.Windows[index].Mode = e.mode
 	if err != nil {
 		return err
