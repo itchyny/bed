@@ -1,5 +1,7 @@
 package common
 
+import "github.com/itchyny/bed/util"
+
 type Layout interface {
 	isLayout()
 	Indices() []int
@@ -7,6 +9,7 @@ type Layout interface {
 	SplitBottom(int) Layout
 	SplitLeft(int) Layout
 	SplitRight(int) Layout
+	Count() (int, int)
 }
 
 type LayoutWindow struct {
@@ -64,6 +67,10 @@ func (l LayoutWindow) SplitRight(index int) Layout {
 	}
 }
 
+func (l LayoutWindow) Count() (int, int) {
+	return 1, 1
+}
+
 type LayoutHorizontal struct {
 	Top    Layout
 	Bottom Layout
@@ -103,6 +110,12 @@ func (l LayoutHorizontal) SplitRight(index int) Layout {
 	}
 }
 
+func (l LayoutHorizontal) Count() (int, int) {
+	w1, h1 := l.Top.Count()
+	w2, h2 := l.Bottom.Count()
+	return util.MaxInt(w1, w2), h1 + h2
+}
+
 type LayoutVertical struct {
 	Left  Layout
 	Right Layout
@@ -140,4 +153,10 @@ func (l LayoutVertical) SplitRight(index int) Layout {
 		Left:  l.Left.SplitRight(index),
 		Right: l.Right.SplitRight(index),
 	}
+}
+
+func (l LayoutVertical) Count() (int, int) {
+	w1, h1 := l.Left.Count()
+	w2, h2 := l.Right.Count()
+	return w1 + w2, util.MaxInt(h1, h2)
 }

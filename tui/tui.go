@@ -97,12 +97,16 @@ func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) 
 	case LayoutWindow:
 		ui.newTuiWindow(region).drawWindow(windows[l.Index], l.Active)
 	case LayoutHorizontal:
-		regions := region.splitHorizontally()
+		_, h1 := l.Top.Count()
+		_, h2 := l.Bottom.Count()
+		regions := region.splitHorizontally(h1, h2)
 		ui.drawWindows(windows, l.Top, regions[0])
 		ui.drawWindows(windows, l.Bottom, regions[1])
 		ui.drawHorizontalSplit(regions[0])
 	case LayoutVertical:
-		regions := region.splitVertically()
+		w1, _ := l.Left.Count()
+		w2, _ := l.Right.Count()
+		regions := region.splitVertically(w1, w2)
 		ui.drawWindows(windows, l.Left, regions[0])
 		ui.drawWindows(windows, l.Right, regions[1])
 		ui.drawVerticalSplit(regions[0])

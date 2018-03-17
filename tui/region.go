@@ -4,8 +4,8 @@ type region struct {
 	top, left, height, width int
 }
 
-func (r region) splitHorizontally() []region {
-	height := r.height / 2
+func (r region) splitHorizontally(h1, h2 int) []region {
+	height := r.height * h1 / (h1 + h2)
 	return []region{
 		region{
 			top:    r.top,
@@ -22,8 +22,8 @@ func (r region) splitHorizontally() []region {
 	}
 }
 
-func (r region) splitVertically() []region {
-	width := r.width / 2
+func (r region) splitVertically(w1, w2 int) []region {
+	width := r.width * w1 / (w1 + w2)
 	return []region{
 		region{
 			top:    r.top,
