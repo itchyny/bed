@@ -45,4 +45,12 @@ func TestLayoutSplit(t *testing.T) {
 	if !reflect.DeepEqual(layout, expected) {
 		t.Errorf("layout should be %+v but got %+v", expected, layout)
 	}
+
+	w, h := layout.Count()
+	if w != 3 {
+		t.Errorf("layout width be %d but got %d", 3, w)
+	}
+	if h != 3 {
+		t.Errorf("layout height be %d but got %d", 3, h)
+	}
 }
