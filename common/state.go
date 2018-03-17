@@ -4,6 +4,7 @@ package common
 type State struct {
 	Mode          Mode
 	Windows       []WindowState
+	Layout        Layout
 	Cmdline       []rune
 	CmdlineCursor int
 	Error         error

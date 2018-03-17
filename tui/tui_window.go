@@ -13,20 +13,25 @@ import (
 )
 
 type tuiWindow struct {
-	width  int
-	height int
+	region region
 	screen tcell.Screen
 }
 
 func (ui *tuiWindow) setLine(line int, offset int, str string, style tcell.Style) {
+	line += ui.region.top
+	offset += ui.region.left
 	for _, c := range str {
 		ui.screen.SetContent(offset, line, c, nil, style)
 		offset += runewidth.RuneWidth(c)
 	}
 }
 
+func (ui *tuiWindow) setCursor(line int, offset int) {
+	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
+}
+
 func (ui *tuiWindow) drawWindow(state WindowState) {
-	height, width := ui.height, state.Width
+	height, width := ui.region.height-3, state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
 	cursorPos := int(state.Cursor - state.Offset)
 	cursorLine := cursorPos / width
@@ -55,11 +60,11 @@ func (ui *tuiWindow) drawWindow(state WindowState) {
 	}
 	i := int(state.Cursor % int64(width))
 	if state.FocusText {
-		ui.screen.ShowCursor(3*width+i+13, cursorLine+1)
+		ui.setCursor(cursorLine+1, 3*width+i+13)
 	} else if state.Pending {
-		ui.screen.ShowCursor(3*i+12, cursorLine+1)
+		ui.setCursor(cursorLine+1, 3*i+12)
 	} else {
-		ui.screen.ShowCursor(3*i+11, cursorLine+1)
+		ui.setCursor(cursorLine+1, 3*i+11)
 	}
 	ui.drawHeader(state)
 	ui.drawScrollBar(state, height, 4*width+14)
@@ -136,8 +141,8 @@ func (ui *tuiWindow) drawFooter(state WindowState) {
 	if name == "" {
 		name = "[No name]"
 	}
-	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.width),
+	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
 		prettyMode(state.Mode), name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
-	ui.setLine(ui.height+1, 0, line, 0)
+	ui.setLine(ui.region.height-2, 0, line, 0)
 }

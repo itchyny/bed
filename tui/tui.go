@@ -65,6 +65,11 @@ func (ui *Tui) Width() int {
 	return width
 }
 
+// Size returns the size for the screen.
+func (ui *Tui) Size() (int, int) {
+	return ui.screen.Size()
+}
+
 func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 	for _, c := range str {
 		ui.screen.SetContent(offset, line, c, nil, style)
@@ -75,18 +80,34 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
-	ui.newTuiWindow().drawWindow(state.Windows[0])
+	ui.drawWindows(state.Windows, state.Layout, ui.screenRegion())
 	ui.drawCmdline(state)
 	ui.screen.Show()
 	return nil
 }
 
-func (ui *Tui) newTuiWindow() *tuiWindow {
-	return &tuiWindow{
-		width:  ui.Width(),
-		height: ui.Height(),
-		screen: ui.screen,
+func (ui *Tui) screenRegion() region {
+	width, height := ui.Size()
+	return region{top: 0, left: 0, height: height, width: width}
+}
+
+func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) {
+	switch l := layout.(type) {
+	case LayoutWindow:
+		ui.newTuiWindow(region).drawWindow(windows[l.Index])
+	case LayoutHorizontal:
+		regions := region.splitHorizontally()
+		ui.drawWindows(windows, l.Top, regions[0])
+		ui.drawWindows(windows, l.Bottom, regions[1])
+	case LayoutVertical:
+		regions := region.splitVertically()
+		ui.drawWindows(windows, l.Left, regions[0])
+		ui.drawWindows(windows, l.Right, regions[1])
 	}
+}
+
+func (ui *Tui) newTuiWindow(region region) *tuiWindow {
+	return &tuiWindow{region: region, screen: ui.screen}
 }
 
 func (ui *Tui) drawCmdline(state State) {
