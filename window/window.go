@@ -166,12 +166,12 @@ func (w *window) readBytes(pos int64, len int) (int, []byte, error) {
 }
 
 // State returns the current state of the buffer.
-func (w *window) State() (State, error) {
+func (w *window) State() (WindowState, error) {
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
-		return State{}, err
+		return WindowState{}, err
 	}
-	return State{
+	return WindowState{
 		Name:          w.name,
 		Width:         int(w.width),
 		Offset:        w.offset,

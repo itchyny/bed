@@ -77,6 +77,13 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
+	ui.drawWindow(state.Windows[0])
+	ui.drawCmdline(state)
+	ui.screen.Show()
+	return nil
+}
+
+func (ui *Tui) drawWindow(state WindowState) {
 	height, width := ui.Height(), state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
 	cursorPos := int(state.Cursor - state.Offset)
@@ -115,11 +122,9 @@ func (ui *Tui) Redraw(state State) error {
 	ui.drawHeader(state)
 	ui.drawScrollBar(state, height, 4*width+14)
 	ui.drawFooter(state)
-	ui.screen.Show()
-	return nil
 }
 
-func (ui *Tui) bytesArray(height, width int, state State) ([][]byte, [][]tcell.Style) {
+func (ui *Tui) bytesArray(height, width int, state WindowState) ([][]byte, [][]tcell.Style) {
 	var k int
 	eis := state.EditedIndices
 	bytes := make([][]byte, height)
@@ -151,7 +156,7 @@ func (ui *Tui) bytesArray(height, width int, state State) ([][]byte, [][]tcell.S
 	return bytes, styles
 }
 
-func (ui *Tui) drawHeader(state State) {
+func (ui *Tui) drawHeader(state WindowState) {
 	style := tcell.StyleDefault.Underline(true)
 	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+15), style)
 	cursor := int(state.Cursor % int64(state.Width))
@@ -162,7 +167,7 @@ func (ui *Tui) drawHeader(state State) {
 	ui.setLine(0, 3*state.Width+11, "|", style)
 }
 
-func (ui *Tui) drawScrollBar(state State, height int, offset int) {
+func (ui *Tui) drawScrollBar(state WindowState, height int, offset int) {
 	stateSize := state.Size
 	if state.Cursor+1 == state.Length && state.Cursor == state.Offset+int64(state.Size) {
 		stateSize++
@@ -183,7 +188,7 @@ func (ui *Tui) drawScrollBar(state State, height int, offset int) {
 	}
 }
 
-func (ui *Tui) drawFooter(state State) {
+func (ui *Tui) drawFooter(state WindowState) {
 	j := int(state.Cursor - state.Offset)
 	name := state.Name
 	if name == "" {
@@ -193,6 +198,9 @@ func (ui *Tui) drawFooter(state State) {
 		prettyMode(state.Mode), name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.setLine(ui.Height()+1, 0, line, 0)
+}
+
+func (ui *Tui) drawCmdline(state State) {
 	if state.Error != nil {
 		style := tcell.StyleDefault.Foreground(tcell.ColorRed)
 		if state.ErrorType == MessageInfo {

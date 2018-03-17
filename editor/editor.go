@@ -109,8 +109,12 @@ func (e *Editor) Run() error {
 	return nil
 }
 
-func (e *Editor) redraw() error {
-	state, err := e.wm.State()
+func (e *Editor) redraw() (err error) {
+	var state State
+	state.Windows, err = e.wm.State()
+	for i := range state.Windows {
+		state.Windows[i].Mode = e.mode
+	}
 	if err != nil {
 		return err
 	}

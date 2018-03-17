@@ -156,8 +156,12 @@ func parseGotoPos(pos string) int64 {
 }
 
 // State returns the state of the windows.
-func (m *Manager) State() (State, error) {
-	return m.window.State()
+func (m *Manager) State() ([]WindowState, error) {
+	state, err := m.window.State()
+	if err != nil {
+		return nil, err
+	}
+	return []WindowState{state}, nil
 }
 
 func (m *Manager) writeFile(name string) (string, int64, error) {

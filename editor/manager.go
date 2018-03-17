@@ -9,6 +9,6 @@ type Manager interface {
 	SetHeight(int)
 	Run()
 	Emit(Event)
-	State() (State, error)
+	State() ([]WindowState, error)
 	Close()
 }

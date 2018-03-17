@@ -2,6 +2,16 @@ package common
 
 // State holds the state of the editor to display the user interface.
 type State struct {
+	Mode          Mode
+	Windows       []WindowState
+	Cmdline       []rune
+	CmdlineCursor int
+	Error         error
+	ErrorType     int
+}
+
+// WindowState holds the state of one window.
+type WindowState struct {
 	Name          string
 	Width         int
 	Offset        int64
@@ -14,10 +24,6 @@ type State struct {
 	PendingByte   byte
 	EditedIndices []int64
 	FocusText     bool
-	Cmdline       []rune
-	CmdlineCursor int
-	Error         error
-	ErrorType     int
 }
 
 // Message types
