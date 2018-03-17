@@ -47,27 +47,26 @@ func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
 	cursorPos := int(state.Cursor - state.Offset)
 	cursorLine := cursorPos / width
 	for i := 0; i < height; i++ {
-		style := tcell.StyleDefault.Underline(i == height-1)
 		for j := 0; j < width; j++ {
 			if styles[i][j] == math.MaxUint16 {
-				ui.setLine(i+1, 3*j+11, "   ", style)
-				ui.setLine(i+1, 3*width+j+14, " ", style)
+				ui.setLine(i+1, 3*j+11, "   ", tcell.StyleDefault)
+				ui.setLine(i+1, 3*width+j+14, " ", tcell.StyleDefault)
 			} else {
-				ui.setLine(i+1, 3*j+11, " ", styles[i][j]|style)
+				ui.setLine(i+1, 3*j+11, " ", styles[i][j]|tcell.StyleDefault)
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText).Underline(state.FocusText)
 				}
-				ui.setLine(i+1, 3*j+12, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j]|style)
+				ui.setLine(i+1, 3*j+12, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText).Underline(!state.FocusText)
 				}
-				ui.setLine(i+1, 3*width+j+14, string(prettyByte(bytes[i][j])), styles[i][j]|style)
+				ui.setLine(i+1, 3*width+j+14, string(prettyByte(bytes[i][j])), styles[i][j])
 			}
 		}
-		ui.setLine(i+1, 0, fmt.Sprintf(" %08x", state.Offset+int64(i*width)), style.Bold(i == cursorLine))
-		ui.setLine(i+1, 9, " | ", style)
-		ui.setLine(i+1, 3*width+11, " | ", style)
-		ui.setLine(i+1, 4*width+14, " ", style)
+		ui.setLine(i+1, 0, fmt.Sprintf(" %08x", state.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
+		ui.setLine(i+1, 9, " | ", tcell.StyleDefault)
+		ui.setLine(i+1, 3*width+11, " | ", tcell.StyleDefault)
+		ui.setLine(i+1, 4*width+14, " ", tcell.StyleDefault)
 	}
 	i := int(state.Cursor % int64(width))
 	if active {
