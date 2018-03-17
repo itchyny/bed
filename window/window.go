@@ -3,6 +3,7 @@ package window
 import (
 	"io"
 	"strconv"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/itchyny/bed/buffer"
@@ -28,6 +29,7 @@ type window struct {
 	focusText   bool
 	redrawCh    chan<- struct{}
 	eventCh     chan Event
+	mu          *sync.Mutex
 }
 
 type position struct {
@@ -50,12 +52,14 @@ func newWindow(r io.ReadSeeker, filename string, name string, height, width int6
 		length:   length,
 		redrawCh: redrawCh,
 		eventCh:  make(chan Event),
+		mu:       new(sync.Mutex),
 	}, nil
 }
 
 // Run the window.
 func (w *window) Run() {
 	for e := range w.eventCh {
+		w.mu.Lock()
 		switch e.Type {
 		case EventCursorUp:
 			w.cursorUp(e.Count)
@@ -133,8 +137,10 @@ func (w *window) Run() {
 				w.pendingByte = '\x00'
 			}
 		default:
+			w.mu.Unlock()
 			continue
 		}
+		w.mu.Unlock()
 		w.redrawCh <- struct{}{}
 	}
 }
@@ -154,6 +160,8 @@ func (w *window) readBytes(pos int64, len int) (int, []byte, error) {
 
 // State returns the current state of the buffer.
 func (w *window) State() (WindowState, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
 		return WindowState{}, err
