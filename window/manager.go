@@ -169,6 +169,7 @@ func (m *Manager) Emit(event Event) {
 			} else {
 				m.mu.Lock()
 				m.layout = m.layout.Close()
+				m.index = m.layout.ActiveIndex()
 				m.mu.Unlock()
 				m.eventCh <- Event{Type: EventRedraw}
 			}

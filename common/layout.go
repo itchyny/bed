@@ -12,6 +12,7 @@ type Layout interface {
 	SplitRight(int) Layout
 	Count() (int, int)
 	Activate() Layout
+	ActiveIndex() int
 	Close() Layout
 }
 
@@ -88,6 +89,14 @@ func (l LayoutWindow) Activate() Layout {
 	return l
 }
 
+// ActiveIndex returns the active window index.
+func (l LayoutWindow) ActiveIndex() int {
+	if l.Active {
+		return l.Index
+	}
+	return -1
+}
+
 // Close the active layout.
 func (l LayoutWindow) Close() Layout {
 	if l.Active {
@@ -154,6 +163,14 @@ func (l LayoutHorizontal) Activate() Layout {
 		Top:    l.Top.Activate(),
 		Bottom: l.Bottom,
 	}
+}
+
+// ActiveIndex returns the active window index.
+func (l LayoutHorizontal) ActiveIndex() int {
+	if index := l.Top.ActiveIndex(); index >= 0 {
+		return index
+	}
+	return l.Bottom.ActiveIndex()
 }
 
 // Close the active layout.
@@ -234,6 +251,14 @@ func (l LayoutVertical) Activate() Layout {
 		Left:  l.Left.Activate(),
 		Right: l.Right,
 	}
+}
+
+// ActiveIndex returns the active window index.
+func (l LayoutVertical) ActiveIndex() int {
+	if index := l.Left.ActiveIndex(); index >= 0 {
+		return index
+	}
+	return l.Right.ActiveIndex()
 }
 
 // Close the active layout.
