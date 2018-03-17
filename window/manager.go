@@ -51,7 +51,7 @@ func (m *Manager) Open(filename string) error {
 		return err
 	}
 	m.addWindow(window, func(index int, _ Layout) Layout {
-		return LayoutWindow{Index: index}
+		return NewLayout(index)
 	})
 	return nil
 }
@@ -138,10 +138,7 @@ func (m *Manager) Emit(event Event) {
 				m.eventCh <- Event{Type: EventError, Error: err}
 			} else {
 				m.addWindow(window, func(index int, layout Layout) Layout {
-					return LayoutHorizontal{
-						Top:    LayoutWindow{Index: index},
-						Bottom: layout,
-					}
+					return layout.SplitTop(index)
 				})
 				go m.Run()
 				m.eventCh <- Event{Type: EventRedraw}
@@ -156,10 +153,7 @@ func (m *Manager) Emit(event Event) {
 				m.eventCh <- Event{Type: EventError, Error: err}
 			} else {
 				m.addWindow(window, func(index int, layout Layout) Layout {
-					return LayoutVertical{
-						Left:  LayoutWindow{Index: index},
-						Right: layout,
-					}
+					return layout.SplitLeft(index)
 				})
 				go m.Run()
 				m.eventCh <- Event{Type: EventRedraw}
