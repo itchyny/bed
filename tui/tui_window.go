@@ -20,9 +20,14 @@ type tuiWindow struct {
 func (ui *tuiWindow) setLine(line int, offset int, str string, style tcell.Style) {
 	line += ui.region.top
 	offset += ui.region.left
+	right := ui.region.left + ui.region.width
 	for _, c := range str {
+		w := runewidth.RuneWidth(c)
+		if offset+w > right || offset+w == right && c != ' ' {
+			break
+		}
 		ui.screen.SetContent(offset, line, c, nil, style)
-		offset += runewidth.RuneWidth(c)
+		offset += w
 	}
 }
 

@@ -80,6 +80,7 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 // Redraw redraws the state.
 func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
+	ui.screen.Clear()
 	ui.drawWindows(state.Windows, state.Layout, ui.screenRegion())
 	ui.drawCmdline(state)
 	ui.screen.Show()
