@@ -139,10 +139,8 @@ func (ui *tuiWindow) drawScrollBar(state WindowState, height int, offset int) {
 	for i := 0; i < height; i++ {
 		if int(top) <= i && i < int(top+size) {
 			ui.setLine(i+1, offset, "#", tcell.StyleDefault)
-		} else if i < height-1 {
-			ui.setLine(i+1, offset, "|", 0)
 		} else {
-			ui.setLine(i+1, offset, "|", tcell.StyleDefault.Underline(true))
+			ui.setLine(i+1, offset, "|", tcell.StyleDefault)
 		}
 	}
 }
