@@ -36,7 +36,6 @@ func (ui *Tui) Init(eventCh chan<- Event) (err error) {
 
 // Run the Tui.
 func (ui *Tui) Run(kms map[Mode]*KeyManager) {
-	kms[ModeNormal].Register(EventQuit, "q")
 	kms[ModeNormal].Register(EventQuit, "c-c")
 	for {
 		e := ui.screen.PollEvent()
