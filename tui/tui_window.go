@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gdamore/tcell"
-	"github.com/mattn/go-runewidth"
 
 	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/util"
@@ -18,24 +17,12 @@ type tuiWindow struct {
 	screen tcell.Screen
 }
 
+func (ui *tuiWindow) getTextDrawer() *textDrawer {
+	return &textDrawer{region: ui.region, screen: ui.screen}
+}
+
 func (ui *tuiWindow) setLine(line int, offset int, str string, style tcell.Style) {
-	line += ui.region.top
-	offset += ui.region.left
-	right := ui.region.left + ui.region.width
-	for _, c := range str {
-		w := runewidth.RuneWidth(c)
-		if offset+w > right {
-			break
-		}
-		if offset+w == right && c != ' ' {
-			if int(style)&int(tcell.AttrReverse) != 0 {
-				ui.screen.SetContent(offset, line, ' ', nil, style)
-			}
-			break
-		}
-		ui.screen.SetContent(offset, line, c, nil, style)
-		offset += w
-	}
+	ui.getTextDrawer().setTop(line).setLeft(offset).setString(str, style)
 }
 
 func (ui *tuiWindow) setCursor(line int, offset int) {
