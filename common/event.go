@@ -66,6 +66,8 @@ const (
 	EventExitCmdline
 	EventExecuteCmdline
 	EventEdit
+	EventNew
+	EventVnew
 	EventQuit
 	EventWrite
 	EventWriteQuit

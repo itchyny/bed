@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 
 	. "github.com/itchyny/bed/common"
 )
@@ -19,6 +20,7 @@ type Manager struct {
 	height   int64
 	windows  []*window
 	layout   Layout
+	mu       *sync.Mutex
 	index    int
 	files    []file
 	eventCh  chan<- Event
@@ -38,7 +40,7 @@ func NewManager() *Manager {
 
 // Init initializes the Manager.
 func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
-	m.eventCh, m.redrawCh = eventCh, redrawCh
+	m.eventCh, m.redrawCh, m.mu = eventCh, redrawCh, new(sync.Mutex)
 	return nil
 }
 
@@ -48,9 +50,9 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
-	m.windows = append(m.windows, window)
-	m.index = len(m.windows) - 1
-	m.layout = LayoutWindow{Index: m.index}
+	m.addWindow(window, func(index int, _ Layout) Layout {
+		return LayoutWindow{Index: index}
+	})
 	return nil
 }
 
@@ -83,6 +85,14 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, err
 	}
 	return window, nil
+}
+
+func (m *Manager) addWindow(window *window, layoutFn func(int, Layout) Layout) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.windows = append(m.windows, window)
+	m.index = len(m.windows) - 1
+	m.layout = layoutFn(m.index, m.layout)
 }
 
 // SetHeight sets the height.
@@ -118,6 +128,42 @@ func (m *Manager) Emit(event Event) {
 			}
 			go m.Run()
 			m.eventCh <- Event{Type: EventError, Error: nil}
+		}
+	case EventNew:
+		if len(event.Args) > 0 {
+			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else {
+			window, err := m.open("")
+			if err != nil {
+				m.eventCh <- Event{Type: EventError, Error: err}
+			} else {
+				m.addWindow(window, func(index int, layout Layout) Layout {
+					return LayoutHorizontal{
+						Top:    LayoutWindow{Index: index},
+						Bottom: layout,
+					}
+				})
+				go m.Run()
+				m.eventCh <- Event{Type: EventRedraw}
+			}
+		}
+	case EventVnew:
+		if len(event.Args) > 0 {
+			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else {
+			window, err := m.open("")
+			if err != nil {
+				m.eventCh <- Event{Type: EventError, Error: err}
+			} else {
+				m.addWindow(window, func(index int, layout Layout) Layout {
+					return LayoutVertical{
+						Left:  LayoutWindow{Index: index},
+						Right: layout,
+					}
+				})
+				go m.Run()
+				m.eventCh <- Event{Type: EventRedraw}
+			}
 		}
 	case EventWrite:
 		if len(event.Args) > 1 {
@@ -173,6 +219,8 @@ func parseGotoPos(pos string) int64 {
 
 // State returns the state of the windows.
 func (m *Manager) State() ([]WindowState, Layout, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	indices := m.layout.Indices()
 	states := make([]WindowState, len(m.windows))
 	for i, window := range m.windows {

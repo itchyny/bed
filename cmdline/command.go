@@ -9,6 +9,9 @@ type command struct {
 
 var commands = []command{
 	{"e[dit]", EventEdit},
+	{"new", EventNew},
+	{"vne[w]", EventVnew},
+
 	{"exi[t]", EventQuit},
 	{"q[uit]", EventQuit},
 	{"qa[ll]", EventQuit},
