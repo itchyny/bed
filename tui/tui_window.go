@@ -150,7 +150,7 @@ func (ui *tuiWindow) drawScrollBar(state WindowState, height int, left int) {
 }
 
 func (ui *tuiWindow) drawFooter(state WindowState, offsetStyleWidth int) {
-	offsetStyle := " %0" + strconv.Itoa(offsetStyleWidth) + "x"
+	offsetStyle := "%0" + strconv.Itoa(offsetStyleWidth) + "x"
 	j := int(state.Cursor - state.Offset)
 	name := state.Name
 	if name == "" {
