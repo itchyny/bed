@@ -21,10 +21,6 @@ func (ui *tuiWindow) getTextDrawer() *textDrawer {
 	return &textDrawer{region: ui.region, screen: ui.screen}
 }
 
-func (ui *tuiWindow) setLine(line int, offset int, str string, style tcell.Style) {
-	ui.getTextDrawer().setTop(line).setLeft(offset).setString(str, style)
-}
-
 func (ui *tuiWindow) setCursor(line int, offset int) {
 	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
 }
@@ -47,27 +43,30 @@ func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
 	cursorLine := cursorPos / width
 	offsetStyleWidth := ui.offsetStyleWidth(state)
 	offsetStyle := " %0" + strconv.Itoa(offsetStyleWidth) + "x"
+	d := ui.getTextDrawer()
 	for i := 0; i < height; i++ {
+		d.setTop(i + 1).setLeft(0).setOffset(0)
+		d.setString(fmt.Sprintf(offsetStyle, state.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
+		d.setLeft(offsetStyleWidth + 3)
 		for j := 0; j < width; j++ {
 			if styles[i][j] == math.MaxUint16 {
-				ui.setLine(i+1, 3*j+3+offsetStyleWidth, "   ", tcell.StyleDefault)
-				ui.setLine(i+1, 3*width+j+6+offsetStyleWidth, " ", tcell.StyleDefault)
+				d.setOffset(3*j).setString("   ", tcell.StyleDefault)
+				d.setOffset(3*width+j+3).setString(" ", tcell.StyleDefault)
 			} else {
-				ui.setLine(i+1, 3*j+3+offsetStyleWidth, " ", styles[i][j]|tcell.StyleDefault)
+				d.setOffset(3*j).setString(" ", styles[i][j]|tcell.StyleDefault)
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText).Underline(state.FocusText)
 				}
-				ui.setLine(i+1, 3*j+4+offsetStyleWidth, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
+				d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText).Underline(!state.FocusText)
 				}
-				ui.setLine(i+1, 3*width+j+6+offsetStyleWidth, string(prettyByte(bytes[i][j])), styles[i][j])
+				d.setOffset(3*width+j+3).setString(string(prettyByte(bytes[i][j])), styles[i][j])
 			}
 		}
-		ui.setLine(i+1, 0, fmt.Sprintf(offsetStyle, state.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
-		ui.setLine(i+1, 1+offsetStyleWidth, " | ", tcell.StyleDefault)
-		ui.setLine(i+1, 3*width+3+offsetStyleWidth, " | ", tcell.StyleDefault)
-		ui.setLine(i+1, 4*width+6+offsetStyleWidth, " ", tcell.StyleDefault)
+		d.setOffset(-2).setString(" | ", tcell.StyleDefault)
+		d.setOffset(3*width).setString(" | ", tcell.StyleDefault)
+		d.setOffset(4*width+3).setString(" ", tcell.StyleDefault)
 	}
 	i := int(state.Cursor % int64(width))
 	if active {
@@ -118,16 +117,18 @@ func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte,
 
 func (ui *tuiWindow) drawHeader(state WindowState, offsetStyleWidth int) {
 	style := tcell.StyleDefault.Underline(true)
-	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+8+offsetStyleWidth), style)
+	d := ui.getTextDrawer()
+	d.setString(strings.Repeat(" ", 4*state.Width+8+offsetStyleWidth), style)
+	d.setLeft(offsetStyleWidth)
 	cursor := int(state.Cursor % int64(state.Width))
 	for i := 0; i < state.Width; i++ {
-		ui.setLine(0, 3*i+4+offsetStyleWidth, fmt.Sprintf("%2x", i), style.Bold(cursor == i))
+		d.setOffset(3*i+4).setString(fmt.Sprintf("%2x", i), style.Bold(cursor == i))
 	}
-	ui.setLine(0, 2+offsetStyleWidth, "|", style)
-	ui.setLine(0, 3*state.Width+4+offsetStyleWidth, "|", style)
+	d.setOffset(2).setString("|", style)
+	d.setOffset(3*state.Width+4).setString("|", style)
 }
 
-func (ui *tuiWindow) drawScrollBar(state WindowState, height int, offset int) {
+func (ui *tuiWindow) drawScrollBar(state WindowState, height int, left int) {
 	stateSize := state.Size
 	if state.Cursor+1 == state.Length && state.Cursor == state.Offset+int64(state.Size) {
 		stateSize++
@@ -137,11 +138,13 @@ func (ui *tuiWindow) drawScrollBar(state WindowState, height int, offset int) {
 	size := util.MaxInt64(total*total/len, 1)
 	pad := (total*total + len - len*size - 1) / util.MaxInt64(total-size+1, 1)
 	top := (state.Offset / int64(state.Width) * total) / (len - pad)
+	d := ui.getTextDrawer().setLeft(left)
 	for i := 0; i < height; i++ {
+		d.setTop(i + 1)
 		if int(top) <= i && i < int(top+size) {
-			ui.setLine(i+1, offset, "#", tcell.StyleDefault)
+			d.setString("#", tcell.StyleDefault)
 		} else {
-			ui.setLine(i+1, offset, "|", tcell.StyleDefault)
+			d.setString("|", tcell.StyleDefault)
 		}
 	}
 }
@@ -157,5 +160,5 @@ func (ui *tuiWindow) drawFooter(state WindowState, offsetStyleWidth int) {
 		prettyMode(state.Mode), name, state.Cursor, state.Length,
 		float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
-	ui.setLine(ui.region.height-1, 0, line, tcell.StyleDefault.Reverse(true))
+	ui.getTextDrawer().setTop(ui.region.height-1).setString(line, tcell.StyleDefault.Reverse(true))
 }

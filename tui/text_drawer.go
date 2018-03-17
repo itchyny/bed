@@ -6,14 +6,14 @@ import (
 )
 
 type textDrawer struct {
-	top, left int
-	region    region
-	screen    tcell.Screen
+	top, left, offset int
+	region            region
+	screen            tcell.Screen
 }
 
 func (d *textDrawer) setString(str string, style tcell.Style) {
 	top := d.region.top + d.top
-	left := d.region.left + d.left
+	left := d.region.left + d.left + d.offset
 	right := d.region.left + d.region.width
 	for _, c := range str {
 		w := runewidth.RuneWidth(c)
@@ -38,5 +38,10 @@ func (d *textDrawer) setTop(top int) *textDrawer {
 
 func (d *textDrawer) setLeft(left int) *textDrawer {
 	d.left = left
+	return d
+}
+
+func (d *textDrawer) setOffset(offset int) *textDrawer {
+	d.offset = offset
 	return d
 }
