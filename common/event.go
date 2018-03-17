@@ -17,6 +17,7 @@ type EventType int
 // Event types
 const (
 	EventNop = iota
+	EventRedraw
 
 	EventCursorUp
 	EventCursorDown

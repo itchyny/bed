@@ -60,6 +60,8 @@ func (e *Editor) listen() {
 		case EventError:
 			e.err, e.errtyp = event.Error, MessageError
 			e.redrawCh <- struct{}{}
+		case EventRedraw:
+			e.redrawCh <- struct{}{}
 		default:
 			switch event.Type {
 			case EventStartInsert, EventStartInsertHead, EventStartAppend, EventStartAppendEnd:
