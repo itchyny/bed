@@ -1028,6 +1028,7 @@ func TestWindowEventRune(t *testing.T) {
 	if !strings.HasPrefix(string(state.Bytes), "\x48\x72\x3f\xff\xab\x00") {
 		t.Errorf("state.Bytes should start with %q but got %q", "\x48\x72\x3f\xff\xab\x00", string(state.Bytes))
 	}
+	window.Close()
 }
 
 func TestWindowEventRuneText(t *testing.T) {
@@ -1055,4 +1056,5 @@ func TestWindowEventRuneText(t *testing.T) {
 	if !strings.HasPrefix(string(state.Bytes), str+"\x00") {
 		t.Errorf("state.Bytes should start with %q but got %q", str+"\x00", string(state.Bytes))
 	}
+	window.Close()
 }

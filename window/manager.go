@@ -197,5 +197,5 @@ func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
 	}
-	close(m.window.eventCh)
+	m.window.Close()
 }

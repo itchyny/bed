@@ -566,3 +566,8 @@ func (w *window) backspace() {
 		w.length--
 	}
 }
+
+// Close the Window.
+func (w *window) Close() {
+	close(w.eventCh)
+}
