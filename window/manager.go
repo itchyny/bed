@@ -212,7 +212,7 @@ func parseGotoPos(pos string) int64 {
 }
 
 // State returns the state of the windows.
-func (m *Manager) State() ([]WindowState, Layout, error) {
+func (m *Manager) State() ([]WindowState, Layout, int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	indices := m.layout.Indices()
@@ -228,11 +228,11 @@ func (m *Manager) State() ([]WindowState, Layout, error) {
 		if required {
 			var err error
 			if states[i], err = window.State(); err != nil {
-				return nil, m.layout, err
+				return nil, m.layout, 0, err
 			}
 		}
 	}
-	return states, m.layout, nil
+	return states, m.layout, m.index, nil
 }
 
 func (m *Manager) writeFile(name string) (string, int64, error) {

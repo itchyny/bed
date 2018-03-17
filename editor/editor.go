@@ -113,10 +113,9 @@ func (e *Editor) Run() error {
 
 func (e *Editor) redraw() (err error) {
 	var state State
-	state.Windows, state.Layout, err = e.wm.State()
-	for i := range state.Windows {
-		state.Windows[i].Mode = e.mode
-	}
+	var index int
+	state.Windows, state.Layout, index, err = e.wm.State()
+	state.Windows[index].Mode = e.mode
 	if err != nil {
 		return err
 	}
