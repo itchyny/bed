@@ -188,6 +188,7 @@ func (m *Manager) State() ([]WindowState, Layout, error) {
 			if states[i], err = window.State(); err != nil {
 				return nil, m.layout, err
 			}
+			states[i].Active = i == m.index
 		}
 	}
 	return states, m.layout, nil

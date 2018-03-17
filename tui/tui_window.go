@@ -59,12 +59,14 @@ func (ui *tuiWindow) drawWindow(state WindowState) {
 		ui.setLine(i+1, 4*width+13, " ", style)
 	}
 	i := int(state.Cursor % int64(width))
-	if state.FocusText {
-		ui.setCursor(cursorLine+1, 3*width+i+13)
-	} else if state.Pending {
-		ui.setCursor(cursorLine+1, 3*i+12)
-	} else {
-		ui.setCursor(cursorLine+1, 3*i+11)
+	if state.Active {
+		if state.FocusText {
+			ui.setCursor(cursorLine+1, 3*width+i+13)
+		} else if state.Pending {
+			ui.setCursor(cursorLine+1, 3*i+12)
+		} else {
+			ui.setCursor(cursorLine+1, 3*i+11)
+		}
 	}
 	ui.drawHeader(state)
 	ui.drawScrollBar(state, height, 4*width+14)
