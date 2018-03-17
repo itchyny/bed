@@ -1004,3 +1004,55 @@ func TestWindowBackspacePending(t *testing.T) {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
 	}
 }
+
+func TestWindowEventRune(t *testing.T) {
+	height, width := int64(10), int64(16)
+	redrawCh := make(chan struct{})
+	window, _ := newWindow(strings.NewReader(""), "test", "test", height, width, redrawCh)
+
+	str := "48723fffab"
+	go func() {
+		window.Run()
+	}()
+	go func() {
+		window.eventCh <- Event{Type: EventStartInsert}
+		for _, r := range str {
+			window.eventCh <- Event{Type: EventRune, Rune: r, Mode: ModeInsert}
+		}
+	}()
+	<-redrawCh
+	for _ = range str {
+		<-redrawCh
+	}
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "\x48\x72\x3f\xff\xab\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "\x48\x72\x3f\xff\xab\x00", string(state.Bytes))
+	}
+}
+
+func TestWindowEventRuneText(t *testing.T) {
+	height, width := int64(10), int64(16)
+	redrawCh := make(chan struct{})
+	window, _ := newWindow(strings.NewReader(""), "test", "test", height, width, redrawCh)
+
+	str := "Hello, World!\nこんにちは、世界！\n鰰は魚の一種"
+	go func() {
+		window.Run()
+	}()
+	go func() {
+		window.eventCh <- Event{Type: EventSwitchFocus}
+		window.eventCh <- Event{Type: EventStartInsert}
+		for _, r := range str {
+			window.eventCh <- Event{Type: EventRune, Rune: r, Mode: ModeInsert}
+		}
+	}()
+	<-redrawCh
+	<-redrawCh
+	for _ = range str {
+		<-redrawCh
+	}
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), str+"\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", str+"\x00", string(state.Bytes))
+	}
+}
