@@ -117,7 +117,7 @@ func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte,
 
 func (ui *tuiWindow) drawHeader(state WindowState) {
 	style := tcell.StyleDefault.Underline(true)
-	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+15), style)
+	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+16), style)
 	cursor := int(state.Cursor % int64(state.Width))
 	for i := 0; i < state.Width; i++ {
 		ui.setLine(0, 3*i+12, fmt.Sprintf("%2x", i), style.Bold(cursor == i))
