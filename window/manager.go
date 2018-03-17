@@ -109,98 +109,57 @@ func (m *Manager) Run() {
 func (m *Manager) Emit(event Event) {
 	switch event.Type {
 	case EventCursorGotoAbs:
-		fallthrough
+		if err := m.cursorGoto(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
+		}
 	case EventCursorGotoRel:
-		if len(event.Args) > 1 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
-		} else if len(event.Args) == 1 {
-			event.Count = parseGotoPos(event.Args[0])
-			m.windows[m.index].eventCh <- event
+		if err := m.cursorGoto(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		}
 	case EventEdit:
-		if len(event.Args) > 1 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
-		} else if len(event.Args) == 0 {
-			m.eventCh <- Event{Type: EventError, Error: errors.New("no file name")}
+		if err := m.edit(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		} else {
-			if err := m.Open(event.Args[0]); err != nil {
-				m.eventCh <- Event{Type: EventError, Error: err}
-			}
-			go m.Run()
-			m.eventCh <- Event{Type: EventError, Error: nil}
+			m.eventCh <- Event{Type: EventRedraw}
 		}
 	case EventNew:
-		if len(event.Args) > 0 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		if err := m.newWindow(event, false); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		} else {
-			window, err := m.open("")
-			if err != nil {
-				m.eventCh <- Event{Type: EventError, Error: err}
-			} else {
-				m.addWindow(window, func(index int, layout Layout) Layout {
-					return layout.SplitTop(index)
-				})
-				go m.Run()
-				m.eventCh <- Event{Type: EventRedraw}
-			}
+			m.eventCh <- Event{Type: EventRedraw}
 		}
 	case EventVnew:
-		if len(event.Args) > 0 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		if err := m.newWindow(event, true); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		} else {
-			window, err := m.open("")
-			if err != nil {
-				m.eventCh <- Event{Type: EventError, Error: err}
-			} else {
-				m.addWindow(window, func(index int, layout Layout) Layout {
-					return layout.SplitLeft(index)
-				})
-				go m.Run()
-				m.eventCh <- Event{Type: EventRedraw}
-			}
+			m.eventCh <- Event{Type: EventRedraw}
 		}
 	case EventQuit:
-		if len(event.Args) > 0 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
-		} else {
-			w, h := m.layout.Count()
-			if w == 1 && h == 1 {
-				m.eventCh <- Event{Type: EventQuitAll}
-			} else {
-				m.mu.Lock()
-				m.layout = m.layout.Close()
-				m.index = m.layout.ActiveIndex()
-				m.mu.Unlock()
-				m.eventCh <- Event{Type: EventRedraw}
-			}
+		if err := m.quit(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		}
 	case EventWrite:
-		if len(event.Args) > 1 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
-		} else {
-			var name string
-			if len(event.Args) > 0 {
-				name = event.Args[0]
-			}
-			if filename, n, err := m.writeFile(name); err != nil {
-				m.eventCh <- Event{Type: EventError, Error: err}
-			} else {
-				m.eventCh <- Event{Type: EventInfo, Error: fmt.Errorf("%s: %d (0x%x) bytes written", filename, n, n)}
-			}
+		if err := m.write(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		}
 	case EventWriteQuit:
-		if len(event.Args) > 0 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
-		} else {
-			if _, _, err := m.writeFile(""); err != nil {
-				m.eventCh <- Event{Type: EventError, Error: err}
-			} else {
-				m.eventCh <- Event{Type: EventQuit}
-			}
+		if err := m.writeQuit(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
 		}
 	default:
 		m.windows[m.index].eventCh <- event
 	}
+}
+
+func (m *Manager) cursorGoto(event Event) error {
+	if len(event.Args) > 1 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	if len(event.Args) == 1 {
+		event.Count = parseGotoPos(event.Args[0])
+		m.windows[m.index].eventCh <- event
+	}
+	return nil
 }
 
 func parseGotoPos(pos string) int64 {
@@ -224,6 +183,82 @@ func parseGotoPos(pos string) int64 {
 		}
 	}
 	return sign * count
+}
+
+func (m *Manager) edit(event Event) error {
+	if len(event.Args) > 1 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	if len(event.Args) == 0 {
+		return errors.New("no file name")
+	}
+	if err := m.Open(event.Args[0]); err != nil {
+		m.eventCh <- Event{Type: EventError, Error: err}
+	}
+	go m.Run()
+	return nil
+}
+
+func (m *Manager) newWindow(event Event, vertical bool) error {
+	if len(event.Args) > 0 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	window, err := m.open("")
+	if err != nil {
+		return err
+	}
+	m.addWindow(window, func(index int, layout Layout) Layout {
+		if vertical {
+			return layout.SplitLeft(index)
+		}
+		return layout.SplitTop(index)
+	})
+	go m.Run()
+	return nil
+}
+
+func (m *Manager) quit(event Event) error {
+	if len(event.Args) > 0 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	w, h := m.layout.Count()
+	if w == 1 && h == 1 {
+		m.eventCh <- Event{Type: EventQuitAll}
+	} else {
+		m.mu.Lock()
+		m.layout = m.layout.Close()
+		m.index = m.layout.ActiveIndex()
+		m.mu.Unlock()
+		m.eventCh <- Event{Type: EventRedraw}
+	}
+	return nil
+}
+
+func (m *Manager) write(event Event) error {
+	if len(event.Args) > 1 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	var name string
+	if len(event.Args) > 0 {
+		name = event.Args[0]
+	}
+	filename, n, err := m.writeFile(name)
+	if err != nil {
+		return err
+	}
+	m.eventCh <- Event{Type: EventInfo, Error: fmt.Errorf("%s: %d (0x%x) bytes written", filename, n, n)}
+	return nil
+}
+
+func (m *Manager) writeQuit(event Event) error {
+	if len(event.Args) > 0 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	if _, _, err := m.writeFile(""); err != nil {
+		return err
+	}
+	m.eventCh <- Event{Type: EventQuit}
+	return nil
 }
 
 // State returns the state of the windows.
