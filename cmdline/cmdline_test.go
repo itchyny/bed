@@ -260,8 +260,6 @@ func TestExecuteQuit(t *testing.T) {
 		{"exi", "exi[t]"},
 		{"quit", "q[uit]"},
 		{"q", "q[uit]"},
-		{"qall", "qa[ll]"},
-		{"qa", "qa[ll]"},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
@@ -272,6 +270,30 @@ func TestExecuteQuit(t *testing.T) {
 		}
 		if e.Type != EventQuit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
+		}
+	}
+}
+
+func TestExecuteQuitAll(t *testing.T) {
+	c := NewCmdline()
+	ch := make(chan Event, 1)
+	c.Init(ch, make(chan Event), make(chan struct{}))
+	for _, cmd := range []struct {
+		cmd  string
+		name string
+	}{
+		{"qall", "qa[ll]"},
+		{"qa", "qa[ll]"},
+	} {
+		c.clear()
+		c.cmdline = []rune(cmd.cmd)
+		c.execute()
+		e := <-ch
+		if e.CmdName != cmd.name {
+			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		}
+		if e.Type != EventQuitAll {
+			t.Errorf("cmdline should emit quit all event with %q", cmd.cmd)
 		}
 	}
 }
