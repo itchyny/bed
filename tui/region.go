@@ -14,9 +14,9 @@ func (r region) splitHorizontally(h1, h2 int) []region {
 			width:  r.width,
 		},
 		region{
-			top:    r.top + height + 1,
+			top:    r.top + height,
 			left:   r.left,
-			height: r.height - height - 1,
+			height: r.height - height,
 			width:  r.width,
 		},
 	}

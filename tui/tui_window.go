@@ -23,7 +23,13 @@ func (ui *tuiWindow) setLine(line int, offset int, str string, style tcell.Style
 	right := ui.region.left + ui.region.width
 	for _, c := range str {
 		w := runewidth.RuneWidth(c)
-		if offset+w > right || offset+w == right && c != ' ' {
+		if offset+w > right {
+			break
+		}
+		if offset+w == right && c != ' ' {
+			if int(style)&int(tcell.AttrReverse) != 0 {
+				ui.screen.SetContent(offset, line, ' ', nil, style)
+			}
 			break
 		}
 		ui.screen.SetContent(offset, line, c, nil, style)
@@ -148,8 +154,9 @@ func (ui *tuiWindow) drawFooter(state WindowState) {
 	if name == "" {
 		name = "[No name]"
 	}
-	line := fmt.Sprintf("%s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
-		prettyMode(state.Mode), name, state.Cursor, state.Length, float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
+	line := fmt.Sprintf(" %s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
+		prettyMode(state.Mode), name, state.Cursor, state.Length,
+		float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
-	ui.setLine(ui.region.height-1, 1, line, 0)
+	ui.setLine(ui.region.height-1, 0, line, tcell.StyleDefault.Reverse(true))
 }

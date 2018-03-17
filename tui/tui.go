@@ -102,7 +102,6 @@ func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) 
 		regions := region.splitHorizontally(h1, h2)
 		ui.drawWindows(windows, l.Top, regions[0])
 		ui.drawWindows(windows, l.Bottom, regions[1])
-		ui.drawHorizontalSplit(regions[0])
 	case LayoutVertical:
 		w1, _ := l.Left.Count()
 		w2, _ := l.Right.Count()
@@ -115,10 +114,6 @@ func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) 
 
 func (ui *Tui) newTuiWindow(region region) *tuiWindow {
 	return &tuiWindow{region: region, screen: ui.screen}
-}
-
-func (ui *Tui) drawHorizontalSplit(region region) {
-	ui.setLine(region.top+region.height, region.left, strings.Repeat("-", region.width), tcell.StyleDefault.Reverse(true))
 }
 
 func (ui *Tui) drawVerticalSplit(region region) {
