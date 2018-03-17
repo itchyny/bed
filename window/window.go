@@ -121,20 +121,7 @@ func (w *window) Run() {
 		case EventExitInsert:
 			w.exitInsert()
 		case EventRune:
-			if e.Mode == ModeInsert || e.Mode == ModeReplace {
-				if w.focusText {
-					buf := make([]byte, 4)
-					n := utf8.EncodeRune(buf, e.Rune)
-					for i := 0; i < n; i++ {
-						w.insert(e.Mode, byte(buf[i]>>4))
-						w.insert(e.Mode, byte(buf[i]&0x0f))
-					}
-				} else if '0' <= e.Rune && e.Rune <= '9' {
-					w.insert(e.Mode, byte(e.Rune-'0'))
-				} else if 'a' <= e.Rune && e.Rune <= 'f' {
-					w.insert(e.Mode, byte(e.Rune-'a'+0x0a))
-				}
-			}
+			w.insertRune(e.Mode, e.Rune)
 		case EventBackspace:
 			w.backspace()
 		case EventDelete:
@@ -519,6 +506,23 @@ func (w *window) exitInsert() {
 		w.append = false
 		w.extending = false
 		w.pending = false
+	}
+}
+
+func (w *window) insertRune(mode Mode, ch rune) {
+	if mode == ModeInsert || mode == ModeReplace {
+		if w.focusText {
+			buf := make([]byte, 4)
+			n := utf8.EncodeRune(buf, ch)
+			for i := 0; i < n; i++ {
+				w.insert(mode, byte(buf[i]>>4))
+				w.insert(mode, byte(buf[i]&0x0f))
+			}
+		} else if '0' <= ch && ch <= '9' {
+			w.insert(mode, byte(ch-'0'))
+		} else if 'a' <= ch && ch <= 'f' {
+			w.insert(mode, byte(ch-'a'+0x0a))
+		}
 	}
 }
 
