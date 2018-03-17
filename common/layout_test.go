@@ -20,7 +20,7 @@ func TestLayoutIndices(t *testing.T) {
 	}
 }
 
-func TestLayoutSplit(t *testing.T) {
+func TestLayoutSplitCloseReplace(t *testing.T) {
 	layout := NewLayout(0)
 
 	layout = layout.SplitTop(1)
@@ -52,5 +52,47 @@ func TestLayoutSplit(t *testing.T) {
 	}
 	if h != 3 {
 		t.Errorf("layout height be %d but got %d", 3, h)
+	}
+
+	layout = layout.Close()
+
+	expected = LayoutHorizontal{
+		Top: LayoutVertical{
+			Left: LayoutHorizontal{
+				Top:    LayoutWindow{Index: 2, Active: false},
+				Bottom: LayoutWindow{Index: 3, Active: true},
+			},
+			Right: LayoutWindow{Index: 1, Active: false},
+		},
+		Bottom: LayoutWindow{Index: 0, Active: false},
+	}
+
+	if !reflect.DeepEqual(layout, expected) {
+		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
+
+	w, h = layout.Count()
+	if w != 2 {
+		t.Errorf("layout width be %d but got %d", 3, w)
+	}
+	if h != 3 {
+		t.Errorf("layout height be %d but got %d", 3, h)
+	}
+
+	layout = layout.Replace(5)
+
+	expected = LayoutHorizontal{
+		Top: LayoutVertical{
+			Left: LayoutHorizontal{
+				Top:    LayoutWindow{Index: 2, Active: false},
+				Bottom: LayoutWindow{Index: 5, Active: true},
+			},
+			Right: LayoutWindow{Index: 1, Active: false},
+		},
+		Bottom: LayoutWindow{Index: 0, Active: false},
+	}
+
+	if !reflect.DeepEqual(layout, expected) {
+		t.Errorf("layout should be %+v but got %+v", expected, layout)
 	}
 }
