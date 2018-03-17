@@ -85,6 +85,9 @@ func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
 
 func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte, [][]tcell.Style) {
 	var k int
+	if height <= 0 {
+		return nil, nil
+	}
 	eis := state.EditedIndices
 	bytes := make([][]byte, height)
 	styles := make([][]tcell.Style, height)
