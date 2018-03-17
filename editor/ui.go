@@ -7,6 +7,7 @@ type UI interface {
 	Init(chan<- Event) error
 	Run(map[Mode]*KeyManager)
 	Height() int
+	Size() (int, int)
 	Redraw(State) error
 	Close() error
 }
