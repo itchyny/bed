@@ -17,7 +17,8 @@ import (
 // Manager manages the windows and files.
 type Manager struct {
 	height   int64
-	window   *window
+	windows  []*window
+	index    int
 	files    []file
 	eventCh  chan<- Event
 	redrawCh chan<- struct{}
@@ -41,11 +42,14 @@ func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
 }
 
 // Open a new window.
-func (m *Manager) Open(filename string) (err error) {
+func (m *Manager) Open(filename string) error {
 	if filename == "" {
-		if m.window, err = newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh); err != nil {
+		window, err := newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh)
+		if err != nil {
 			return err
 		}
+		m.windows = append(m.windows, window)
+		m.index = len(m.windows) - 1
 		return nil
 	}
 	f, err := os.Open(filename)
@@ -53,9 +57,12 @@ func (m *Manager) Open(filename string) (err error) {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		if m.window, err = newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh); err != nil {
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+		if err != nil {
 			return err
 		}
+		m.windows = append(m.windows, window)
+		m.index = len(m.windows) - 1
 		return nil
 	}
 	info, err := os.Stat(filename)
@@ -63,9 +70,12 @@ func (m *Manager) Open(filename string) (err error) {
 		return err
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	if m.window, err = newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh); err != nil {
+	window, err := newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+	if err != nil {
 		return err
 	}
+	m.windows = append(m.windows, window)
+	m.index = len(m.windows) - 1
 	return nil
 }
 
@@ -76,7 +86,7 @@ func (m *Manager) SetHeight(height int) {
 
 // Run the Manager.
 func (m *Manager) Run() {
-	m.window.Run()
+	m.windows[m.index].Run()
 }
 
 // Emit an event to the current window.
@@ -89,7 +99,7 @@ func (m *Manager) Emit(event Event) {
 			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
 		} else if len(event.Args) == 1 {
 			event.Count = parseGotoPos(event.Args[0])
-			m.window.eventCh <- event
+			m.windows[m.index].eventCh <- event
 		}
 	case EventEdit:
 		if len(event.Args) > 1 {
@@ -128,7 +138,7 @@ func (m *Manager) Emit(event Event) {
 			}
 		}
 	default:
-		m.window.eventCh <- event
+		m.windows[m.index].eventCh <- event
 	}
 }
 
@@ -157,7 +167,7 @@ func parseGotoPos(pos string) int64 {
 
 // State returns the state of the windows.
 func (m *Manager) State() ([]WindowState, error) {
-	state, err := m.window.State()
+	state, err := m.windows[m.index].State()
 	if err != nil {
 		return nil, err
 	}
@@ -165,15 +175,16 @@ func (m *Manager) State() ([]WindowState, error) {
 }
 
 func (m *Manager) writeFile(name string) (string, int64, error) {
+	window := m.windows[m.index]
 	perm := os.FileMode(0644)
 	if name == "" {
-		name = m.window.filename
+		name = window.filename
 	}
 	if name == "" {
 		return name, 0, errors.New("no file name")
 	}
-	if m.window.filename == "" {
-		m.window.filename = name
+	if window.filename == "" {
+		window.filename = name
 	}
 	for _, f := range m.files {
 		if f.name == name {
@@ -187,8 +198,8 @@ func (m *Manager) writeFile(name string) (string, int64, error) {
 		return name, 0, err
 	}
 	defer os.Remove(tmpf.Name())
-	m.window.buffer.Seek(0, io.SeekStart)
-	n, err := io.Copy(tmpf, m.window.buffer)
+	window.buffer.Seek(0, io.SeekStart)
+	n, err := io.Copy(tmpf, window.buffer)
 	tmpf.Close()
 	if err != nil {
 		return name, 0, err
@@ -201,5 +212,7 @@ func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
 	}
-	m.window.Close()
+	for _, w := range m.windows {
+		w.Close()
+	}
 }
