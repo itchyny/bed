@@ -30,7 +30,7 @@ func (ui *tuiWindow) setCursor(line int, offset int) {
 	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
 }
 
-func (ui *tuiWindow) drawWindow(state WindowState) {
+func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
 	height, width := ui.region.height-3, state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
 	cursorPos := int(state.Cursor - state.Offset)
@@ -59,7 +59,7 @@ func (ui *tuiWindow) drawWindow(state WindowState) {
 		ui.setLine(i+1, 4*width+13, " ", style)
 	}
 	i := int(state.Cursor % int64(width))
-	if state.Active {
+	if active {
 		if state.FocusText {
 			ui.setCursor(cursorLine+1, 3*width+i+13)
 		} else if state.Pending {

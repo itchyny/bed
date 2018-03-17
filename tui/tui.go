@@ -94,7 +94,7 @@ func (ui *Tui) screenRegion() region {
 func (ui *Tui) drawWindows(windows []WindowState, layout Layout, region region) {
 	switch l := layout.(type) {
 	case LayoutWindow:
-		ui.newTuiWindow(region).drawWindow(windows[l.Index])
+		ui.newTuiWindow(region).drawWindow(windows[l.Index], l.Active)
 	case LayoutHorizontal:
 		regions := region.splitHorizontally()
 		ui.drawWindows(windows, l.Top, regions[0])
