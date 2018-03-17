@@ -69,6 +69,7 @@ const (
 	EventNew
 	EventVnew
 	EventQuit
+	EventQuitAll
 	EventWrite
 	EventWriteQuit
 	EventInfo
