@@ -189,12 +189,19 @@ func (m *Manager) edit(event Event) error {
 	if len(event.Args) > 1 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
+	var name string
 	if len(event.Args) == 0 {
-		return errors.New("no file name")
+		name = m.windows[m.index].filename
+	} else {
+		name = event.Args[0]
 	}
-	if err := m.Open(event.Args[0]); err != nil {
-		m.eventCh <- Event{Type: EventError, Error: err}
+	window, err := m.open(name)
+	if err != nil {
+		return err
 	}
+	m.addWindow(window, func(index int, layout Layout) Layout {
+		return layout.Replace(index)
+	})
 	go m.Run()
 	return nil
 }
