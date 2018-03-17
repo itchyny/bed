@@ -48,8 +48,6 @@ func (e *Editor) listen() {
 	}()
 	for event := range e.eventCh {
 		switch event.Type {
-		case EventQuit:
-			fallthrough
 		case EventQuitAll:
 			if len(event.Args) > 0 {
 				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", event.CmdName), MessageError

@@ -159,6 +159,20 @@ func (m *Manager) Emit(event Event) {
 				m.eventCh <- Event{Type: EventRedraw}
 			}
 		}
+	case EventQuit:
+		if len(event.Args) > 0 {
+			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else {
+			w, h := m.layout.Count()
+			if w == 1 && h == 1 {
+				m.eventCh <- Event{Type: EventQuitAll}
+			} else {
+				m.mu.Lock()
+				m.layout = m.layout.Close()
+				m.mu.Unlock()
+				m.eventCh <- Event{Type: EventRedraw}
+			}
+		}
 	case EventWrite:
 		if len(event.Args) > 1 {
 			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
