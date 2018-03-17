@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/gdamore/tcell"
@@ -41,46 +42,59 @@ func (ui *tuiWindow) setCursor(line int, offset int) {
 	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
 }
 
+func (ui *tuiWindow) offsetStyleWidth(state WindowState) int {
+	threshold := int64(0xfffff)
+	for i := 0; i < 5; i++ {
+		if state.Length <= threshold {
+			return 6 + i*2
+		}
+		threshold = (threshold << 8) | 0xff
+	}
+	return 16
+}
+
 func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
 	height, width := ui.region.height-2, state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
 	cursorPos := int(state.Cursor - state.Offset)
 	cursorLine := cursorPos / width
+	offsetStyleWidth := ui.offsetStyleWidth(state)
+	offsetStyle := " %0" + strconv.Itoa(offsetStyleWidth) + "x"
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
 			if styles[i][j] == math.MaxUint16 {
-				ui.setLine(i+1, 3*j+11, "   ", tcell.StyleDefault)
-				ui.setLine(i+1, 3*width+j+14, " ", tcell.StyleDefault)
+				ui.setLine(i+1, 3*j+3+offsetStyleWidth, "   ", tcell.StyleDefault)
+				ui.setLine(i+1, 3*width+j+6+offsetStyleWidth, " ", tcell.StyleDefault)
 			} else {
-				ui.setLine(i+1, 3*j+11, " ", styles[i][j]|tcell.StyleDefault)
+				ui.setLine(i+1, 3*j+3+offsetStyleWidth, " ", styles[i][j]|tcell.StyleDefault)
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText).Underline(state.FocusText)
 				}
-				ui.setLine(i+1, 3*j+12, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
+				ui.setLine(i+1, 3*j+4+offsetStyleWidth, fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText).Underline(!state.FocusText)
 				}
-				ui.setLine(i+1, 3*width+j+14, string(prettyByte(bytes[i][j])), styles[i][j])
+				ui.setLine(i+1, 3*width+j+6+offsetStyleWidth, string(prettyByte(bytes[i][j])), styles[i][j])
 			}
 		}
-		ui.setLine(i+1, 0, fmt.Sprintf(" %08x", state.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
-		ui.setLine(i+1, 9, " | ", tcell.StyleDefault)
-		ui.setLine(i+1, 3*width+11, " | ", tcell.StyleDefault)
-		ui.setLine(i+1, 4*width+14, " ", tcell.StyleDefault)
+		ui.setLine(i+1, 0, fmt.Sprintf(offsetStyle, state.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
+		ui.setLine(i+1, 1+offsetStyleWidth, " | ", tcell.StyleDefault)
+		ui.setLine(i+1, 3*width+3+offsetStyleWidth, " | ", tcell.StyleDefault)
+		ui.setLine(i+1, 4*width+6+offsetStyleWidth, " ", tcell.StyleDefault)
 	}
 	i := int(state.Cursor % int64(width))
 	if active {
 		if state.FocusText {
-			ui.setCursor(cursorLine+1, 3*width+i+14)
+			ui.setCursor(cursorLine+1, 3*width+i+6+offsetStyleWidth)
 		} else if state.Pending {
-			ui.setCursor(cursorLine+1, 3*i+13)
+			ui.setCursor(cursorLine+1, 3*i+5+offsetStyleWidth)
 		} else {
-			ui.setCursor(cursorLine+1, 3*i+12)
+			ui.setCursor(cursorLine+1, 3*i+4+offsetStyleWidth)
 		}
 	}
-	ui.drawHeader(state)
-	ui.drawScrollBar(state, height, 4*width+15)
-	ui.drawFooter(state)
+	ui.drawHeader(state, offsetStyleWidth)
+	ui.drawScrollBar(state, height, 4*width+7+offsetStyleWidth)
+	ui.drawFooter(state, offsetStyleWidth)
 }
 
 func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte, [][]tcell.Style) {
@@ -115,15 +129,15 @@ func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte,
 	return bytes, styles
 }
 
-func (ui *tuiWindow) drawHeader(state WindowState) {
+func (ui *tuiWindow) drawHeader(state WindowState, offsetStyleWidth int) {
 	style := tcell.StyleDefault.Underline(true)
-	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+16), style)
+	ui.setLine(0, 0, strings.Repeat(" ", 4*state.Width+8+offsetStyleWidth), style)
 	cursor := int(state.Cursor % int64(state.Width))
 	for i := 0; i < state.Width; i++ {
-		ui.setLine(0, 3*i+12, fmt.Sprintf("%2x", i), style.Bold(cursor == i))
+		ui.setLine(0, 3*i+4+offsetStyleWidth, fmt.Sprintf("%2x", i), style.Bold(cursor == i))
 	}
-	ui.setLine(0, 10, "|", style)
-	ui.setLine(0, 3*state.Width+12, "|", style)
+	ui.setLine(0, 2+offsetStyleWidth, "|", style)
+	ui.setLine(0, 3*state.Width+4+offsetStyleWidth, "|", style)
 }
 
 func (ui *tuiWindow) drawScrollBar(state WindowState, height int, offset int) {
@@ -145,13 +159,14 @@ func (ui *tuiWindow) drawScrollBar(state WindowState, height int, offset int) {
 	}
 }
 
-func (ui *tuiWindow) drawFooter(state WindowState) {
+func (ui *tuiWindow) drawFooter(state WindowState, offsetStyleWidth int) {
+	offsetStyle := " %0" + strconv.Itoa(offsetStyleWidth) + "x"
 	j := int(state.Cursor - state.Offset)
 	name := state.Name
 	if name == "" {
 		name = "[No name]"
 	}
-	line := fmt.Sprintf(" %s%s: %08x / %08x (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
+	line := fmt.Sprintf(" %s%s: "+offsetStyle+" / "+offsetStyle+" (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
 		prettyMode(state.Mode), name, state.Cursor, state.Length,
 		float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
