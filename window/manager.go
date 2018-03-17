@@ -18,6 +18,7 @@ import (
 type Manager struct {
 	height   int64
 	windows  []*window
+	layout   Layout
 	index    int
 	files    []file
 	eventCh  chan<- Event
@@ -43,40 +44,45 @@ func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
 
 // Open a new window.
 func (m *Manager) Open(filename string) error {
-	if filename == "" {
-		window, err := newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh)
-		if err != nil {
-			return err
-		}
-		m.windows = append(m.windows, window)
-		m.index = len(m.windows) - 1
-		return nil
-	}
-	f, err := os.Open(filename)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh)
-		if err != nil {
-			return err
-		}
-		m.windows = append(m.windows, window)
-		m.index = len(m.windows) - 1
-		return nil
-	}
-	info, err := os.Stat(filename)
-	if err != nil {
-		return err
-	}
-	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	window, err := newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+	window, err := m.open(filename)
 	if err != nil {
 		return err
 	}
 	m.windows = append(m.windows, window)
 	m.index = len(m.windows) - 1
+	m.layout = LayoutWindow{Index: m.index}
 	return nil
+}
+
+func (m *Manager) open(filename string) (*window, error) {
+	if filename == "" {
+		window, err := newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh)
+		if err != nil {
+			return nil, err
+		}
+		return window, nil
+	}
+	f, err := os.Open(filename)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+		if err != nil {
+			return nil, err
+		}
+		return window, nil
+	}
+	info, err := os.Stat(filename)
+	if err != nil {
+		return nil, err
+	}
+	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
+	window, err := newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+	if err != nil {
+		return nil, err
+	}
+	return window, nil
 }
 
 // SetHeight sets the height.
@@ -167,11 +173,24 @@ func parseGotoPos(pos string) int64 {
 
 // State returns the state of the windows.
 func (m *Manager) State() ([]WindowState, error) {
-	state, err := m.windows[m.index].State()
-	if err != nil {
-		return nil, err
+	indices := m.layout.Indices()
+	states := make([]WindowState, len(m.windows))
+	for i, window := range m.windows {
+		required := false
+		for _, j := range indices {
+			if i == j {
+				required = true
+				break
+			}
+		}
+		if required {
+			var err error
+			if states[i], err = window.State(); err != nil {
+				return nil, err
+			}
+		}
 	}
-	return []WindowState{state}, nil
+	return states, nil
 }
 
 func (m *Manager) writeFile(name string) (string, int64, error) {
