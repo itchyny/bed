@@ -90,6 +90,9 @@ func (m *Manager) open(filename string) (*window, error) {
 	if err != nil {
 		return nil, err
 	}
+	if info.IsDir() {
+		return nil, fmt.Errorf("%s is a directory", filename)
+	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
 	window, err := newWindow(f, filename, filepath.Base(filename), m.redrawCh)
 	if err != nil {
