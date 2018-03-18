@@ -7,7 +7,9 @@ type Layout interface {
 	isLayout()
 	Indices() []int
 	Replace(int) Layout
-	Resize(int, int) Layout
+	Resize(int, int, int, int) Layout
+	LeftMargin() int
+	TopMargin() int
 	Width() int
 	Height() int
 	SplitTop(int) Layout
@@ -25,6 +27,8 @@ type Layout interface {
 type LayoutWindow struct {
 	Index  int
 	Active bool
+	left   int
+	top    int
 	width  int
 	height int
 }
@@ -50,9 +54,19 @@ func (l LayoutWindow) Replace(index int) Layout {
 }
 
 // Resize recalculates the position.
-func (l LayoutWindow) Resize(width, height int) Layout {
-	l.width, l.height = width, height
+func (l LayoutWindow) Resize(left, top, width, height int) Layout {
+	l.left, l.top, l.width, l.height = left, top, width, height
 	return l
+}
+
+// LeftMargin returns the left margin.
+func (l LayoutWindow) LeftMargin() int {
+	return l.left
+}
+
+// TopMargin returns the top margin.
+func (l LayoutWindow) TopMargin() int {
+	return l.top
 }
 
 // Width returns the width.
@@ -148,6 +162,8 @@ func (l LayoutWindow) Close() Layout {
 type LayoutHorizontal struct {
 	Top    Layout
 	Bottom Layout
+	left   int
+	top    int
 	width  int
 	height int
 }
@@ -170,16 +186,28 @@ func (l LayoutHorizontal) Replace(index int) Layout {
 }
 
 // Resize recalculates the position.
-func (l LayoutHorizontal) Resize(width, height int) Layout {
+func (l LayoutHorizontal) Resize(left, top, width, height int) Layout {
 	_, h1 := l.Top.Count()
 	_, h2 := l.Bottom.Count()
 	topHeight := height * h1 / (h1 + h2)
 	return LayoutHorizontal{
-		Top:    l.Top.Resize(width, topHeight),
-		Bottom: l.Bottom.Resize(width, height-topHeight),
+		Top:    l.Top.Resize(left, top, width, topHeight),
+		Bottom: l.Bottom.Resize(left, top+topHeight, width, height-topHeight),
+		left:   left,
+		top:    top,
 		width:  width,
 		height: height,
 	}
+}
+
+// LeftMargin returns the left margin.
+func (l LayoutHorizontal) LeftMargin() int {
+	return l.left
+}
+
+// TopMargin returns the top margin.
+func (l LayoutHorizontal) TopMargin() int {
+	return l.top
 }
 
 // Width returns the width.
@@ -279,6 +307,8 @@ func (l LayoutHorizontal) Close() Layout {
 type LayoutVertical struct {
 	Left   Layout
 	Right  Layout
+	left   int
+	top    int
 	width  int
 	height int
 }
@@ -301,16 +331,30 @@ func (l LayoutVertical) Replace(index int) Layout {
 }
 
 // Resize recalculates the position.
-func (l LayoutVertical) Resize(width, height int) Layout {
+func (l LayoutVertical) Resize(left, top, width, height int) Layout {
 	w1, _ := l.Left.Count()
 	w2, _ := l.Right.Count()
 	leftWidth := width * w1 / (w1 + w2)
 	return LayoutVertical{
-		Left:   l.Left.Resize(leftWidth, height),
-		Right:  l.Right.Resize(util.MaxInt(width-leftWidth-1, 0), height),
+		Left: l.Left.Resize(left, top, leftWidth, height),
+		Right: l.Right.Resize(
+			util.MinInt(left+leftWidth+1, width), top,
+			util.MaxInt(width-leftWidth-1, 0), height),
+		left:   left,
+		top:    top,
 		width:  width,
 		height: height,
 	}
+}
+
+// LeftMargin returns the left margin.
+func (l LayoutVertical) LeftMargin() int {
+	return l.left
+}
+
+// TopMargin returns the top margin.
+func (l LayoutVertical) TopMargin() int {
+	return l.top
 }
 
 // Width returns the width.
