@@ -66,25 +66,25 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
 	ui.screen.Clear()
-	ui.drawWindows(state.Windows, state.Layout)
+	ui.drawWindows(state.WindowStates, state.Layout)
 	ui.drawCmdline(state)
 	ui.screen.Show()
 	return nil
 }
 
-func (ui *Tui) drawWindows(windows []WindowState, layout Layout) {
+func (ui *Tui) drawWindows(windowStates []WindowState, layout Layout) {
 	switch l := layout.(type) {
 	case LayoutWindow:
 		r := fromLayout(layout)
 		if r.valid() {
-			ui.newTuiWindow(r).drawWindow(windows[l.Index], l.Active)
+			ui.newTuiWindow(r).drawWindow(windowStates[l.Index], l.Active)
 		}
 	case LayoutHorizontal:
-		ui.drawWindows(windows, l.Top)
-		ui.drawWindows(windows, l.Bottom)
+		ui.drawWindows(windowStates, l.Top)
+		ui.drawWindows(windowStates, l.Bottom)
 	case LayoutVertical:
-		ui.drawWindows(windows, l.Left)
-		ui.drawWindows(windows, l.Right)
+		ui.drawWindows(windowStates, l.Left)
+		ui.drawWindows(windowStates, l.Right)
 		ui.drawVerticalSplit(fromLayout(l.Left))
 	}
 }

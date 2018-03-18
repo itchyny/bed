@@ -3,7 +3,7 @@ package common
 // State holds the state of the editor to display the user interface.
 type State struct {
 	Mode          Mode
-	Windows       []WindowState
+	WindowStates  []WindowState
 	Layout        Layout
 	Cmdline       []rune
 	CmdlineCursor int
