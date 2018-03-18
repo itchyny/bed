@@ -163,4 +163,21 @@ func TestLayout(t *testing.T) {
 	if !reflect.DeepEqual(layout, expected) {
 		t.Errorf("layout should be %+v but got %+v", expected, layout)
 	}
+
+	layout = layout.Activate(1)
+
+	expected = LayoutHorizontal{
+		Top: LayoutVertical{
+			Left: LayoutHorizontal{
+				Top:    LayoutWindow{Index: 2, Active: false},
+				Bottom: LayoutWindow{Index: 5, Active: false},
+			},
+			Right: LayoutWindow{Index: 1, Active: true},
+		},
+		Bottom: LayoutWindow{Index: 0, Active: false},
+	}
+
+	if !reflect.DeepEqual(layout, expected) {
+		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
 }
