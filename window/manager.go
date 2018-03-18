@@ -141,7 +141,11 @@ func (m *Manager) Emit(event Event) {
 			m.eventCh <- Event{Type: EventRedraw}
 		}
 	case EventWincmd:
-		if err := m.wincmd(event); err != nil {
+		if len(event.Args) > 1 {
+			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
+		} else if len(event.Args) == 0 {
+			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("an argument is required for %s", event.CmdName)}
+		} else if err := m.wincmd(event.Args[0]); err != nil {
 			m.eventCh <- Event{Type: EventError, Error: err}
 		} else {
 			m.eventCh <- Event{Type: EventRedraw}
@@ -241,29 +245,23 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 	return nil
 }
 
-func (m *Manager) wincmd(event Event) error {
+func (m *Manager) wincmd(arg string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if len(event.Args) > 1 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
-	}
-	if len(event.Args) == 0 {
-		return fmt.Errorf("an argument is required for %s", event.CmdName)
-	}
-	switch event.Args[0] {
+	switch arg {
 	case "l":
-		m.focusRight(event)
+		m.focusRight()
 	case "h":
-		m.focusLeft(event)
+		m.focusLeft()
 	case "k":
-		m.focusUp(event)
+		m.focusUp()
 	case "j":
-		m.focusDown(event)
+		m.focusDown()
 	}
 	return nil
 }
 
-func (m *Manager) focusRight(event Event) {
+func (m *Manager) focusRight() {
 	activeWindow := m.layout.ActiveWindow()
 	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
 		return activeWindow.LeftMargin()+activeWindow.Width()+1 == l.LeftMargin() &&
@@ -276,7 +274,7 @@ func (m *Manager) focusRight(event Event) {
 	}
 }
 
-func (m *Manager) focusLeft(event Event) {
+func (m *Manager) focusLeft() {
 	activeWindow := m.layout.ActiveWindow()
 	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
 		return l.LeftMargin()+l.Width()+1 == activeWindow.LeftMargin() &&
@@ -289,7 +287,7 @@ func (m *Manager) focusLeft(event Event) {
 	}
 }
 
-func (m *Manager) focusUp(event Event) {
+func (m *Manager) focusUp() {
 	activeWindow := m.layout.ActiveWindow()
 	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
 		return l.TopMargin()+l.Height() == activeWindow.TopMargin() &&
@@ -302,7 +300,7 @@ func (m *Manager) focusUp(event Event) {
 	}
 }
 
-func (m *Manager) focusDown(event Event) {
+func (m *Manager) focusDown() {
 	activeWindow := m.layout.ActiveWindow()
 	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
 		return activeWindow.TopMargin()+activeWindow.Height() == l.TopMargin() &&
