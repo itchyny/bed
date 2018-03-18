@@ -312,7 +312,7 @@ func (w *window) scrollUp(count int64) {
 }
 
 func (w *window) scrollDown(count int64) {
-	h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+	h := util.MaxInt64((util.MaxInt64(w.length, 1)+w.width-1)/w.width-w.height, 0)
 	w.offset += util.MinInt64(util.MaxInt64(count, 1), h-w.offset/w.width) * w.width
 	if w.cursor < w.offset {
 		w.cursor += util.MinInt64(
