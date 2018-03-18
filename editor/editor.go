@@ -116,13 +116,13 @@ func (e *Editor) redraw() (err error) {
 	var state State
 	var windowIndex int
 	state.WindowStates, state.Layout, windowIndex, err = e.wm.State()
+	if err != nil {
+		return err
+	}
 	if state.WindowStates[windowIndex] == nil {
 		return errors.New("index out of windows")
 	}
 	state.WindowStates[windowIndex].Mode = e.mode
-	if err != nil {
-		return err
-	}
 	state.Mode, state.Error, state.ErrorType = e.mode, e.err, e.errtyp
 	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
 	return e.ui.Redraw(state)
