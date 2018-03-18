@@ -150,34 +150,34 @@ func (m *Manager) Emit(event Event) {
 		} else {
 			m.eventCh <- Event{Type: EventRedraw}
 		}
-	case EventWincmdFocusDown:
+	case EventFocusWindowDown:
 		m.wincmd("j")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdFocusUp:
+	case EventFocusWindowUp:
 		m.wincmd("k")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdFocusLeft:
+	case EventFocusWindowLeft:
 		m.wincmd("h")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdFocusRight:
+	case EventFocusWindowRight:
 		m.wincmd("l")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdFocusTopLeft:
+	case EventFocusWindowTopLeft:
 		m.wincmd("t")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdFocusBottomRight:
+	case EventFocusWindowBottomRight:
 		m.wincmd("b")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdMoveTop:
+	case EventMoveWindowTop:
 		m.wincmd("K")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdMoveBottom:
+	case EventMoveWindowBottom:
 		m.wincmd("J")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdMoveLeft:
+	case EventMoveWindowLeft:
 		m.wincmd("H")
 		m.eventCh <- Event{Type: EventRedraw}
-	case EventWincmdMoveRight:
+	case EventMoveWindowRight:
 		m.wincmd("L")
 		m.eventCh <- Event{Type: EventRedraw}
 	case EventQuit:

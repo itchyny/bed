@@ -69,16 +69,16 @@ const (
 	EventNew
 	EventVnew
 	EventWincmd
-	EventWincmdFocusUp
-	EventWincmdFocusDown
-	EventWincmdFocusLeft
-	EventWincmdFocusRight
-	EventWincmdFocusTopLeft
-	EventWincmdFocusBottomRight
-	EventWincmdMoveTop
-	EventWincmdMoveBottom
-	EventWincmdMoveLeft
-	EventWincmdMoveRight
+	EventFocusWindowUp
+	EventFocusWindowDown
+	EventFocusWindowLeft
+	EventFocusWindowRight
+	EventFocusWindowTopLeft
+	EventFocusWindowBottomRight
+	EventMoveWindowTop
+	EventMoveWindowBottom
+	EventMoveWindowLeft
+	EventMoveWindowRight
 	EventQuit
 	EventQuitAll
 	EventWrite
