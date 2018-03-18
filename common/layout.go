@@ -369,7 +369,7 @@ func (l LayoutVertical) Resize(left, top, width, height int) Layout {
 	return LayoutVertical{
 		Left: l.Left.Resize(left, top, leftWidth, height),
 		Right: l.Right.Resize(
-			util.MinInt(left+leftWidth+1, width), top,
+			util.MinInt(left+leftWidth+1, left+width), top,
 			util.MaxInt(width-leftWidth-1, 0), height),
 		left:   left,
 		top:    top,
