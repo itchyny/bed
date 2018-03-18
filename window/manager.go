@@ -286,7 +286,7 @@ func (m *Manager) State() (map[int]*WindowState, Layout, int, error) {
 	states := make(map[int]*WindowState, len(m.windows))
 	for i, window := range m.windows {
 		if l, ok := layouts[i]; ok {
-			window.setSize(16, l.Height()-2)
+			window.setSize(hexWindowWidth(l.Width()), l.Height()-2)
 			var err error
 			if states[i], err = window.State(); err != nil {
 				return nil, m.layout, 0, err
@@ -294,6 +294,17 @@ func (m *Manager) State() (map[int]*WindowState, Layout, int, error) {
 		}
 	}
 	return states, m.layout, m.windowIndex, nil
+}
+
+func hexWindowWidth(width int) int {
+	if width > 146 {
+		return 32
+	} else if width > 82 {
+		return 16
+	} else if width > 50 {
+		return 8
+	}
+	return 4
 }
 
 func (m *Manager) writeFile(name string) (string, int64, error) {
