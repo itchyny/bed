@@ -168,6 +168,18 @@ func (m *Manager) Emit(event Event) {
 	case EventWincmdFocusBottomRight:
 		m.wincmd("b")
 		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveTop:
+		m.wincmd("K")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveBottom:
+		m.wincmd("J")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveLeft:
+		m.wincmd("H")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveRight:
+		m.wincmd("L")
+		m.eventCh <- Event{Type: EventRedraw}
 	case EventQuit:
 		if err := m.quit(event); err != nil {
 			m.eventCh <- Event{Type: EventError, Error: err}
@@ -300,6 +312,22 @@ func (m *Manager) wincmd(arg string) error {
 			return m.layout.LeftMargin()+m.layout.Width() == y.LeftMargin()+y.Width() &&
 				m.layout.TopMargin()+m.layout.Height() == y.TopMargin()+y.Height()
 		})
+	case "K":
+		m.move(func(x LayoutWindow, y Layout) Layout {
+			return LayoutHorizontal{Top: x, Bottom: y}
+		})
+	case "J":
+		m.move(func(x LayoutWindow, y Layout) Layout {
+			return LayoutHorizontal{Top: y, Bottom: x}
+		})
+	case "H":
+		m.move(func(x LayoutWindow, y Layout) Layout {
+			return LayoutVertical{Left: x, Right: y}
+		})
+	case "L":
+		m.move(func(x LayoutWindow, y Layout) Layout {
+			return LayoutVertical{Left: y, Right: x}
+		})
 	}
 	return nil
 }
@@ -315,6 +343,14 @@ func (m *Manager) focus(search func(LayoutWindow, LayoutWindow) bool) {
 		m.windowIndex = newWindow.Index
 		m.layout = m.layout.Activate(m.windowIndex)
 	}
+}
+
+func (m *Manager) move(modifier func(LayoutWindow, Layout) Layout) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	activeWindow := m.layout.ActiveWindow()
+	m.layout = modifier(activeWindow, m.layout.Close()).Activate(
+		activeWindow.Index).Resize(0, 0, m.width, m.height)
 }
 
 func (m *Manager) quit(event Event) error {

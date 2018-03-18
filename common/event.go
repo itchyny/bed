@@ -75,6 +75,10 @@ const (
 	EventWincmdFocusRight
 	EventWincmdFocusTopLeft
 	EventWincmdFocusBottomRight
+	EventWincmdMoveTop
+	EventWincmdMoveBottom
+	EventWincmdMoveLeft
+	EventWincmdMoveRight
 	EventQuit
 	EventQuitAll
 	EventWrite

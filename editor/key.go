@@ -72,6 +72,10 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventWincmdFocusTopLeft, "c-w", "c-t")
 	km.Register(EventWincmdFocusBottomRight, "c-w", "b")
 	km.Register(EventWincmdFocusBottomRight, "c-w", "c-b")
+	km.Register(EventWincmdMoveTop, "c-w", "K")
+	km.Register(EventWincmdMoveBottom, "c-w", "J")
+	km.Register(EventWincmdMoveLeft, "c-w", "H")
+	km.Register(EventWincmdMoveRight, "c-w", "L")
 	kms[ModeNormal] = km
 
 	km = NewKeyManager(false)
