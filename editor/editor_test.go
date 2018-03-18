@@ -22,9 +22,9 @@ func (ui *testUI) Init(eventCh chan<- Event) error {
 
 func (ui *testUI) Run(km map[Mode]*KeyManager) {}
 
-func (ui *testUI) Height() int { return 0 }
+func (ui *testUI) Height() int { return 10 }
 
-func (ui *testUI) Size() (int, int) { return 0, 0 }
+func (ui *testUI) Size() (int, int) { return 10, 10 }
 
 func (ui *testUI) Redraw(state State) error { return nil }
 
