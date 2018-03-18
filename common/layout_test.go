@@ -111,17 +111,29 @@ func TestLayout(t *testing.T) {
 		t.Errorf("Collect should be %+v but got %+v", expectedMap, layout.Collect())
 	}
 
-	layout = layout.Close().Resize(0, 0, 0, 0)
+	layout = layout.Close().Resize(0, 0, 15, 15)
 
 	expected = LayoutHorizontal{
 		Top: LayoutVertical{
 			Left: LayoutHorizontal{
-				Top:    LayoutWindow{Index: 2, Active: false},
-				Bottom: LayoutWindow{Index: 3, Active: true},
+				Top:    LayoutWindow{Index: 2, Active: false, left: 0, top: 0, width: 7, height: 5},
+				Bottom: LayoutWindow{Index: 3, Active: true, left: 0, top: 5, width: 7, height: 5},
+				left:   0,
+				top:    0,
+				width:  7,
+				height: 10,
 			},
-			Right: LayoutWindow{Index: 1, Active: false},
+			Right:  LayoutWindow{Index: 1, Active: false, left: 8, top: 0, width: 7, height: 10},
+			left:   0,
+			top:    0,
+			width:  15,
+			height: 10,
 		},
-		Bottom: LayoutWindow{Index: 0, Active: false},
+		Bottom: LayoutWindow{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		left:   0,
+		top:    0,
+		width:  15,
+		height: 15,
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
@@ -129,10 +141,10 @@ func TestLayout(t *testing.T) {
 	}
 
 	expectedMap = map[int]LayoutWindow{
-		0: LayoutWindow{Index: 0, Active: false},
-		1: LayoutWindow{Index: 1, Active: false},
-		2: LayoutWindow{Index: 2, Active: false},
-		3: LayoutWindow{Index: 3, Active: true},
+		0: LayoutWindow{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		1: LayoutWindow{Index: 1, Active: false, left: 8, top: 0, width: 7, height: 10},
+		2: LayoutWindow{Index: 2, Active: false, left: 0, top: 0, width: 7, height: 5},
+		3: LayoutWindow{Index: 3, Active: true, left: 0, top: 5, width: 7, height: 5},
 	}
 
 	if !reflect.DeepEqual(layout.Collect(), expectedMap) {
@@ -152,12 +164,24 @@ func TestLayout(t *testing.T) {
 	expected = LayoutHorizontal{
 		Top: LayoutVertical{
 			Left: LayoutHorizontal{
-				Top:    LayoutWindow{Index: 2, Active: false},
-				Bottom: LayoutWindow{Index: 5, Active: true},
+				Top:    LayoutWindow{Index: 2, Active: false, left: 0, top: 0, width: 7, height: 5},
+				Bottom: LayoutWindow{Index: 5, Active: true, left: 0, top: 5, width: 7, height: 5},
+				left:   0,
+				top:    0,
+				width:  7,
+				height: 10,
 			},
-			Right: LayoutWindow{Index: 1, Active: false},
+			Right:  LayoutWindow{Index: 1, Active: false, left: 8, top: 0, width: 7, height: 10},
+			left:   0,
+			top:    0,
+			width:  15,
+			height: 10,
 		},
-		Bottom: LayoutWindow{Index: 0, Active: false},
+		Bottom: LayoutWindow{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		left:   0,
+		top:    0,
+		width:  15,
+		height: 15,
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
@@ -169,12 +193,24 @@ func TestLayout(t *testing.T) {
 	expected = LayoutHorizontal{
 		Top: LayoutVertical{
 			Left: LayoutHorizontal{
-				Top:    LayoutWindow{Index: 2, Active: false},
-				Bottom: LayoutWindow{Index: 5, Active: false},
+				Top:    LayoutWindow{Index: 2, Active: false, left: 0, top: 0, width: 7, height: 5},
+				Bottom: LayoutWindow{Index: 5, Active: false, left: 0, top: 5, width: 7, height: 5},
+				left:   0,
+				top:    0,
+				width:  7,
+				height: 10,
 			},
-			Right: LayoutWindow{Index: 1, Active: true},
+			Right:  LayoutWindow{Index: 1, Active: true, left: 8, top: 0, width: 7, height: 10},
+			left:   0,
+			top:    0,
+			width:  15,
+			height: 10,
 		},
-		Bottom: LayoutWindow{Index: 0, Active: false},
+		Bottom: LayoutWindow{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		left:   0,
+		top:    0,
+		width:  15,
+		height: 15,
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
