@@ -17,6 +17,7 @@ type Layout interface {
 	SplitLeft(int) Layout
 	SplitRight(int) Layout
 	Count() (int, int)
+	Activate(int) Layout
 	ActivateFirst() Layout
 	ActiveWindow() LayoutWindow
 	Lookup(func(LayoutWindow) bool) LayoutWindow
@@ -126,6 +127,12 @@ func (l LayoutWindow) SplitRight(index int) Layout {
 // Count returns the width and height counts.
 func (l LayoutWindow) Count() (int, int) {
 	return 1, 1
+}
+
+// Activate the specific window layout.
+func (l LayoutWindow) Activate(i int) Layout {
+	l.Active = l.Index == i
+	return l
 }
 
 // ActivateFirst the first layout.
@@ -263,11 +270,27 @@ func (l LayoutHorizontal) Count() (int, int) {
 	return util.MaxInt(w1, w2), h1 + h2
 }
 
+// Activate the specific window layout.
+func (l LayoutHorizontal) Activate(i int) Layout {
+	return LayoutHorizontal{
+		Top:    l.Top.Activate(i),
+		Bottom: l.Bottom.Activate(i),
+		left:   l.left,
+		top:    l.top,
+		width:  l.width,
+		height: l.height,
+	}
+}
+
 // ActivateFirst the first layout.
 func (l LayoutHorizontal) ActivateFirst() Layout {
 	return LayoutHorizontal{
 		Top:    l.Top.ActivateFirst(),
 		Bottom: l.Bottom,
+		left:   l.left,
+		top:    l.top,
+		width:  l.width,
+		height: l.height,
 	}
 }
 
@@ -414,11 +437,27 @@ func (l LayoutVertical) Count() (int, int) {
 	return w1 + w2, util.MaxInt(h1, h2)
 }
 
+// Activate the specific window layout.
+func (l LayoutVertical) Activate(i int) Layout {
+	return LayoutVertical{
+		Left:   l.Left.Activate(i),
+		Right:  l.Right.Activate(i),
+		left:   l.left,
+		top:    l.top,
+		width:  l.width,
+		height: l.height,
+	}
+}
+
 // ActivateFirst the first layout.
 func (l LayoutVertical) ActivateFirst() Layout {
 	return LayoutVertical{
-		Left:  l.Left.ActivateFirst(),
-		Right: l.Right,
+		Left:   l.Left.ActivateFirst(),
+		Right:  l.Right,
+		left:   l.left,
+		top:    l.top,
+		width:  l.width,
+		height: l.height,
 	}
 }
 
