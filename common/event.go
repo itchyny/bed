@@ -68,6 +68,7 @@ const (
 	EventEdit
 	EventNew
 	EventVnew
+	EventWincmd
 	EventQuit
 	EventQuitAll
 	EventWrite

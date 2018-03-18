@@ -140,6 +140,12 @@ func (m *Manager) Emit(event Event) {
 		} else {
 			m.eventCh <- Event{Type: EventRedraw}
 		}
+	case EventWincmd:
+		if err := m.wincmd(event); err != nil {
+			m.eventCh <- Event{Type: EventError, Error: err}
+		} else {
+			m.eventCh <- Event{Type: EventRedraw}
+		}
 	case EventQuit:
 		if err := m.quit(event); err != nil {
 			m.eventCh <- Event{Type: EventError, Error: err}
@@ -233,6 +239,50 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 	}
 	go m.Run()
 	return nil
+}
+
+func (m *Manager) wincmd(event Event) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if len(event.Args) > 1 {
+		return fmt.Errorf("too many arguments for %s", event.CmdName)
+	}
+	if len(event.Args) == 0 {
+		return fmt.Errorf("an argument is required for %s", event.CmdName)
+	}
+	switch event.Args[0] {
+	case "l":
+		m.focusRight(event)
+	case "h":
+		m.focusLeft(event)
+	}
+	return nil
+}
+
+func (m *Manager) focusRight(event Event) {
+	activeWindow := m.layout.ActiveWindow()
+	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
+		return activeWindow.LeftMargin()+activeWindow.Width()+1 == l.LeftMargin() &&
+			l.TopMargin() <= activeWindow.TopMargin() &&
+			activeWindow.TopMargin() < l.TopMargin()+l.Height()
+	})
+	if newWindow.Index >= 0 {
+		m.windowIndex = newWindow.Index
+		m.layout = m.layout.Activate(m.windowIndex)
+	}
+}
+
+func (m *Manager) focusLeft(event Event) {
+	activeWindow := m.layout.ActiveWindow()
+	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
+		return l.LeftMargin()+l.Width()+1 == activeWindow.LeftMargin() &&
+			l.TopMargin() <= activeWindow.TopMargin() &&
+			activeWindow.TopMargin() < l.TopMargin()+l.Height()
+	})
+	if newWindow.Index >= 0 {
+		m.windowIndex = newWindow.Index
+		m.layout = m.layout.Activate(m.windowIndex)
+	}
 }
 
 func (m *Manager) quit(event Event) error {
