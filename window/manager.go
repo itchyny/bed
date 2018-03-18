@@ -20,15 +20,16 @@ import (
 
 // Manager manages the windows and files.
 type Manager struct {
-	width       int
-	height      int
-	windows     []*window
-	layout      Layout
-	mu          *sync.Mutex
-	windowIndex int
-	files       []file
-	eventCh     chan<- Event
-	redrawCh    chan<- struct{}
+	width           int
+	height          int
+	windows         []*window
+	layout          Layout
+	mu              *sync.Mutex
+	windowIndex     int
+	prevWindowIndex int
+	files           []file
+	eventCh         chan<- Event
+	redrawCh        chan<- struct{}
 }
 
 type file struct {
@@ -57,7 +58,7 @@ func (m *Manager) Open(filename string) error {
 		return err
 	}
 	m.windows = append(m.windows, window)
-	m.windowIndex = len(m.windows) - 1
+	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
 	return nil
 }
@@ -178,6 +179,9 @@ func (m *Manager) Emit(event Event) {
 	case EventFocusWindowBottomRight:
 		m.wincmd("b")
 		m.eventCh <- Event{Type: EventRedraw}
+	case EventFocusWindowPrevious:
+		m.wincmd("p")
+		m.eventCh <- Event{Type: EventRedraw}
 	case EventMoveWindowTop:
 		m.wincmd("K")
 		m.eventCh <- Event{Type: EventRedraw}
@@ -258,7 +262,7 @@ func (m *Manager) edit(event Event) error {
 		return err
 	}
 	m.windows = append(m.windows, window)
-	m.windowIndex = len(m.windows) - 1
+	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
 	go m.Run()
 	return nil
@@ -275,7 +279,7 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 		return err
 	}
 	m.windows = append(m.windows, window)
-	m.windowIndex = len(m.windows) - 1
+	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	if vertical {
 		m.layout = m.layout.SplitLeft(m.windowIndex).Resize(0, 0, m.width, m.height)
 	} else {
@@ -322,6 +326,10 @@ func (m *Manager) wincmd(arg string) error {
 			return m.layout.LeftMargin()+m.layout.Width() == y.LeftMargin()+y.Width() &&
 				m.layout.TopMargin()+m.layout.Height() == y.TopMargin()+y.Height()
 		})
+	case "p":
+		m.focus(func(_, y LayoutWindow) bool {
+			return y.Index == m.prevWindowIndex
+		})
 	case "K":
 		m.move(func(x LayoutWindow, y Layout) Layout {
 			return LayoutHorizontal{Top: x, Bottom: y}
@@ -350,7 +358,7 @@ func (m *Manager) focus(search func(LayoutWindow, LayoutWindow) bool) {
 		return search(activeWindow, l)
 	})
 	if newWindow.Index >= 0 {
-		m.windowIndex = newWindow.Index
+		m.windowIndex, m.prevWindowIndex = newWindow.Index, m.windowIndex
 		m.layout = m.layout.Activate(m.windowIndex)
 	}
 }
@@ -373,7 +381,7 @@ func (m *Manager) quit(event Event) error {
 	} else {
 		m.mu.Lock()
 		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
-		m.windowIndex = m.layout.ActiveWindow().Index
+		m.windowIndex, m.prevWindowIndex = m.layout.ActiveWindow().Index, m.windowIndex
 		m.mu.Unlock()
 		m.eventCh <- Event{Type: EventRedraw}
 	}

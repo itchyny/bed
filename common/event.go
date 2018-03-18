@@ -75,6 +75,7 @@ const (
 	EventFocusWindowRight
 	EventFocusWindowTopLeft
 	EventFocusWindowBottomRight
+	EventFocusWindowPrevious
 	EventMoveWindowTop
 	EventMoveWindowBottom
 	EventMoveWindowLeft
