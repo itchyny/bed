@@ -119,6 +119,16 @@ func TestWindowEmptyState(t *testing.T) {
 	if !reflect.DeepEqual(state.Bytes, expected) {
 		t.Errorf("state.Bytes should be %q but got %q", expected, state.Bytes)
 	}
+
+	window.scrollDown(0)
+	state, err = window.State()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if state.Offset != 0 {
+		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	}
 }
 
 func TestWindowCursorMotions(t *testing.T) {
