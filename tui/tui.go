@@ -12,8 +12,6 @@ import (
 
 // Tui implements UI
 type Tui struct {
-	width   int
-	height  int
 	eventCh chan<- Event
 	mode    Mode
 	screen  tcell.Screen
@@ -50,18 +48,6 @@ func (ui *Tui) Run(kms map[Mode]*KeyManager) {
 			return
 		}
 	}
-}
-
-// Height returns the height for the hex view.
-func (ui *Tui) Height() int {
-	_, height := ui.screen.Size()
-	return height - 3
-}
-
-// Width returns the width for the hex view.
-func (ui *Tui) Width() int {
-	width, _ := ui.screen.Size()
-	return width
 }
 
 // Size returns the size for the screen.
@@ -118,15 +104,16 @@ func (ui *Tui) drawVerticalSplit(region region) {
 }
 
 func (ui *Tui) drawCmdline(state State) {
+	width, height := ui.Size()
 	if state.Error != nil {
 		style := tcell.StyleDefault.Foreground(tcell.ColorRed)
 		if state.ErrorType == MessageInfo {
 			style = style.Foreground(tcell.ColorYellow)
 		}
-		ui.setLine(ui.Height()+2, 0, state.Error.Error()+strings.Repeat(" ", ui.Width()), style)
+		ui.setLine(height-1, 0, state.Error.Error()+strings.Repeat(" ", width), style)
 	} else if state.Mode == ModeCmdline {
-		ui.setLine(ui.Height()+2, 0, ":"+string(state.Cmdline)+strings.Repeat(" ", ui.Width()), 0)
-		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), ui.Height()+2)
+		ui.setLine(height-1, 0, ":"+string(state.Cmdline)+strings.Repeat(" ", width), 0)
+		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
 	}
 }
 
