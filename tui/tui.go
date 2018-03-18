@@ -32,6 +32,13 @@ func (ui *Tui) Init(eventCh chan<- Event) (err error) {
 	return ui.screen.Init()
 }
 
+func (ui *Tui) initForTest(eventCh chan<- Event, screen tcell.SimulationScreen) (err error) {
+	ui.eventCh = eventCh
+	ui.mode = ModeNormal
+	ui.screen = screen
+	return ui.screen.Init()
+}
+
 // Run the Tui.
 func (ui *Tui) Run(kms map[Mode]*KeyManager) {
 	kms[ModeNormal].Register(EventQuit, "c-c")
