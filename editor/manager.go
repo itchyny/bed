@@ -4,7 +4,7 @@ import . "github.com/itchyny/bed/common"
 
 // Manager defines the required window manager interface for the editor.
 type Manager interface {
-	Init(chan<- Event, chan<- struct{}) error
+	Init(chan<- Event, chan<- struct{})
 	Open(string) error
 	SetSize(int, int)
 	Resize(int, int)

@@ -34,9 +34,7 @@ func (ui *testUI) Emit(e Event) { ui.eventCh <- e }
 
 type testCmdline struct{}
 
-func (c *testCmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh chan<- struct{}) error {
-	return nil
-}
+func (c *testCmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh chan<- struct{}) {}
 
 func (c *testCmdline) Run() {}
 

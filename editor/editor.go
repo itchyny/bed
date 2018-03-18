@@ -30,10 +30,9 @@ func (e *Editor) Init() error {
 	e.eventCh = make(chan Event, 1)
 	e.redrawCh = make(chan struct{})
 	e.cmdlineCh = make(chan Event)
-	if err := e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh); err != nil {
-		return err
-	}
-	return e.wm.Init(e.eventCh, e.redrawCh)
+	e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh)
+	e.wm.Init(e.eventCh, e.redrawCh)
+	return nil
 }
 
 func (e *Editor) listen() {

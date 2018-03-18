@@ -43,9 +43,9 @@ func NewManager() *Manager {
 }
 
 // Init initializes the Manager.
-func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
-	m.eventCh, m.redrawCh, m.mu = eventCh, redrawCh, new(sync.Mutex)
-	return nil
+func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) {
+	m.eventCh, m.redrawCh = eventCh, redrawCh
+	m.mu = new(sync.Mutex)
 }
 
 // Open a new window.
