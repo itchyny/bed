@@ -66,30 +66,26 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 func (ui *Tui) Redraw(state State) error {
 	ui.mode = state.Mode
 	ui.screen.Clear()
-	r := region{top: 0, left: 0, height: state.Layout.Height(), width: state.Layout.Width()}
-	ui.drawWindows(state.Windows, state.Layout, r)
+	ui.drawWindows(state.Windows, state.Layout)
 	ui.drawCmdline(state)
 	ui.screen.Show()
 	return nil
 }
 
-func (ui *Tui) drawWindows(windows []WindowState, layout Layout, r region) {
+func (ui *Tui) drawWindows(windows []WindowState, layout Layout) {
 	switch l := layout.(type) {
 	case LayoutWindow:
+		r := fromLayout(layout)
 		if r.valid() {
 			ui.newTuiWindow(r).drawWindow(windows[l.Index], l.Active)
 		}
 	case LayoutHorizontal:
-		r1 := region{top: r.top, left: r.left, height: l.Top.Height(), width: l.Top.Width()}
-		r2 := region{top: r.top + l.Top.Height(), left: r.left, height: l.Bottom.Height(), width: l.Bottom.Width()}
-		ui.drawWindows(windows, l.Top, r1)
-		ui.drawWindows(windows, l.Bottom, r2)
+		ui.drawWindows(windows, l.Top)
+		ui.drawWindows(windows, l.Bottom)
 	case LayoutVertical:
-		r1 := region{top: r.top, left: r.left, height: r.height, width: l.Left.Width()}
-		r2 := region{top: r.top, left: r.left + l.Left.Width() + 1, height: r.height, width: l.Right.Width()}
-		ui.drawWindows(windows, l.Left, r1)
-		ui.drawWindows(windows, l.Right, r2)
-		ui.drawVerticalSplit(r1)
+		ui.drawWindows(windows, l.Left)
+		ui.drawWindows(windows, l.Right)
+		ui.drawVerticalSplit(fromLayout(l.Left))
 	}
 }
 

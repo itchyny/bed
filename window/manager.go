@@ -52,7 +52,7 @@ func (m *Manager) Open(filename string) error {
 		return err
 	}
 	m.addWindow(window, func(index int, _ Layout) Layout {
-		return NewLayout(index).Resize(m.width, m.height)
+		return NewLayout(index).Resize(0, 0, m.width, m.height)
 	})
 	return nil
 }
@@ -104,7 +104,7 @@ func (m *Manager) SetSize(width, height int) {
 // Resize sets the size of the screen.
 func (m *Manager) Resize(width, height int) {
 	m.width, m.height = width, height
-	m.layout = m.layout.Resize(width, height)
+	m.layout = m.layout.Resize(0, 0, width, height)
 }
 
 // Run the Manager.
@@ -221,9 +221,9 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 	var temp = int((^uint(0)) >> 1)
 	var newLayout Layout
 	if vertical {
-		newLayout = m.layout.SplitLeft(temp).Resize(m.width, m.height)
+		newLayout = m.layout.SplitLeft(temp).Resize(0, 0, m.width, m.height)
 	} else {
-		newLayout = m.layout.SplitTop(temp).Resize(m.width, m.height)
+		newLayout = m.layout.SplitTop(temp).Resize(0, 0, m.width, m.height)
 	}
 	l := newLayout.Lookup(temp)
 	window, err := m.open("", l.Width(), l.Height())
@@ -246,7 +246,7 @@ func (m *Manager) quit(event Event) error {
 		m.eventCh <- Event{Type: EventQuitAll}
 	} else {
 		m.mu.Lock()
-		m.layout = m.layout.Close().Resize(m.width, m.height)
+		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
 		m.index = m.layout.ActiveIndex()
 		m.mu.Unlock()
 		m.eventCh <- Event{Type: EventRedraw}
