@@ -39,10 +39,6 @@ func TestLayout(t *testing.T) {
 		t.Errorf("layout height be %d but got %d", 3, h)
 	}
 
-	if !reflect.DeepEqual(layout.Indices(), []int{2, 3, 4, 1, 0}) {
-		t.Errorf("Indices should be %+v but got %+v", []int{0}, layout.Indices())
-	}
-
 	layout = layout.Resize(0, 0, 15, 15)
 
 	expected = LayoutHorizontal{
@@ -94,6 +90,18 @@ func TestLayout(t *testing.T) {
 		t.Errorf("Lookup(5) should be %+v but got %+v", expectedWindow, layout.Lookup(5))
 	}
 
+	expectedMap := map[int]LayoutWindow{
+		0: LayoutWindow{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		1: LayoutWindow{Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10},
+		2: LayoutWindow{Index: 2, Active: false, left: 0, top: 0, width: 10, height: 5},
+		3: LayoutWindow{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5},
+		4: LayoutWindow{Index: 4, Active: true, left: 6, top: 5, width: 4, height: 5},
+	}
+
+	if !reflect.DeepEqual(layout.Collect(), expectedMap) {
+		t.Errorf("Collect should be %+v but got %+v", expectedMap, layout.Collect())
+	}
+
 	layout = layout.Close().Resize(0, 0, 0, 0)
 
 	expected = LayoutHorizontal{
@@ -109,6 +117,17 @@ func TestLayout(t *testing.T) {
 
 	if !reflect.DeepEqual(layout, expected) {
 		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
+
+	expectedMap = map[int]LayoutWindow{
+		0: LayoutWindow{Index: 0, Active: false},
+		1: LayoutWindow{Index: 1, Active: false},
+		2: LayoutWindow{Index: 2, Active: false},
+		3: LayoutWindow{Index: 3, Active: true},
+	}
+
+	if !reflect.DeepEqual(layout.Collect(), expectedMap) {
+		t.Errorf("Collect should be %+v but got %+v", expectedMap, layout.Collect())
 	}
 
 	w, h = layout.Count()

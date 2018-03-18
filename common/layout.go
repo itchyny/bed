@@ -5,7 +5,7 @@ import "github.com/itchyny/bed/util"
 // Layout represents the window layout.
 type Layout interface {
 	isLayout()
-	Indices() []int
+	Collect() map[int]LayoutWindow
 	Replace(int) Layout
 	Resize(int, int, int, int) Layout
 	LeftMargin() int
@@ -40,9 +40,9 @@ func NewLayout(index int) Layout {
 
 func (l LayoutWindow) isLayout() {}
 
-// Indices returns all the window indeces.
-func (l LayoutWindow) Indices() []int {
-	return []int{l.Index}
+// Collect returns all the LayoutWindow.
+func (l LayoutWindow) Collect() map[int]LayoutWindow {
+	return map[int]LayoutWindow{l.Index: l}
 }
 
 // Replace the active window with new window index.
@@ -170,9 +170,13 @@ type LayoutHorizontal struct {
 
 func (l LayoutHorizontal) isLayout() {}
 
-// Indices returns all the window indeces.
-func (l LayoutHorizontal) Indices() []int {
-	return append(l.Top.Indices(), l.Bottom.Indices()...)
+// Collect returns all the LayoutWindow.
+func (l LayoutHorizontal) Collect() map[int]LayoutWindow {
+	m := l.Top.Collect()
+	for i, l := range l.Bottom.Collect() {
+		m[i] = l
+	}
+	return m
 }
 
 // Replace the active window with new window index.
@@ -315,9 +319,13 @@ type LayoutVertical struct {
 
 func (l LayoutVertical) isLayout() {}
 
-// Indices returns all the window indeces.
-func (l LayoutVertical) Indices() []int {
-	return append(l.Left.Indices(), l.Right.Indices()...)
+// Collect returns all the LayoutWindow.
+func (l LayoutVertical) Collect() map[int]LayoutWindow {
+	m := l.Left.Collect()
+	for i, l := range l.Right.Collect() {
+		m[i] = l
+	}
+	return m
 }
 
 // Replace the active window with new window index.

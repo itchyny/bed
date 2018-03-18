@@ -282,18 +282,10 @@ func (m *Manager) writeQuit(event Event) error {
 func (m *Manager) State() ([]WindowState, Layout, int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	indices := m.layout.Indices()
+	layouts := m.layout.Collect()
 	states := make([]WindowState, len(m.windows))
 	for i, window := range m.windows {
-		required := false
-		for _, j := range indices {
-			if i == j {
-				required = true
-				break
-			}
-		}
-		if required {
-			l := m.layout.Lookup(i)
+		if l, ok := layouts[i]; ok {
 			window.setSize(16, l.Height()-2)
 			var err error
 			if states[i], err = window.State(); err != nil {
