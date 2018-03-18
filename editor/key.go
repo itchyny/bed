@@ -50,6 +50,8 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventSwitchFocus, "tab")
 	km.Register(EventStartCmdline, ":")
 
+	km.Register(EventNew, "c-w", "n")
+	km.Register(EventNew, "c-w", "c-n")
 	km.Register(EventWincmdMoveDown, "c-w", "down")
 	km.Register(EventWincmdMoveDown, "c-w", "c-j")
 	km.Register(EventWincmdMoveDown, "c-w", "j")
