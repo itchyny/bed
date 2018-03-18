@@ -258,66 +258,41 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 }
 
 func (m *Manager) wincmd(arg string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	switch arg {
 	case "l":
-		m.focusRight()
+		m.focus(func(x, y LayoutWindow) bool {
+			return x.LeftMargin()+x.Width()+1 == y.LeftMargin() &&
+				y.TopMargin() <= x.TopMargin() &&
+				x.TopMargin() < y.TopMargin()+y.Height()
+		})
 	case "h":
-		m.focusLeft()
+		m.focus(func(x, y LayoutWindow) bool {
+			return y.LeftMargin()+y.Width()+1 == x.LeftMargin() &&
+				y.TopMargin() <= x.TopMargin() &&
+				x.TopMargin() < y.TopMargin()+y.Height()
+		})
 	case "k":
-		m.focusUp()
+		m.focus(func(x, y LayoutWindow) bool {
+			return y.TopMargin()+y.Height() == x.TopMargin() &&
+				y.LeftMargin() <= x.LeftMargin() &&
+				x.LeftMargin() < y.LeftMargin()+y.Width()
+		})
 	case "j":
-		m.focusDown()
+		m.focus(func(x, y LayoutWindow) bool {
+			return x.TopMargin()+x.Height() == y.TopMargin() &&
+				y.LeftMargin() <= x.LeftMargin() &&
+				x.LeftMargin() < y.LeftMargin()+y.Width()
+		})
 	}
 	return nil
 }
 
-func (m *Manager) focusRight() {
+func (m *Manager) focus(search func(LayoutWindow, LayoutWindow) bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	activeWindow := m.layout.ActiveWindow()
 	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
-		return activeWindow.LeftMargin()+activeWindow.Width()+1 == l.LeftMargin() &&
-			l.TopMargin() <= activeWindow.TopMargin() &&
-			activeWindow.TopMargin() < l.TopMargin()+l.Height()
-	})
-	if newWindow.Index >= 0 {
-		m.windowIndex = newWindow.Index
-		m.layout = m.layout.Activate(m.windowIndex)
-	}
-}
-
-func (m *Manager) focusLeft() {
-	activeWindow := m.layout.ActiveWindow()
-	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
-		return l.LeftMargin()+l.Width()+1 == activeWindow.LeftMargin() &&
-			l.TopMargin() <= activeWindow.TopMargin() &&
-			activeWindow.TopMargin() < l.TopMargin()+l.Height()
-	})
-	if newWindow.Index >= 0 {
-		m.windowIndex = newWindow.Index
-		m.layout = m.layout.Activate(m.windowIndex)
-	}
-}
-
-func (m *Manager) focusUp() {
-	activeWindow := m.layout.ActiveWindow()
-	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
-		return l.TopMargin()+l.Height() == activeWindow.TopMargin() &&
-			l.LeftMargin() <= activeWindow.LeftMargin() &&
-			activeWindow.LeftMargin() < l.LeftMargin()+l.Width()
-	})
-	if newWindow.Index >= 0 {
-		m.windowIndex = newWindow.Index
-		m.layout = m.layout.Activate(m.windowIndex)
-	}
-}
-
-func (m *Manager) focusDown() {
-	activeWindow := m.layout.ActiveWindow()
-	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
-		return activeWindow.TopMargin()+activeWindow.Height() == l.TopMargin() &&
-			l.LeftMargin() <= activeWindow.LeftMargin() &&
-			activeWindow.LeftMargin() < l.LeftMargin()+l.Width()
+		return search(activeWindow, l)
 	})
 	if newWindow.Index >= 0 {
 		m.windowIndex = newWindow.Index
