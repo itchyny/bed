@@ -161,7 +161,8 @@ func (ui *tuiWindow) drawFooter(state *WindowState, offsetStyleWidth int) {
 	if name == "" {
 		name = "[No name]"
 	}
-	line := fmt.Sprintf(" %s%s: "+offsetStyle+" / "+offsetStyle+" (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
+	line := fmt.Sprintf(" %s%s: "+offsetStyle+" / "+offsetStyle+
+		" (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
 		prettyMode(state.Mode), name, state.Cursor, state.Length,
 		float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
