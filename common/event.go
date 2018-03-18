@@ -73,6 +73,8 @@ const (
 	EventWincmdMoveDown
 	EventWincmdMoveLeft
 	EventWincmdMoveRight
+	EventWincmdMoveTopLeft
+	EventWincmdMoveBottomRight
 	EventQuit
 	EventQuitAll
 	EventWrite

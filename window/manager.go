@@ -162,6 +162,12 @@ func (m *Manager) Emit(event Event) {
 	case EventWincmdMoveRight:
 		m.wincmd("l")
 		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveTopLeft:
+		m.wincmd("t")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveBottomRight:
+		m.wincmd("b")
+		m.eventCh <- Event{Type: EventRedraw}
 	case EventQuit:
 		if err := m.quit(event); err != nil {
 			m.eventCh <- Event{Type: EventError, Error: err}
@@ -284,6 +290,15 @@ func (m *Manager) wincmd(arg string) error {
 			return x.TopMargin()+x.Height() == y.TopMargin() &&
 				y.LeftMargin() <= x.LeftMargin() &&
 				x.LeftMargin() < y.LeftMargin()+y.Width()
+		})
+	case "t":
+		m.focus(func(_, y LayoutWindow) bool {
+			return y.LeftMargin() == 0 && y.TopMargin() == 0
+		})
+	case "b":
+		m.focus(func(_, y LayoutWindow) bool {
+			return m.layout.LeftMargin()+m.layout.Width() == y.LeftMargin()+y.Width() &&
+				m.layout.TopMargin()+m.layout.Height() == y.TopMargin()+y.Height()
 		})
 	}
 	return nil
