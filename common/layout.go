@@ -18,8 +18,8 @@ type Layout interface {
 	SplitRight(int) Layout
 	Count() (int, int)
 	Activate() Layout
-	ActiveIndex() int
-	Lookup(int) LayoutWindow
+	ActiveWindow() LayoutWindow
+	Lookup(func(LayoutWindow) bool) LayoutWindow
 	Close() Layout
 }
 
@@ -134,17 +134,17 @@ func (l LayoutWindow) Activate() Layout {
 	return l
 }
 
-// ActiveIndex returns the active window index.
-func (l LayoutWindow) ActiveIndex() int {
+// ActiveWindow returns the active window.
+func (l LayoutWindow) ActiveWindow() LayoutWindow {
 	if l.Active {
-		return l.Index
+		return l
 	}
-	return -1
+	return LayoutWindow{Index: -1}
 }
 
-// Lookup returns the specific window.
-func (l LayoutWindow) Lookup(index int) LayoutWindow {
-	if l.Index == index {
+// Lookup search for the window meets the condition.
+func (l LayoutWindow) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
+	if cond(l) {
 		return l
 	}
 	return LayoutWindow{Index: -1}
@@ -271,20 +271,20 @@ func (l LayoutHorizontal) Activate() Layout {
 	}
 }
 
-// ActiveIndex returns the active window index.
-func (l LayoutHorizontal) ActiveIndex() int {
-	if index := l.Top.ActiveIndex(); index >= 0 {
-		return index
-	}
-	return l.Bottom.ActiveIndex()
-}
-
-// Lookup returns the specific window.
-func (l LayoutHorizontal) Lookup(index int) LayoutWindow {
-	if layout := l.Top.Lookup(index); layout.Index >= 0 {
+// ActiveWindow returns the active window.
+func (l LayoutHorizontal) ActiveWindow() LayoutWindow {
+	if layout := l.Top.ActiveWindow(); layout.Index >= 0 {
 		return layout
 	}
-	return l.Bottom.Lookup(index)
+	return l.Bottom.ActiveWindow()
+}
+
+// Lookup search for the window meets the condition.
+func (l LayoutHorizontal) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
+	if layout := l.Top.Lookup(cond); layout.Index >= 0 {
+		return layout
+	}
+	return l.Bottom.Lookup(cond)
 }
 
 // Close the active layout.
@@ -422,20 +422,20 @@ func (l LayoutVertical) Activate() Layout {
 	}
 }
 
-// ActiveIndex returns the active window index.
-func (l LayoutVertical) ActiveIndex() int {
-	if index := l.Left.ActiveIndex(); index >= 0 {
-		return index
-	}
-	return l.Right.ActiveIndex()
-}
-
-// Lookup returns the specific window.
-func (l LayoutVertical) Lookup(index int) LayoutWindow {
-	if layout := l.Left.Lookup(index); layout.Index >= 0 {
+// ActiveWindow returns the active window.
+func (l LayoutVertical) ActiveWindow() LayoutWindow {
+	if layout := l.Left.ActiveWindow(); layout.Index >= 0 {
 		return layout
 	}
-	return l.Right.Lookup(index)
+	return l.Right.ActiveWindow()
+}
+
+// Lookup search for the window meets the condition.
+func (l LayoutVertical) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
+	if layout := l.Left.Lookup(cond); layout.Index >= 0 {
+		return layout
+	}
+	return l.Right.Lookup(cond)
 }
 
 // Close the active layout.
