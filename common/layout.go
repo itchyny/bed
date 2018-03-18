@@ -17,7 +17,7 @@ type Layout interface {
 	SplitLeft(int) Layout
 	SplitRight(int) Layout
 	Count() (int, int)
-	Activate() Layout
+	ActivateFirst() Layout
 	ActiveWindow() LayoutWindow
 	Lookup(func(LayoutWindow) bool) LayoutWindow
 	Close() Layout
@@ -128,8 +128,8 @@ func (l LayoutWindow) Count() (int, int) {
 	return 1, 1
 }
 
-// Activate the first layout.
-func (l LayoutWindow) Activate() Layout {
+// ActivateFirst the first layout.
+func (l LayoutWindow) ActivateFirst() Layout {
 	l.Active = true
 	return l
 }
@@ -263,10 +263,10 @@ func (l LayoutHorizontal) Count() (int, int) {
 	return util.MaxInt(w1, w2), h1 + h2
 }
 
-// Activate the first layout.
-func (l LayoutHorizontal) Activate() Layout {
+// ActivateFirst the first layout.
+func (l LayoutHorizontal) ActivateFirst() Layout {
 	return LayoutHorizontal{
-		Top:    l.Top.Activate(),
+		Top:    l.Top.ActivateFirst(),
 		Bottom: l.Bottom,
 	}
 }
@@ -292,13 +292,13 @@ func (l LayoutHorizontal) Close() Layout {
 	switch m := l.Top.(type) {
 	case LayoutWindow:
 		if m.Active {
-			return l.Bottom.Activate()
+			return l.Bottom.ActivateFirst()
 		}
 	}
 	switch m := l.Bottom.(type) {
 	case LayoutWindow:
 		if m.Active {
-			return l.Top.Activate()
+			return l.Top.ActivateFirst()
 		}
 	}
 	return LayoutHorizontal{
@@ -414,10 +414,10 @@ func (l LayoutVertical) Count() (int, int) {
 	return w1 + w2, util.MaxInt(h1, h2)
 }
 
-// Activate the first layout.
-func (l LayoutVertical) Activate() Layout {
+// ActivateFirst the first layout.
+func (l LayoutVertical) ActivateFirst() Layout {
 	return LayoutVertical{
-		Left:  l.Left.Activate(),
+		Left:  l.Left.ActivateFirst(),
 		Right: l.Right,
 	}
 }
@@ -443,13 +443,13 @@ func (l LayoutVertical) Close() Layout {
 	switch m := l.Left.(type) {
 	case LayoutWindow:
 		if m.Active {
-			return l.Right.Activate()
+			return l.Right.ActivateFirst()
 		}
 	}
 	switch m := l.Right.(type) {
 	case LayoutWindow:
 		if m.Active {
-			return l.Left.Activate()
+			return l.Left.ActivateFirst()
 		}
 	}
 	return LayoutVertical{
