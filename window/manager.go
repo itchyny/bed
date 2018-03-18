@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/mitchellh/go-homedir"
+
 	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/util"
 )
@@ -68,6 +70,11 @@ func (m *Manager) open(filename string) (*window, error) {
 		}
 		return window, nil
 	}
+	name, err := homedir.Expand(filename)
+	if err != nil {
+		return nil, err
+	}
+	filename = name
 	f, err := os.Open(filename)
 	if err != nil {
 		if !os.IsNotExist(err) {

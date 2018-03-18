@@ -7,9 +7,15 @@
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f8081d33144af9635a2b3bdc6a476f26ba83b6f5e875fa1779777b758a561bae"
+  inputs-digest = "780465c7af069a306ba8479cf7ba335e7c7139b9d3236495a5a849545c60de8f"
   solver-name = "gps-cdcl"
   solver-version = 1
