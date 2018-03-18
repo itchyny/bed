@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/util"
 )
 
 // Manager manages the windows and files.
@@ -286,7 +287,7 @@ func (m *Manager) State() (map[int]*WindowState, Layout, int, error) {
 	states := make(map[int]*WindowState, len(m.windows))
 	for i, window := range m.windows {
 		if l, ok := layouts[i]; ok {
-			window.setSize(hexWindowWidth(l.Width()), l.Height()-2)
+			window.setSize(hexWindowWidth(l.Width()), util.MaxInt(l.Height()-2, 1))
 			var err error
 			if states[i], err = window.State(); err != nil {
 				return nil, m.layout, 0, err
