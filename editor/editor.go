@@ -62,6 +62,8 @@ func (e *Editor) listen() {
 			e.err, e.errtyp = event.Error, MessageError
 			e.redrawCh <- struct{}{}
 		case EventRedraw:
+			width, height := e.ui.Size()
+			e.wm.Resize(width, height-1)
 			e.redrawCh <- struct{}{}
 		default:
 			switch event.Type {
