@@ -259,6 +259,8 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 
 func (m *Manager) wincmd(arg string) error {
 	switch arg {
+	case "n":
+		return m.newWindow(Event{}, false)
 	case "l":
 		m.focus(func(x, y LayoutWindow) bool {
 			return x.LeftMargin()+x.Width()+1 == y.LeftMargin() &&
