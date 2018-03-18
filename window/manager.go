@@ -271,10 +271,14 @@ func (m *Manager) edit(event Event) error {
 func (m *Manager) newWindow(event Event, vertical bool) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if len(event.Args) > 0 {
+	if len(event.Args) > 1 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
-	window, err := m.open("")
+	var name string
+	if len(event.Args) > 0 {
+		name = event.Args[0]
+	}
+	window, err := m.open(name)
 	if err != nil {
 		return err
 	}
