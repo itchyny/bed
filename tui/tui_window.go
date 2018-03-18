@@ -55,11 +55,13 @@ func (ui *tuiWindow) drawWindow(state *WindowState, active bool) {
 			} else {
 				d.setOffset(3*j).setString(" ", styles[i][j]|tcell.StyleDefault)
 				if i*width+j == cursorPos {
-					styles[i][j] = styles[i][j].Reverse(!state.FocusText).Bold(state.FocusText).Underline(state.FocusText)
+					styles[i][j] = styles[i][j].Reverse(active && !state.FocusText).Bold(
+						!active || state.FocusText).Underline(!active || state.FocusText)
 				}
 				d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
 				if i*width+j == cursorPos {
-					styles[i][j] = styles[i][j].Reverse(state.FocusText).Bold(!state.FocusText).Underline(!state.FocusText)
+					styles[i][j] = styles[i][j].Reverse(active && state.FocusText).Bold(
+						!active || !state.FocusText).Underline(!active || !state.FocusText)
 				}
 				d.setOffset(3*width+j+3).setString(string(prettyByte(bytes[i][j])), styles[i][j])
 			}
