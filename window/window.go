@@ -56,6 +56,7 @@ func newWindow(r io.ReadSeeker, filename string, name string, redrawCh chan<- st
 
 func (w *window) setSize(width, height int) {
 	w.width, w.height = int64(width), int64(height)
+	w.offset = w.offset / w.width * w.width
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
