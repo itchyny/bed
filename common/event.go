@@ -69,6 +69,10 @@ const (
 	EventNew
 	EventVnew
 	EventWincmd
+	EventWincmdMoveUp
+	EventWincmdMoveDown
+	EventWincmdMoveLeft
+	EventWincmdMoveRight
 	EventQuit
 	EventQuitAll
 	EventWrite

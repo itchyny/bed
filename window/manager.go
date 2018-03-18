@@ -150,6 +150,18 @@ func (m *Manager) Emit(event Event) {
 		} else {
 			m.eventCh <- Event{Type: EventRedraw}
 		}
+	case EventWincmdMoveDown:
+		m.wincmd("j")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveUp:
+		m.wincmd("k")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveLeft:
+		m.wincmd("h")
+		m.eventCh <- Event{Type: EventRedraw}
+	case EventWincmdMoveRight:
+		m.wincmd("l")
+		m.eventCh <- Event{Type: EventRedraw}
 	case EventQuit:
 		if err := m.quit(event); err != nil {
 			m.eventCh <- Event{Type: EventError, Error: err}
