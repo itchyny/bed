@@ -25,7 +25,7 @@ func (ui *tuiWindow) setCursor(line int, offset int) {
 	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
 }
 
-func (ui *tuiWindow) offsetStyleWidth(state WindowState) int {
+func (ui *tuiWindow) offsetStyleWidth(state *WindowState) int {
 	threshold := int64(0xfffff)
 	for i := 0; i < 5; i++ {
 		if state.Length <= threshold {
@@ -36,7 +36,7 @@ func (ui *tuiWindow) offsetStyleWidth(state WindowState) int {
 	return 16
 }
 
-func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
+func (ui *tuiWindow) drawWindow(state *WindowState, active bool) {
 	height, width := ui.region.height-2, state.Width
 	bytes, styles := ui.bytesArray(height, width, state)
 	cursorPos := int(state.Cursor - state.Offset)
@@ -83,7 +83,7 @@ func (ui *tuiWindow) drawWindow(state WindowState, active bool) {
 	ui.drawFooter(state, offsetStyleWidth)
 }
 
-func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte, [][]tcell.Style) {
+func (ui *tuiWindow) bytesArray(height, width int, state *WindowState) ([][]byte, [][]tcell.Style) {
 	var k int
 	if height <= 0 {
 		return nil, nil
@@ -118,7 +118,7 @@ func (ui *tuiWindow) bytesArray(height, width int, state WindowState) ([][]byte,
 	return bytes, styles
 }
 
-func (ui *tuiWindow) drawHeader(state WindowState, offsetStyleWidth int) {
+func (ui *tuiWindow) drawHeader(state *WindowState, offsetStyleWidth int) {
 	style := tcell.StyleDefault.Underline(true)
 	d := ui.getTextDrawer()
 	d.setString(strings.Repeat(" ", 4*state.Width+8+offsetStyleWidth), style)
@@ -131,7 +131,7 @@ func (ui *tuiWindow) drawHeader(state WindowState, offsetStyleWidth int) {
 	d.setOffset(3*state.Width+4).setString("|", style)
 }
 
-func (ui *tuiWindow) drawScrollBar(state WindowState, height int, left int) {
+func (ui *tuiWindow) drawScrollBar(state *WindowState, height int, left int) {
 	stateSize := state.Size
 	if state.Cursor+1 == state.Length && state.Cursor == state.Offset+int64(state.Size) {
 		stateSize++
@@ -152,7 +152,7 @@ func (ui *tuiWindow) drawScrollBar(state WindowState, height int, left int) {
 	}
 }
 
-func (ui *tuiWindow) drawFooter(state WindowState, offsetStyleWidth int) {
+func (ui *tuiWindow) drawFooter(state *WindowState, offsetStyleWidth int) {
 	offsetStyle := "%0" + strconv.Itoa(offsetStyleWidth) + "x"
 	j := int(state.Cursor - state.Offset)
 	name := state.Name

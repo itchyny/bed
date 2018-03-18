@@ -119,7 +119,7 @@ func (e *Editor) redraw() (err error) {
 	var state State
 	var windowIndex int
 	state.WindowStates, state.Layout, windowIndex, err = e.wm.State()
-	if windowIndex < 0 || len(state.WindowStates) <= windowIndex {
+	if state.WindowStates[windowIndex] == nil {
 		return errors.New("index out of windows")
 	}
 	state.WindowStates[windowIndex].Mode = e.mode

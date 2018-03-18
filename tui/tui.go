@@ -72,7 +72,7 @@ func (ui *Tui) Redraw(state State) error {
 	return nil
 }
 
-func (ui *Tui) drawWindows(windowStates []WindowState, layout Layout) {
+func (ui *Tui) drawWindows(windowStates map[int]*WindowState, layout Layout) {
 	switch l := layout.(type) {
 	case LayoutWindow:
 		r := fromLayout(layout)

@@ -10,6 +10,6 @@ type Manager interface {
 	Resize(int, int)
 	Run()
 	Emit(Event)
-	State() ([]WindowState, Layout, int, error)
+	State() (map[int]*WindowState, Layout, int, error)
 	Close()
 }

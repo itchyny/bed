@@ -279,11 +279,11 @@ func (m *Manager) writeQuit(event Event) error {
 }
 
 // State returns the state of the windows.
-func (m *Manager) State() ([]WindowState, Layout, int, error) {
+func (m *Manager) State() (map[int]*WindowState, Layout, int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	layouts := m.layout.Collect()
-	states := make([]WindowState, len(m.windows))
+	states := make(map[int]*WindowState, len(m.windows))
 	for i, window := range m.windows {
 		if l, ok := layouts[i]; ok {
 			window.setSize(16, l.Height()-2)
