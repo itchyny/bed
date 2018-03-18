@@ -7,6 +7,9 @@ type Layout interface {
 	isLayout()
 	Indices() []int
 	Replace(int) Layout
+	Resize(int, int) Layout
+	Width() int
+	Height() int
 	SplitTop(int) Layout
 	SplitBottom(int) Layout
 	SplitLeft(int) Layout
@@ -21,6 +24,8 @@ type Layout interface {
 type LayoutWindow struct {
 	Index  int
 	Active bool
+	width  int
+	height int
 }
 
 // NewLayout creates a new Layout from a window index.
@@ -38,9 +43,25 @@ func (l LayoutWindow) Indices() []int {
 // Replace the active window with new window index.
 func (l LayoutWindow) Replace(index int) Layout {
 	if l.Active {
-		return NewLayout(index)
+		l.Index = index
 	}
 	return l
+}
+
+// Resize recalculates the position.
+func (l LayoutWindow) Resize(width, height int) Layout {
+	l.width, l.height = width, height
+	return l
+}
+
+// Width returns the width.
+func (l LayoutWindow) Width() int {
+	return l.width
+}
+
+// Height returns the height.
+func (l LayoutWindow) Height() int {
+	return l.height
 }
 
 // SplitTop splits the layout and opens a new window to the top.
@@ -118,6 +139,8 @@ func (l LayoutWindow) Close() Layout {
 type LayoutHorizontal struct {
 	Top    Layout
 	Bottom Layout
+	width  int
+	height int
 }
 
 func (l LayoutHorizontal) isLayout() {}
@@ -132,7 +155,32 @@ func (l LayoutHorizontal) Replace(index int) Layout {
 	return LayoutHorizontal{
 		Top:    l.Top.Replace(index),
 		Bottom: l.Bottom.Replace(index),
+		width:  l.width,
+		height: l.height,
 	}
+}
+
+// Resize recalculates the position.
+func (l LayoutHorizontal) Resize(width, height int) Layout {
+	_, h1 := l.Top.Count()
+	_, h2 := l.Bottom.Count()
+	topHeight := height * h1 / (h1 + h2)
+	return LayoutHorizontal{
+		Top:    l.Top.Resize(width, topHeight),
+		Bottom: l.Bottom.Resize(width, height-topHeight),
+		width:  width,
+		height: height,
+	}
+}
+
+// Width returns the width.
+func (l LayoutHorizontal) Width() int {
+	return l.width
+}
+
+// Height returns the height.
+func (l LayoutHorizontal) Height() int {
+	return l.height
 }
 
 // SplitTop splits the layout and opens a new window to the top.
@@ -212,8 +260,10 @@ func (l LayoutHorizontal) Close() Layout {
 
 // LayoutVertical holds two layout vertically.
 type LayoutVertical struct {
-	Left  Layout
-	Right Layout
+	Left   Layout
+	Right  Layout
+	width  int
+	height int
 }
 
 func (l LayoutVertical) isLayout() {}
@@ -226,9 +276,34 @@ func (l LayoutVertical) Indices() []int {
 // Replace the active window with new window index.
 func (l LayoutVertical) Replace(index int) Layout {
 	return LayoutVertical{
-		Left:  l.Left.Replace(index),
-		Right: l.Right.Replace(index),
+		Left:   l.Left.Replace(index),
+		Right:  l.Right.Replace(index),
+		width:  l.width,
+		height: l.height,
 	}
+}
+
+// Resize recalculates the position.
+func (l LayoutVertical) Resize(width, height int) Layout {
+	w1, _ := l.Left.Count()
+	w2, _ := l.Right.Count()
+	leftWidth := width * w1 / (w1 + w2)
+	return LayoutVertical{
+		Left:   l.Left.Resize(leftWidth, height),
+		Right:  l.Right.Resize(util.MaxInt(width-leftWidth-1, 0), height),
+		width:  width,
+		height: height,
+	}
+}
+
+// Width returns the width.
+func (l LayoutVertical) Width() int {
+	return l.width
+}
+
+// Height returns the height.
+func (l LayoutVertical) Height() int {
+	return l.height
 }
 
 // SplitTop splits the layout and opens a new window to the top.
