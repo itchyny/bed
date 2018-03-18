@@ -59,6 +59,10 @@ func (w *window) setSize(width, height int) {
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
+	w.offset = util.MinInt64(
+		w.offset,
+		util.MaxInt64(w.length-1-w.height*w.width+w.width, 0)/w.width*w.width,
+	)
 }
 
 // Run the window.
