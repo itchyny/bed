@@ -82,7 +82,7 @@ func (e *Editor) listen() {
 			} else {
 				event.Mode = e.mode
 				width, height := e.ui.Size()
-				e.wm.Resize(width, height)
+				e.wm.Resize(width, height-1)
 				e.wm.Emit(event)
 			}
 		}
@@ -92,14 +92,14 @@ func (e *Editor) listen() {
 // Open opens a new file.
 func (e *Editor) Open(filename string) (err error) {
 	width, height := e.ui.Size()
-	e.wm.SetSize(width, height)
+	e.wm.SetSize(width, height-1)
 	return e.wm.Open(filename)
 }
 
 // OpenEmpty creates a new window.
 func (e *Editor) OpenEmpty() (err error) {
 	width, height := e.ui.Size()
-	e.wm.SetSize(width, height)
+	e.wm.SetSize(width, height-1)
 	return e.wm.Open("")
 }
 

@@ -47,19 +47,19 @@ func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
 
 // Open a new window.
 func (m *Manager) Open(filename string) error {
-	window, err := m.open(filename)
+	window, err := m.open(filename, m.width, m.height)
 	if err != nil {
 		return err
 	}
 	m.addWindow(window, func(index int, _ Layout) Layout {
-		return NewLayout(index)
+		return NewLayout(index).Resize(m.width, m.height)
 	})
 	return nil
 }
 
-func (m *Manager) open(filename string) (*window, error) {
+func (m *Manager) open(filename string, width, height int) (*window, error) {
 	if filename == "" {
-		window, err := newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), "", "", height-2, 16, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), height-2, 16, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, err
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	window, err := newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+	window, err := newWindow(f, filename, filepath.Base(filename), height-2, 16, m.redrawCh)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +104,7 @@ func (m *Manager) SetSize(width, height int) {
 // Resize sets the size of the screen.
 func (m *Manager) Resize(width, height int) {
 	m.width, m.height = width, height
+	m.layout = m.layout.Resize(width, height)
 }
 
 // Run the Manager.
@@ -201,7 +202,8 @@ func (m *Manager) edit(event Event) error {
 	} else {
 		name = event.Args[0]
 	}
-	window, err := m.open(name)
+	l := m.layout.Lookup(m.index)
+	window, err := m.open(name, l.Width(), l.Height())
 	if err != nil {
 		return err
 	}
@@ -216,15 +218,20 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 	if len(event.Args) > 0 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
-	window, err := m.open("")
+	var temp = int((^uint(0)) >> 1)
+	var newLayout Layout
+	if vertical {
+		newLayout = m.layout.SplitLeft(temp).Resize(m.width, m.height)
+	} else {
+		newLayout = m.layout.SplitTop(temp).Resize(m.width, m.height)
+	}
+	l := newLayout.Lookup(temp)
+	window, err := m.open("", l.Width(), l.Height())
 	if err != nil {
 		return err
 	}
 	m.addWindow(window, func(index int, layout Layout) Layout {
-		if vertical {
-			return layout.SplitLeft(index)
-		}
-		return layout.SplitTop(index)
+		return newLayout.Replace(index)
 	})
 	go m.Run()
 	return nil
@@ -239,7 +246,7 @@ func (m *Manager) quit(event Event) error {
 		m.eventCh <- Event{Type: EventQuitAll}
 	} else {
 		m.mu.Lock()
-		m.layout = m.layout.Close()
+		m.layout = m.layout.Close().Resize(m.width, m.height)
 		m.index = m.layout.ActiveIndex()
 		m.mu.Unlock()
 		m.eventCh <- Event{Type: EventRedraw}
