@@ -76,18 +76,27 @@ func TestLayout(t *testing.T) {
 	}
 
 	expectedWindow := LayoutWindow{Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10}
-	if !reflect.DeepEqual(layout.Lookup(1), expectedWindow) {
-		t.Errorf("Lookup(1) should be %+v but got %+v", expectedWindow, layout.Lookup(1))
+	got := layout.Lookup(func(l LayoutWindow) bool { return l.Index == 1 })
+	if !reflect.DeepEqual(got, expectedWindow) {
+		t.Errorf("Lookup(Index == 1) should be %+v but got %+v", expectedWindow, got)
 	}
 
 	expectedWindow = LayoutWindow{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5}
-	if !reflect.DeepEqual(layout.Lookup(3), expectedWindow) {
-		t.Errorf("Lookup(3) should be %+v but got %+v", expectedWindow, layout.Lookup(3))
+	got = layout.Lookup(func(l LayoutWindow) bool { return l.Index == 3 })
+	if !reflect.DeepEqual(got, expectedWindow) {
+		t.Errorf("Lookup(Index == 3) should be %+v but got %+v", expectedWindow, got)
 	}
 
 	expectedWindow = LayoutWindow{Index: -1}
-	if !reflect.DeepEqual(layout.Lookup(5), expectedWindow) {
-		t.Errorf("Lookup(5) should be %+v but got %+v", expectedWindow, layout.Lookup(5))
+	got = layout.Lookup(func(l LayoutWindow) bool { return l.Index == 5 })
+	if !reflect.DeepEqual(got, expectedWindow) {
+		t.Errorf("Lookup(Index == 5) should be %+v but got %+v", expectedWindow, got)
+	}
+
+	expectedWindow = LayoutWindow{Index: 4, Active: true, left: 6, top: 5, width: 4, height: 5}
+	got = layout.ActiveWindow()
+	if !reflect.DeepEqual(got, expectedWindow) {
+		t.Errorf("ActiveWindow() should be %+v but got %+v", expectedWindow, got)
 	}
 
 	expectedMap := map[int]LayoutWindow{
