@@ -37,7 +37,7 @@ type position struct {
 	offset int64
 }
 
-func newWindow(r io.ReadSeeker, filename string, name string, height, width int, redrawCh chan<- struct{}) (*window, error) {
+func newWindow(r io.ReadSeeker, filename string, name string, redrawCh chan<- struct{}) (*window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -47,8 +47,6 @@ func newWindow(r io.ReadSeeker, filename string, name string, height, width int,
 		buffer:   buffer,
 		filename: filename,
 		name:     name,
-		height:   int64(height),
-		width:    int64(width),
 		length:   length,
 		redrawCh: redrawCh,
 		eventCh:  make(chan Event),
