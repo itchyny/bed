@@ -191,6 +191,8 @@ func (l LayoutHorizontal) Replace(index int) Layout {
 	return LayoutHorizontal{
 		Top:    l.Top.Replace(index),
 		Bottom: l.Bottom.Replace(index),
+		left:   l.left,
+		top:    l.top,
 		width:  l.width,
 		height: l.height,
 	}
@@ -356,6 +358,8 @@ func (l LayoutVertical) Replace(index int) Layout {
 	return LayoutVertical{
 		Left:   l.Left.Replace(index),
 		Right:  l.Right.Replace(index),
+		left:   l.left,
+		top:    l.top,
 		width:  l.width,
 		height: l.height,
 	}
