@@ -11,7 +11,7 @@ import (
 
 func TestWindowState(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
@@ -26,8 +26,8 @@ func TestWindowState(t *testing.T) {
 		t.Errorf("state.Name should be %q but got %q", "test", state.Name)
 	}
 
-	if state.Width != int(width) {
-		t.Errorf("state.Width should be %d but got %d", int(width), state.Width)
+	if state.Width != width {
+		t.Errorf("state.Width should be %d but got %d", width, state.Width)
 	}
 
 	if state.Offset != 0 {
@@ -58,7 +58,7 @@ func TestWindowState(t *testing.T) {
 		t.Errorf("state.EditedIndices should be empty but got %v", state.EditedIndices)
 	}
 
-	expected := []byte("Hello, world!" + strings.Repeat("\x00", int(height*width)-13))
+	expected := []byte("Hello, world!" + strings.Repeat("\x00", height*width-13))
 	if !reflect.DeepEqual(state.Bytes, expected) {
 		t.Errorf("state.Bytes should be %q but got %q", expected, state.Bytes)
 	}
@@ -66,7 +66,7 @@ func TestWindowState(t *testing.T) {
 
 func TestWindowEmptyState(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
@@ -81,8 +81,8 @@ func TestWindowEmptyState(t *testing.T) {
 		t.Errorf("state.Name should be %q but got %q", "test", state.Name)
 	}
 
-	if state.Width != int(width) {
-		t.Errorf("state.Width should be %d but got %d", int(width), state.Width)
+	if state.Width != width {
+		t.Errorf("state.Width should be %d but got %d", width, state.Width)
 	}
 
 	if state.Offset != 0 {
@@ -113,7 +113,7 @@ func TestWindowEmptyState(t *testing.T) {
 		t.Errorf("state.EditedIndices should be empty but got %v", state.EditedIndices)
 	}
 
-	expected := []byte(strings.Repeat("\x00", int(height*width)))
+	expected := []byte(strings.Repeat("\x00", height*width))
 	if !reflect.DeepEqual(state.Bytes, expected) {
 		t.Errorf("state.Bytes should be %q but got %q", expected, state.Bytes)
 	}
@@ -121,7 +121,7 @@ func TestWindowEmptyState(t *testing.T) {
 
 func TestWindowCursorMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
@@ -134,28 +134,28 @@ func TestWindowCursorMotions(t *testing.T) {
 
 	window.cursorDown(0)
 	state, _ = window.State()
-	if state.Cursor != width {
+	if state.Cursor != int64(width) {
 		t.Errorf("state.Cursor should be %d but got %d", width, state.Cursor)
 	}
 
 	window.cursorDown(1)
 	state, _ = window.State()
-	if state.Cursor != width*2 {
+	if state.Cursor != int64(width)*2 {
 		t.Errorf("state.Cursor should be %d but got %d", width*2, state.Cursor)
 	}
 
 	window.cursorUp(0)
 	state, _ = window.State()
-	if state.Cursor != width {
+	if state.Cursor != int64(width) {
 		t.Errorf("state.Cursor should be %d but got %d", width, state.Cursor)
 	}
 
 	window.cursorDown(10)
 	state, _ = window.State()
-	if state.Cursor != width*11 {
+	if state.Cursor != int64(width)*11 {
 		t.Errorf("state.Cursor should be %d but got %d", width*11, state.Cursor)
 	}
-	if state.Offset != width*2 {
+	if state.Offset != int64(width)*2 {
 		t.Errorf("state.Offset should be %d but got %d", width*2, state.Offset)
 	}
 	if !strings.HasPrefix(string(state.Bytes), " world!") {
@@ -164,25 +164,25 @@ func TestWindowCursorMotions(t *testing.T) {
 
 	window.cursorRight(ModeNormal, 3)
 	state, _ = window.State()
-	if state.Cursor != width*11+3 {
+	if state.Cursor != int64(width)*11+3 {
 		t.Errorf("state.Cursor should be %d but got %d", width*11+3, state.Cursor)
 	}
 
 	window.cursorRight(ModeNormal, 20)
 	state, _ = window.State()
-	if state.Cursor != width*12-1 {
+	if state.Cursor != int64(width)*12-1 {
 		t.Errorf("state.Cursor should be %d but got %d", width*12-1, state.Cursor)
 	}
 
 	window.cursorLeft(3)
 	state, _ = window.State()
-	if state.Cursor != width*12-4 {
+	if state.Cursor != int64(width)*12-4 {
 		t.Errorf("state.Cursor should be %d but got %d", width*12-4, state.Cursor)
 	}
 
 	window.cursorLeft(20)
 	state, _ = window.State()
-	if state.Cursor != width*11 {
+	if state.Cursor != int64(width)*11 {
 		t.Errorf("state.Cursor should be %d but got %d", width*11, state.Cursor)
 	}
 
@@ -191,7 +191,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 22 {
 		t.Errorf("state.Cursor should be %d but got %d", 22, state.Cursor)
 	}
-	if state.Offset != width {
+	if state.Offset != int64(width) {
 		t.Errorf("state.Offset should be %d but got %d", width, state.Offset)
 	}
 
@@ -200,7 +200,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 222 {
 		t.Errorf("state.Cursor should be %d but got %d", 222, state.Cursor)
 	}
-	if state.Offset != width*4 {
+	if state.Offset != int64(width)*4 {
 		t.Errorf("state.Offset should be %d but got %d", width*4, state.Offset)
 	}
 
@@ -209,7 +209,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 1299 {
 		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -218,7 +218,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 1296 {
 		t.Errorf("state.Cursor should be %d but got %d", 1296, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -227,7 +227,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 1299 {
 		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -237,7 +237,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 991 {
 		t.Errorf("state.Cursor should be %d but got %d", 991, state.Cursor)
 	}
-	if state.Offset != width*61 {
+	if state.Offset != int64(width)*61 {
 		t.Errorf("state.Offset should be %d but got %d", width*61, state.Offset)
 	}
 
@@ -246,7 +246,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 1151 {
 		t.Errorf("state.Cursor should be %d but got %d", 1151, state.Cursor)
 	}
-	if state.Offset != width*62 {
+	if state.Offset != int64(width)*62 {
 		t.Errorf("state.Offset should be %d but got %d", width*62, state.Offset)
 	}
 
@@ -255,7 +255,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 1299 {
 		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -270,10 +270,10 @@ func TestWindowCursorMotions(t *testing.T) {
 
 	window.cursorDown(2000)
 	state, _ = window.State()
-	if state.Cursor != width*81 {
+	if state.Cursor != int64(width)*81 {
 		t.Errorf("state.Cursor should be %d but got %d", width*81, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -282,7 +282,7 @@ func TestWindowCursorMotions(t *testing.T) {
 	if state.Cursor != 1299 {
 		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -323,7 +323,7 @@ func TestParseGotoPos(t *testing.T) {
 
 func TestWindowScreenMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, err := newWindow(r, "test", "test", height, width, make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
@@ -411,7 +411,7 @@ func TestWindowScreenMotions(t *testing.T) {
 	if state.Cursor != 1296 {
 		t.Errorf("state.Cursor should be %d but got %d", 1296, state.Cursor)
 	}
-	if state.Offset != width*72 {
+	if state.Offset != int64(width)*72 {
 		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
 	}
 
@@ -427,7 +427,7 @@ func TestWindowScreenMotions(t *testing.T) {
 
 func TestWindowDeleteBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 7)
@@ -488,7 +488,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 
 func TestWindowDeletePrevBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 5)
@@ -522,7 +522,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 
 func TestWindowIncrementDecrement(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.increment(0)
@@ -571,7 +571,7 @@ func TestWindowIncrementDecrement(t *testing.T) {
 
 func TestWindowIncrementDecrementEmpty(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	state, _ := window.State()
@@ -611,7 +611,7 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 
 func TestWindowInsert(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 7)
@@ -645,7 +645,7 @@ func TestWindowInsert(t *testing.T) {
 
 func TestWindowInsertEmpty(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startInsert()
@@ -680,7 +680,7 @@ func TestWindowInsertEmpty(t *testing.T) {
 
 func TestWindowInsertHead(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 2))
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.pageEnd()
@@ -712,7 +712,7 @@ func TestWindowInsertHead(t *testing.T) {
 
 func TestWindowAppend(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 7)
@@ -755,7 +755,7 @@ func TestWindowAppend(t *testing.T) {
 
 func TestWindowAppendEmpty(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startAppend()
@@ -801,7 +801,7 @@ func TestWindowAppendEmpty(t *testing.T) {
 
 func TestWindowReplaceByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 7)
@@ -827,7 +827,7 @@ func TestWindowReplaceByte(t *testing.T) {
 
 func TestWindowReplaceByteEmpty(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startReplaceByte()
@@ -852,7 +852,7 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 
 func TestWindowReplace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 10)
@@ -898,7 +898,7 @@ func TestWindowReplace(t *testing.T) {
 
 func TestWindowReplaceEmpty(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startReplace()
@@ -926,7 +926,7 @@ func TestWindowReplaceEmpty(t *testing.T) {
 
 func TestWindowInsertX(t *testing.T) {
 	r := strings.NewReader("")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.startInsert()
@@ -955,7 +955,7 @@ func TestWindowInsertX(t *testing.T) {
 
 func TestWindowBackspace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 5)
@@ -978,7 +978,7 @@ func TestWindowBackspace(t *testing.T) {
 
 func TestWindowBackspacePending(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	window, _ := newWindow(r, "test", "test", height, width, make(chan struct{}))
 
 	window.cursorNext(ModeNormal, 5)
@@ -1006,7 +1006,7 @@ func TestWindowBackspacePending(t *testing.T) {
 }
 
 func TestWindowEventRune(t *testing.T) {
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	redrawCh := make(chan struct{})
 	window, _ := newWindow(strings.NewReader(""), "test", "test", height, width, redrawCh)
 
@@ -1032,7 +1032,7 @@ func TestWindowEventRune(t *testing.T) {
 }
 
 func TestWindowEventRuneText(t *testing.T) {
-	height, width := int64(10), int64(16)
+	height, width := 10, 16
 	redrawCh := make(chan struct{})
 	window, _ := newWindow(strings.NewReader(""), "test", "test", height, width, redrawCh)
 

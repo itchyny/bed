@@ -59,7 +59,7 @@ func (m *Manager) Open(filename string) error {
 
 func (m *Manager) open(filename string) (*window, error) {
 	if filename == "" {
-		window, err := newWindow(bytes.NewReader(nil), "", "", int64(m.height), 16, m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(m.height), 16, m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, err
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	window, err := newWindow(f, filename, filepath.Base(filename), int64(m.height), 16, m.redrawCh)
+	window, err := newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh)
 	if err != nil {
 		return nil, err
 	}
