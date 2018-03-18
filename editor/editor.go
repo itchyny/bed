@@ -30,9 +30,6 @@ func (e *Editor) Init() error {
 	e.eventCh = make(chan Event, 1)
 	e.redrawCh = make(chan struct{})
 	e.cmdlineCh = make(chan Event)
-	if err := e.ui.Init(e.eventCh); err != nil {
-		return err
-	}
 	if err := e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh); err != nil {
 		return err
 	}
@@ -93,20 +90,19 @@ func (e *Editor) listen() {
 
 // Open opens a new file.
 func (e *Editor) Open(filename string) (err error) {
-	width, height := e.ui.Size()
-	e.wm.SetSize(width, height-1)
 	return e.wm.Open(filename)
 }
 
 // OpenEmpty creates a new window.
 func (e *Editor) OpenEmpty() (err error) {
-	width, height := e.ui.Size()
-	e.wm.SetSize(width, height-1)
 	return e.wm.Open("")
 }
 
 // Run the editor.
 func (e *Editor) Run() error {
+	if err := e.ui.Init(e.eventCh); err != nil {
+		return err
+	}
 	if err := e.redraw(); err != nil {
 		return err
 	}
