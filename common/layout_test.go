@@ -54,7 +54,35 @@ func TestLayoutSplitCloseReplace(t *testing.T) {
 		t.Errorf("layout height be %d but got %d", 3, h)
 	}
 
-	layout = layout.Close()
+	layout = layout.Resize(15, 15)
+
+	expected = LayoutHorizontal{
+		Top: LayoutVertical{
+			Left: LayoutHorizontal{
+				Top: LayoutWindow{Index: 2, Active: false, width: 10, height: 5},
+				Bottom: LayoutVertical{
+					Left:   LayoutWindow{Index: 3, Active: false, width: 5, height: 5},
+					Right:  LayoutWindow{Index: 4, Active: true, width: 4, height: 5},
+					width:  10,
+					height: 5,
+				},
+				width:  10,
+				height: 10,
+			},
+			Right:  LayoutWindow{Index: 1, Active: false, width: 4, height: 10},
+			width:  15,
+			height: 10,
+		},
+		Bottom: LayoutWindow{Index: 0, Active: false, width: 15, height: 5},
+		width:  15,
+		height: 15,
+	}
+
+	if !reflect.DeepEqual(layout, expected) {
+		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
+
+	layout = layout.Close().Resize(0, 0)
 
 	expected = LayoutHorizontal{
 		Top: LayoutVertical{
