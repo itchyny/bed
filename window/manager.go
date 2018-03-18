@@ -97,9 +97,9 @@ func (m *Manager) SetSize(width, height int) {
 
 // Resize sets the size of the screen.
 func (m *Manager) Resize(width, height int) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	if m.width != width || m.height != height {
+		m.mu.Lock()
+		defer m.mu.Unlock()
 		m.width, m.height = width, height
 		m.layout = m.layout.Resize(0, 0, width, height)
 	}
