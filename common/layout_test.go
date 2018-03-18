@@ -43,26 +43,34 @@ func TestLayout(t *testing.T) {
 		t.Errorf("Indices should be %+v but got %+v", []int{0}, layout.Indices())
 	}
 
-	layout = layout.Resize(15, 15)
+	layout = layout.Resize(0, 0, 15, 15)
 
 	expected = LayoutHorizontal{
 		Top: LayoutVertical{
 			Left: LayoutHorizontal{
-				Top: LayoutWindow{Index: 2, Active: false, width: 10, height: 5},
+				Top: LayoutWindow{Index: 2, Active: false, left: 0, top: 0, width: 10, height: 5},
 				Bottom: LayoutVertical{
-					Left:   LayoutWindow{Index: 3, Active: false, width: 5, height: 5},
-					Right:  LayoutWindow{Index: 4, Active: true, width: 4, height: 5},
+					Left:   LayoutWindow{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5},
+					Right:  LayoutWindow{Index: 4, Active: true, left: 6, top: 5, width: 4, height: 5},
+					left:   0,
+					top:    5,
 					width:  10,
 					height: 5,
 				},
+				left:   0,
+				top:    0,
 				width:  10,
 				height: 10,
 			},
-			Right:  LayoutWindow{Index: 1, Active: false, width: 4, height: 10},
+			Right:  LayoutWindow{Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10},
+			left:   0,
+			top:    0,
 			width:  15,
 			height: 10,
 		},
-		Bottom: LayoutWindow{Index: 0, Active: false, width: 15, height: 5},
+		Bottom: LayoutWindow{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		left:   0,
+		top:    0,
 		width:  15,
 		height: 15,
 	}
@@ -71,12 +79,12 @@ func TestLayout(t *testing.T) {
 		t.Errorf("layout should be %+v but got %+v", expected, layout)
 	}
 
-	expectedWindow := LayoutWindow{Index: 1, Active: false, width: 4, height: 10}
+	expectedWindow := LayoutWindow{Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10}
 	if !reflect.DeepEqual(layout.Lookup(1), expectedWindow) {
 		t.Errorf("Lookup(1) should be %+v but got %+v", expectedWindow, layout.Lookup(1))
 	}
 
-	expectedWindow = LayoutWindow{Index: 3, Active: false, width: 5, height: 5}
+	expectedWindow = LayoutWindow{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5}
 	if !reflect.DeepEqual(layout.Lookup(3), expectedWindow) {
 		t.Errorf("Lookup(3) should be %+v but got %+v", expectedWindow, layout.Lookup(3))
 	}
@@ -86,7 +94,7 @@ func TestLayout(t *testing.T) {
 		t.Errorf("Lookup(5) should be %+v but got %+v", expectedWindow, layout.Lookup(5))
 	}
 
-	layout = layout.Close().Resize(0, 0)
+	layout = layout.Close().Resize(0, 0, 0, 0)
 
 	expected = LayoutHorizontal{
 		Top: LayoutVertical{
