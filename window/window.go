@@ -56,6 +56,10 @@ func newWindow(r io.ReadSeeker, filename string, name string, height, width int,
 	}, nil
 }
 
+func (w *window) setSize(width, height int) {
+	w.width, w.height = int64(width), int64(height)
+}
+
 // Run the window.
 func (w *window) Run() {
 	for e := range w.eventCh {

@@ -47,13 +47,15 @@ func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) error {
 
 // Open a new window.
 func (m *Manager) Open(filename string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	window, err := m.open(filename, m.width, m.height)
 	if err != nil {
 		return err
 	}
-	m.addWindow(window, func(index int, _ Layout) Layout {
-		return NewLayout(index).Resize(0, 0, m.width, m.height)
-	})
+	m.windows = append(m.windows, window)
+	m.index = len(m.windows) - 1
+	m.layout = NewLayout(m.index).Resize(0, 0, m.width, m.height)
 	return nil
 }
 
@@ -88,14 +90,6 @@ func (m *Manager) open(filename string, width, height int) (*window, error) {
 	return window, nil
 }
 
-func (m *Manager) addWindow(window *window, layoutFn func(int, Layout) Layout) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.windows = append(m.windows, window)
-	m.index = len(m.windows) - 1
-	m.layout = layoutFn(m.index, m.layout)
-}
-
 // SetSize sets the size of the screen.
 func (m *Manager) SetSize(width, height int) {
 	m.width, m.height = width, height
@@ -103,6 +97,8 @@ func (m *Manager) SetSize(width, height int) {
 
 // Resize sets the size of the screen.
 func (m *Manager) Resize(width, height int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.width, m.height = width, height
 	m.layout = m.layout.Resize(0, 0, width, height)
 }
@@ -193,6 +189,8 @@ func parseGotoPos(pos string) int64 {
 }
 
 func (m *Manager) edit(event Event) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if len(event.Args) > 1 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
@@ -207,14 +205,16 @@ func (m *Manager) edit(event Event) error {
 	if err != nil {
 		return err
 	}
-	m.addWindow(window, func(index int, layout Layout) Layout {
-		return layout.Replace(index)
-	})
+	m.windows = append(m.windows, window)
+	m.index = len(m.windows) - 1
+	m.layout = m.layout.Replace(m.index)
 	go m.Run()
 	return nil
 }
 
 func (m *Manager) newWindow(event Event, vertical bool) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if len(event.Args) > 0 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
@@ -230,9 +230,9 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 	if err != nil {
 		return err
 	}
-	m.addWindow(window, func(index int, layout Layout) Layout {
-		return newLayout.Replace(index)
-	})
+	m.windows = append(m.windows, window)
+	m.index = len(m.windows) - 1
+	m.layout = newLayout.Replace(m.index)
 	go m.Run()
 	return nil
 }
@@ -296,6 +296,8 @@ func (m *Manager) State() ([]WindowState, Layout, int, error) {
 			}
 		}
 		if required {
+			l := m.layout.Lookup(i)
+			window.setSize(16, l.Height()-2)
 			var err error
 			if states[i], err = window.State(); err != nil {
 				return nil, m.layout, 0, err
