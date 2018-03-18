@@ -17,7 +17,8 @@ import (
 
 // Manager manages the windows and files.
 type Manager struct {
-	height   int64
+	width    int
+	height   int
 	windows  []*window
 	layout   Layout
 	mu       *sync.Mutex
@@ -58,7 +59,7 @@ func (m *Manager) Open(filename string) error {
 
 func (m *Manager) open(filename string) (*window, error) {
 	if filename == "" {
-		window, err := newWindow(bytes.NewReader(nil), "", "", m.height, 16, m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), "", "", int64(m.height), 16, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +70,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), int64(m.height), 16, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +81,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, err
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	window, err := newWindow(f, filename, filepath.Base(filename), m.height, 16, m.redrawCh)
+	window, err := newWindow(f, filename, filepath.Base(filename), int64(m.height), 16, m.redrawCh)
 	if err != nil {
 		return nil, err
 	}
@@ -95,9 +96,14 @@ func (m *Manager) addWindow(window *window, layoutFn func(int, Layout) Layout) {
 	m.layout = layoutFn(m.index, m.layout)
 }
 
-// SetHeight sets the height.
-func (m *Manager) SetHeight(height int) {
-	m.height = int64(height)
+// SetSize sets the size of the screen.
+func (m *Manager) SetSize(width, height int) {
+	m.width, m.height = width, height
+}
+
+// Resize sets the size of the screen.
+func (m *Manager) Resize(width, height int) {
+	m.width, m.height = width, height
 }
 
 // Run the Manager.

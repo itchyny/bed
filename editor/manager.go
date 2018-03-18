@@ -6,7 +6,8 @@ import . "github.com/itchyny/bed/common"
 type Manager interface {
 	Init(chan<- Event, chan<- struct{}) error
 	Open(string) error
-	SetHeight(int)
+	SetSize(int, int)
+	Resize(int, int)
 	Run()
 	Emit(Event)
 	State() ([]WindowState, Layout, int, error)
