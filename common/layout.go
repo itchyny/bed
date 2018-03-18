@@ -17,6 +17,7 @@ type Layout interface {
 	Count() (int, int)
 	Activate() Layout
 	ActiveIndex() int
+	Lookup(int) LayoutWindow
 	Close() Layout
 }
 
@@ -125,6 +126,14 @@ func (l LayoutWindow) ActiveIndex() int {
 		return l.Index
 	}
 	return -1
+}
+
+// Lookup returns the specific window.
+func (l LayoutWindow) Lookup(index int) LayoutWindow {
+	if l.Index == index {
+		return l
+	}
+	return LayoutWindow{Index: -1}
 }
 
 // Close the active layout.
@@ -236,6 +245,14 @@ func (l LayoutHorizontal) ActiveIndex() int {
 		return index
 	}
 	return l.Bottom.ActiveIndex()
+}
+
+// Lookup returns the specific window.
+func (l LayoutHorizontal) Lookup(index int) LayoutWindow {
+	if layout := l.Top.Lookup(index); layout.Index >= 0 {
+		return layout
+	}
+	return l.Bottom.Lookup(index)
 }
 
 // Close the active layout.
@@ -359,6 +376,14 @@ func (l LayoutVertical) ActiveIndex() int {
 		return index
 	}
 	return l.Right.ActiveIndex()
+}
+
+// Lookup returns the specific window.
+func (l LayoutVertical) Lookup(index int) LayoutWindow {
+	if layout := l.Left.Lookup(index); layout.Index >= 0 {
+		return layout
+	}
+	return l.Right.Lookup(index)
 }
 
 // Close the active layout.
