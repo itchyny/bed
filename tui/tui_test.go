@@ -9,6 +9,75 @@ import (
 	. "github.com/itchyny/bed/common"
 )
 
+func TestTuiVerticalSplit(t *testing.T) {
+	ui := NewTui()
+	eventCh := make(chan Event)
+	screen := tcell.NewSimulationScreen("")
+	if err := ui.initForTest(eventCh, screen); err != nil {
+		t.Fatal(err)
+	}
+	screen.SetSize(110, 20)
+	width, height := screen.Size()
+
+	layout := NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1)
+	state := State{
+		WindowStates: map[int]*WindowState{
+			0: &WindowState{
+				Name:   "test0",
+				Width:  8,
+				Offset: 0,
+				Cursor: 0,
+				Bytes:  []byte("Test window 0." + strings.Repeat("\x00", 55*19)),
+				Size:   55 * 19,
+				Length: 600,
+				Mode:   ModeNormal,
+			},
+			1: &WindowState{
+				Name:   "test1",
+				Width:  8,
+				Offset: 0,
+				Cursor: 0,
+				Bytes:  []byte("Test window 1." + strings.Repeat(" ", 54*19)),
+				Size:   54 * 19,
+				Length: 800,
+				Mode:   ModeNormal,
+			},
+		},
+		Layout: layout,
+	}
+	ui.Redraw(state)
+
+	cells, _, _ := screen.GetContents()
+	var runes []rune
+	for i, cell := range cells {
+		runes = append(runes, cell.Runes...)
+		if (i+1)%width == 0 {
+			runes = append(runes, '\n')
+		}
+	}
+	got := string(runes)
+	expectedStrs := []string{
+		"        |  0  1  2  3  4  5  6  7 |                    |        |  0  1  2  3  4  5  6  7 |",
+		" 000000 | 54 65 73 74 20 77 69 6e | Test win #         | 000000 | 54 65 73 74 20 77 69 6e | Test win #",
+		" 000008 | 64 6f 77 20 30 2e 00 00 | dow 0... #         | 000008 | 64 6f 77 20 31 2e 20 20 | dow 1.   #",
+		" 000010 | 00 00 00 00 00 00 00 00 | ........ #         | 000010 | 20 20 20 20 20 20 20 20 |          #",
+		" test0: 000000 / 000258 (0.00%) [0x54 'T']             | test1: 000000 / 000320 (0.00%) [0x54 'T']",
+	}
+	for _, expected := range expectedStrs {
+		if !strings.Contains(got, expected) {
+			t.Errorf("screen should contain %q but got %v", expected, got)
+		}
+	}
+
+	x, y, visible := screen.GetCursor()
+	if x != 66 || y != 1 {
+		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 66, 1, x, y)
+	}
+	if visible != true {
+		t.Errorf("cursor should be visible but got %v", visible)
+	}
+}
+
 func TestTuiCmdline(t *testing.T) {
 	ui := NewTui()
 	eventCh := make(chan Event)
