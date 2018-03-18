@@ -41,7 +41,6 @@ func (ui *Tui) initForTest(eventCh chan<- Event, screen tcell.SimulationScreen) 
 
 // Run the Tui.
 func (ui *Tui) Run(kms map[Mode]*KeyManager) {
-	kms[ModeNormal].Register(EventQuit, "c-c")
 	for {
 		e := ui.screen.PollEvent()
 		switch ev := e.(type) {
