@@ -255,6 +255,10 @@ func (m *Manager) wincmd(event Event) error {
 		m.focusRight(event)
 	case "h":
 		m.focusLeft(event)
+	case "k":
+		m.focusUp(event)
+	case "j":
+		m.focusDown(event)
 	}
 	return nil
 }
@@ -278,6 +282,32 @@ func (m *Manager) focusLeft(event Event) {
 		return l.LeftMargin()+l.Width()+1 == activeWindow.LeftMargin() &&
 			l.TopMargin() <= activeWindow.TopMargin() &&
 			activeWindow.TopMargin() < l.TopMargin()+l.Height()
+	})
+	if newWindow.Index >= 0 {
+		m.windowIndex = newWindow.Index
+		m.layout = m.layout.Activate(m.windowIndex)
+	}
+}
+
+func (m *Manager) focusUp(event Event) {
+	activeWindow := m.layout.ActiveWindow()
+	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
+		return l.TopMargin()+l.Height() == activeWindow.TopMargin() &&
+			l.LeftMargin() <= activeWindow.LeftMargin() &&
+			activeWindow.LeftMargin() < l.LeftMargin()+l.Width()
+	})
+	if newWindow.Index >= 0 {
+		m.windowIndex = newWindow.Index
+		m.layout = m.layout.Activate(m.windowIndex)
+	}
+}
+
+func (m *Manager) focusDown(event Event) {
+	activeWindow := m.layout.ActiveWindow()
+	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
+		return activeWindow.TopMargin()+activeWindow.Height() == l.TopMargin() &&
+			l.LeftMargin() <= activeWindow.LeftMargin() &&
+			activeWindow.LeftMargin() < l.LeftMargin()+l.Width()
 	})
 	if newWindow.Index >= 0 {
 		m.windowIndex = newWindow.Index
