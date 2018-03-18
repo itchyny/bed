@@ -245,7 +245,7 @@ func (m *Manager) quit(event Event) error {
 	} else {
 		m.mu.Lock()
 		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
-		m.windowIndex = m.layout.ActiveIndex()
+		m.windowIndex = m.layout.ActiveWindow().Index
 		m.mu.Unlock()
 		m.eventCh <- Event{Type: EventRedraw}
 	}
