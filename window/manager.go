@@ -17,15 +17,15 @@ import (
 
 // Manager manages the windows and files.
 type Manager struct {
-	width    int
-	height   int
-	windows  []*window
-	layout   Layout
-	mu       *sync.Mutex
-	index    int
-	files    []file
-	eventCh  chan<- Event
-	redrawCh chan<- struct{}
+	width       int
+	height      int
+	windows     []*window
+	layout      Layout
+	mu          *sync.Mutex
+	windowIndex int
+	files       []file
+	eventCh     chan<- Event
+	redrawCh    chan<- struct{}
 }
 
 type file struct {
@@ -54,8 +54,8 @@ func (m *Manager) Open(filename string) error {
 		return err
 	}
 	m.windows = append(m.windows, window)
-	m.index = len(m.windows) - 1
-	m.layout = NewLayout(m.index).Resize(0, 0, m.width, m.height)
+	m.windowIndex = len(m.windows) - 1
+	m.layout = NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
 	return nil
 }
 
@@ -107,7 +107,7 @@ func (m *Manager) Resize(width, height int) {
 
 // Run the Manager.
 func (m *Manager) Run() {
-	m.windows[m.index].Run()
+	m.windows[m.windowIndex].Run()
 }
 
 // Emit an event to the current window.
@@ -152,7 +152,7 @@ func (m *Manager) Emit(event Event) {
 			m.eventCh <- Event{Type: EventError, Error: err}
 		}
 	default:
-		m.windows[m.index].eventCh <- event
+		m.windows[m.windowIndex].eventCh <- event
 	}
 }
 
@@ -162,7 +162,7 @@ func (m *Manager) cursorGoto(event Event) error {
 	}
 	if len(event.Args) == 1 {
 		event.Count = parseGotoPos(event.Args[0])
-		m.windows[m.index].eventCh <- event
+		m.windows[m.windowIndex].eventCh <- event
 	}
 	return nil
 }
@@ -198,7 +198,7 @@ func (m *Manager) edit(event Event) error {
 	}
 	var name string
 	if len(event.Args) == 0 {
-		name = m.windows[m.index].filename
+		name = m.windows[m.windowIndex].filename
 	} else {
 		name = event.Args[0]
 	}
@@ -207,8 +207,8 @@ func (m *Manager) edit(event Event) error {
 		return err
 	}
 	m.windows = append(m.windows, window)
-	m.index = len(m.windows) - 1
-	m.layout = m.layout.Replace(m.index)
+	m.windowIndex = len(m.windows) - 1
+	m.layout = m.layout.Replace(m.windowIndex)
 	go m.Run()
 	return nil
 }
@@ -224,11 +224,11 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 		return err
 	}
 	m.windows = append(m.windows, window)
-	m.index = len(m.windows) - 1
+	m.windowIndex = len(m.windows) - 1
 	if vertical {
-		m.layout = m.layout.SplitLeft(m.index).Resize(0, 0, m.width, m.height)
+		m.layout = m.layout.SplitLeft(m.windowIndex).Resize(0, 0, m.width, m.height)
 	} else {
-		m.layout = m.layout.SplitTop(m.index).Resize(0, 0, m.width, m.height)
+		m.layout = m.layout.SplitTop(m.windowIndex).Resize(0, 0, m.width, m.height)
 	}
 	go m.Run()
 	return nil
@@ -244,7 +244,7 @@ func (m *Manager) quit(event Event) error {
 	} else {
 		m.mu.Lock()
 		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
-		m.index = m.layout.ActiveIndex()
+		m.windowIndex = m.layout.ActiveIndex()
 		m.mu.Unlock()
 		m.eventCh <- Event{Type: EventRedraw}
 	}
@@ -293,11 +293,11 @@ func (m *Manager) State() ([]WindowState, Layout, int, error) {
 			}
 		}
 	}
-	return states, m.layout, m.index, nil
+	return states, m.layout, m.windowIndex, nil
 }
 
 func (m *Manager) writeFile(name string) (string, int64, error) {
-	window := m.windows[m.index]
+	window := m.windows[m.windowIndex]
 	perm := os.FileMode(0644)
 	if name == "" {
 		name = window.filename
