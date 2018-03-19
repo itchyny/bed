@@ -15,7 +15,9 @@ func run(args []string) int {
 		fmt.Fprintf(os.Stderr, "%s: too many files\n", name)
 		return 1
 	}
-	editor := editor.NewEditor(tui.NewTui(), window.NewManager(), cmdline.NewCmdline())
+	editor := editor.NewEditor(
+		tui.NewTui(), window.NewManager(), cmdline.NewCmdline(),
+	)
 	if err := editor.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return 1
