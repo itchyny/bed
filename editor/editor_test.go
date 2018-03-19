@@ -53,6 +53,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	f.Close()
+	defer os.Remove(f.Name())
 	if err := editor.OpenEmpty(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
