@@ -67,6 +67,22 @@ func TestBuffer(t *testing.T) {
 		t.Errorf("p should be 456789ab but got: %s", string(p))
 	}
 
+	_, err = b.Seek(-4, io.SeekCurrent)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+
+	n, err = b.Read(p)
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "89abcdef" {
+		t.Errorf("p should be 89abcdef but got: %s", string(p))
+	}
+
 	_, err = b.Seek(-4, io.SeekEnd)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -79,8 +95,8 @@ func TestBuffer(t *testing.T) {
 	if n != 4 {
 		t.Errorf("n should be 4 but got: %d", n)
 	}
-	if string(p) != "cdef89ab" {
-		t.Errorf("p should be cdef89ab but got: %s", string(p))
+	if string(p) != "cdefcdef" {
+		t.Errorf("p should be cdefcdef but got: %s", string(p))
 	}
 }
 
@@ -163,6 +179,7 @@ func TestBufferReplace(t *testing.T) {
 		{2, 0x31, 0, "87101067", 16},
 		{16, 0x31, 9, "9abcdef1", 16},
 		{15, 0x30, 9, "9abcde01", 16},
+		{2, 0x39, 0, "87901067", 16},
 	}
 
 	for _, test := range tests {
