@@ -36,12 +36,6 @@ func (r *bytesReader) Seek(offset int64, whence int) (int64, error) {
 	return r.index, nil
 }
 
-func (r *bytesReader) insertByte(offset int64, b byte) {
-	r.bs = append(r.bs, 0)
-	copy(r.bs[offset+1:], r.bs[offset:])
-	r.bs[offset] = b
-}
-
 func (r *bytesReader) appendByte(b byte) {
 	r.bs = append(r.bs, b)
 }
