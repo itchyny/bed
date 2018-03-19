@@ -33,6 +33,7 @@ func (c *Cmdline) Run() {
 		case EventStartCmdline:
 			c.clear()
 		case EventExitCmdline:
+			// do nothing here but redraw
 		case EventCursorLeft:
 			c.cursorLeft()
 		case EventCursorRight:
