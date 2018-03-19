@@ -17,7 +17,7 @@ func TestNewCmdline(t *testing.T) {
 	}
 }
 
-func TestCursorMotion(t *testing.T) {
+func TestCmdlineCursorMotion(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
@@ -72,7 +72,7 @@ func TestCursorMotion(t *testing.T) {
 	}
 }
 
-func TestCursorBackspaceDelete(t *testing.T) {
+func TestCmdlineCursorBackspaceDelete(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
@@ -131,7 +131,7 @@ func TestCursorBackspaceDelete(t *testing.T) {
 	}
 }
 
-func TestCursorDeleteWord(t *testing.T) {
+func TestCmdlineCursorDeleteWord(t *testing.T) {
 	c := NewCmdline()
 	for _, ch := range "abcde" {
 		c.insert(ch)
@@ -174,7 +174,7 @@ func TestCursorDeleteWord(t *testing.T) {
 	}
 }
 
-func TestCursorClear(t *testing.T) {
+func TestCmdlineCursorClear(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
@@ -200,7 +200,7 @@ func TestCursorClear(t *testing.T) {
 	}
 }
 
-func TestCursorClearToHead(t *testing.T) {
+func TestCmdlineCursorClearToHead(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
@@ -227,7 +227,7 @@ func TestCursorClearToHead(t *testing.T) {
 	}
 }
 
-func TestCursorInsert(t *testing.T) {
+func TestCmdlineCursorInsert(t *testing.T) {
 	c := NewCmdline()
 
 	for _, ch := range "abcde" {
@@ -249,7 +249,7 @@ func TestCursorInsert(t *testing.T) {
 	}
 }
 
-func TestExecuteQuit(t *testing.T) {
+func TestCmdlineQuit(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan Event, 1)
 	c.Init(ch, make(chan Event), make(chan struct{}))
@@ -274,7 +274,7 @@ func TestExecuteQuit(t *testing.T) {
 	}
 }
 
-func TestExecuteQuitAll(t *testing.T) {
+func TestCmdlineExecuteQuitAll(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan Event, 1)
 	c.Init(ch, make(chan Event), make(chan struct{}))
@@ -298,7 +298,7 @@ func TestExecuteQuitAll(t *testing.T) {
 	}
 }
 
-func TestExecuteWriteQuit(t *testing.T) {
+func TestCmdlineExecuteWriteQuit(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan Event, 1)
 	c.Init(ch, make(chan Event), make(chan struct{}))
@@ -325,7 +325,7 @@ func TestExecuteWriteQuit(t *testing.T) {
 	}
 }
 
-func TestExecuteGoto(t *testing.T) {
+func TestCmdlineExecuteGoto(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan Event, 1)
 	c.Init(ch, make(chan Event), make(chan struct{}))
