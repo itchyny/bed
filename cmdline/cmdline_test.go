@@ -17,6 +17,45 @@ func TestNewCmdline(t *testing.T) {
 	}
 }
 
+func TestCmdlineRun(t *testing.T) {
+	c := NewCmdline()
+	eventCh, cmdlineCh, redrawCh := make(chan Event), make(chan Event), make(chan struct{})
+	c.Init(eventCh, cmdlineCh, redrawCh)
+	go c.Run()
+	events := []Event{
+		Event{Type: EventStartCmdline}, Event{Type: EventNop},
+		Event{Type: EventRune, Rune: 't'}, Event{Type: EventRune, Rune: 'e'},
+		Event{Type: EventCursorLeft}, Event{Type: EventCursorRight},
+		Event{Type: EventCursorHead}, Event{Type: EventCursorEnd},
+		Event{Type: EventBackspaceCmdline}, Event{Type: EventDeleteCmdline},
+		Event{Type: EventDeleteWordCmdline}, Event{Type: EventClearToHeadCmdline},
+		Event{Type: EventClearCmdline}, Event{Type: EventRune, Rune: 't'},
+		Event{Type: EventRune, Rune: 'e'}, Event{Type: EventExecuteCmdline},
+		Event{Type: EventStartCmdline}, Event{Type: EventExecuteCmdline},
+	}
+	go func() {
+		for _, e := range events {
+			cmdlineCh <- e
+		}
+	}()
+	for i := 0; i < len(events)-4; i++ {
+		<-redrawCh
+	}
+	e := <-eventCh
+	if e.Type != EventError {
+		t.Errorf("cmdline should emit EventError but got %v", e)
+	}
+	<-redrawCh
+	cmdline, cursor := c.Get()
+	if string(cmdline) != "te" {
+		t.Errorf("cmdline should be %q got %q", "te", cursor)
+	}
+	if cursor != 2 {
+		t.Errorf("cursor should be 2 but got %v", cursor)
+	}
+	<-redrawCh
+}
+
 func TestCmdlineCursorMotion(t *testing.T) {
 	c := NewCmdline()
 
