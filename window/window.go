@@ -212,7 +212,7 @@ func (w *window) cursorDown(count int64) {
 
 func (w *window) cursorLeft(count int64) {
 	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width)
-	if w.append && w.extending {
+	if w.append && w.extending && w.cursor < w.length-1 {
 		w.append = false
 		w.extending = false
 		if w.length > 0 {
@@ -245,7 +245,7 @@ func (w *window) cursorPrev(count int64) {
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
-	if w.append && w.extending {
+	if w.append && w.extending && w.cursor != w.length {
 		w.append = false
 		w.extending = false
 		if w.length > 0 {
@@ -464,16 +464,26 @@ func (w *window) decrement(count int64) {
 }
 
 func (w *window) startInsert() {
-	w.append = w.length == 0
+	w.append = false
 	w.extending = false
 	w.pending = false
+	if w.cursor == w.length {
+		w.append = true
+		w.extending = true
+		w.length++
+	}
 }
 
 func (w *window) startInsertHead() {
 	w.cursorHead(0)
-	w.append = w.length == 0
+	w.append = false
 	w.extending = false
 	w.pending = false
+	if w.cursor == w.length {
+		w.append = true
+		w.extending = true
+		w.length++
+	}
 }
 
 func (w *window) startAppend() {

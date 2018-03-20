@@ -682,7 +682,7 @@ func TestWindowInsertEmpty(t *testing.T) {
 	if state.PendingByte != '\x00' {
 		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
 	}
-	if state.Length != 1 {
+	if state.Length != 2 {
 		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
 	}
 
