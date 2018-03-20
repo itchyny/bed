@@ -13,7 +13,8 @@ func TestLayout(t *testing.T) {
 	layout = layout.SplitBottom(3)
 	layout = layout.SplitRight(4)
 
-	expected := LayoutHorizontal{
+	var expected Layout
+	expected = LayoutHorizontal{
 		Top: LayoutVertical{
 			Left: LayoutHorizontal{
 				Top: LayoutWindow{Index: 2, Active: false},
@@ -81,10 +82,36 @@ func TestLayout(t *testing.T) {
 		t.Errorf("Lookup(Index == 1) should be %+v but got %+v", expectedWindow, got)
 	}
 
+	if got.LeftMargin() != 11 {
+		t.Errorf("LeftMargin() should be %+v but got %+v", 11, got.LeftMargin())
+	}
+	if got.TopMargin() != 0 {
+		t.Errorf("TopMargin() should be %+v but got %+v", 0, got.TopMargin())
+	}
+	if got.Width() != 4 {
+		t.Errorf("Width() should be %+v but got %+v", 4, got.Width())
+	}
+	if got.Height() != 10 {
+		t.Errorf("Height() should be %+v but got %+v", 10, got.Height())
+	}
+
 	expectedWindow = LayoutWindow{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5}
 	got = layout.Lookup(func(l LayoutWindow) bool { return l.Index == 3 })
 	if !reflect.DeepEqual(got, expectedWindow) {
 		t.Errorf("Lookup(Index == 3) should be %+v but got %+v", expectedWindow, got)
+	}
+
+	if got.LeftMargin() != 0 {
+		t.Errorf("LeftMargin() should be %+v but got %+v", 0, got.LeftMargin())
+	}
+	if got.TopMargin() != 5 {
+		t.Errorf("TopMargin() should be %+v but got %+v", 5, got.TopMargin())
+	}
+	if got.Width() != 5 {
+		t.Errorf("Width() should be %+v but got %+v", 5, got.Width())
+	}
+	if got.Height() != 5 {
+		t.Errorf("Height() should be %+v but got %+v", 5, got.Height())
 	}
 
 	expectedWindow = LayoutWindow{Index: -1}
@@ -138,6 +165,19 @@ func TestLayout(t *testing.T) {
 
 	if !reflect.DeepEqual(layout, expected) {
 		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
+
+	if layout.LeftMargin() != 0 {
+		t.Errorf("LeftMargin() should be %+v but layout %+v", 0, layout.LeftMargin())
+	}
+	if layout.TopMargin() != 0 {
+		t.Errorf("TopMargin() should be %+v but layout %+v", 0, layout.TopMargin())
+	}
+	if layout.Width() != 15 {
+		t.Errorf("Width() should be %+v but layout %+v", 15, layout.Width())
+	}
+	if layout.Height() != 15 {
+		t.Errorf("Height() should be %+v but layout %+v", 15, layout.Height())
 	}
 
 	expectedMap = map[int]LayoutWindow{
@@ -215,5 +255,53 @@ func TestLayout(t *testing.T) {
 
 	if !reflect.DeepEqual(layout, expected) {
 		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
+
+	layout = LayoutVertical{
+		Left:  LayoutWindow{Index: 6, Active: false},
+		Right: layout,
+	}.SplitLeft(7).SplitTop(8).Resize(0, 0, 15, 10)
+
+	expected = LayoutVertical{
+		Left: LayoutWindow{Index: 6, Active: false, left: 0, top: 0, width: 3, height: 10},
+		Right: LayoutHorizontal{
+			Top: LayoutVertical{
+				Left: LayoutHorizontal{
+					Top:    LayoutWindow{Index: 2, Active: false, left: 4, top: 0, width: 3, height: 3},
+					Bottom: LayoutWindow{Index: 5, Active: false, left: 4, top: 3, width: 3, height: 3},
+					left:   4, top: 0, width: 3, height: 6,
+				},
+				Right: LayoutVertical{
+					Left: LayoutHorizontal{
+						Top:    LayoutWindow{Index: 8, Active: true, left: 8, top: 0, width: 3, height: 3},
+						Bottom: LayoutWindow{Index: 7, Active: false, left: 8, top: 3, width: 3, height: 3},
+						left:   8, top: 0, width: 3, height: 6,
+					},
+					Right: LayoutWindow{Index: 1, Active: false, left: 12, top: 0, width: 3, height: 6},
+					left:  8, top: 0, width: 7, height: 6,
+				},
+				left: 4, top: 0, width: 11, height: 6,
+			},
+			Bottom: LayoutWindow{Index: 0, Active: false, left: 4, top: 6, width: 11, height: 4},
+			left:   4, top: 0, width: 11, height: 10,
+		},
+		left: 0, top: 0, width: 15, height: 10,
+	}
+
+	if !reflect.DeepEqual(layout, expected) {
+		t.Errorf("layout should be %+v but got %+v", expected, layout)
+	}
+
+	if layout.LeftMargin() != 0 {
+		t.Errorf("LeftMargin() should be %+v but layout %+v", 0, layout.LeftMargin())
+	}
+	if layout.TopMargin() != 0 {
+		t.Errorf("TopMargin() should be %+v but layout %+v", 0, layout.TopMargin())
+	}
+	if layout.Width() != 15 {
+		t.Errorf("Width() should be %+v but layout %+v", 15, layout.Width())
+	}
+	if layout.Height() != 10 {
+		t.Errorf("Height() should be %+v but layout %+v", 10, layout.Height())
 	}
 }
