@@ -92,6 +92,17 @@ func (b *Buffer) EditedIndices() []int64 {
 	return eis
 }
 
+// Clone the buffer.
+func (b *Buffer) Clone() *Buffer {
+	newBuf := new(Buffer)
+	newBuf.rrs = make([]readerRange, len(b.rrs))
+	for i, rr := range b.rrs {
+		newBuf.rrs[i] = readerRange{b.clone(rr.r), rr.min, rr.max, rr.diff}
+	}
+	newBuf.index = b.index
+	return newBuf
+}
+
 // Insert inserts a byte at the specific position.
 func (b *Buffer) Insert(offset int64, c byte) {
 	for i, rr := range b.rrs {
