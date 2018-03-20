@@ -100,6 +100,75 @@ func TestBuffer(t *testing.T) {
 	}
 }
 
+func TestBufferClone(t *testing.T) {
+	b0 := NewBuffer(strings.NewReader("0123456789abcdef"))
+	b1 := b0.Clone()
+
+	bufferEqual := func(b0 *Buffer, b1 *Buffer) bool {
+		if b0.index != b1.index || len(b0.rrs) != len(b1.rrs) {
+			return false
+		}
+		for i := 0; i < len(b0.rrs); i++ {
+			if b0.rrs[i].min != b1.rrs[i].min || b0.rrs[i].max != b1.rrs[i].max ||
+				b0.rrs[i].diff != b1.rrs[i].diff {
+				return false
+			}
+			switch r0 := b0.rrs[i].r.(type) {
+			case *bytesReader:
+				switch r1 := b1.rrs[i].r.(type) {
+				case *bytesReader:
+					if !reflect.DeepEqual(r0.bs, r1.bs) || r0.index != r1.index {
+						t.Logf("buffer differs: %+v, %+v", r0, r1)
+						return false
+					}
+				default:
+					t.Logf("buffer differs: %+v, %+v", r0, r1)
+					return false
+				}
+			case *strings.Reader:
+				switch r1 := b1.rrs[i].r.(type) {
+				case *strings.Reader:
+					if r0 != r1 {
+						t.Logf("buffer differs: %+v, %+v", r0, r1)
+						return false
+					}
+				default:
+					t.Logf("buffer differs: %+v, %+v", r0, r1)
+					return false
+				}
+			default:
+				t.Logf("buffer differs: %+v, %+v", b0.rrs[i].r, b1.rrs[i].r)
+				return false
+			}
+		}
+		return true
+	}
+
+	if !bufferEqual(b1, b0) {
+		t.Errorf("Buffer#Clone should be %+v but got %+v", b0, b1)
+	}
+
+	b1.Insert(4, 0x40)
+	if bufferEqual(b1, b0) {
+		t.Errorf("Buffer should not be equal: %+v, %+v", b0, b1)
+	}
+
+	b2 := b1.Clone()
+	if !bufferEqual(b2, b1) {
+		t.Errorf("Buffer#Clone should be %+v but got %+v", b1, b2)
+	}
+
+	b2.Replace(4, 0x40)
+	if !bufferEqual(b2, b1) {
+		t.Errorf("Buffer should be equal: %+v, %+v", b1, b2)
+	}
+
+	b2.Replace(5, 0x40)
+	if bufferEqual(b2, b1) {
+		t.Errorf("Buffer should not be equal: %+v, %+v", b1, b2)
+	}
+}
+
 func TestBufferInsert(t *testing.T) {
 	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
