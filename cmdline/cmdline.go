@@ -63,8 +63,12 @@ func (c *Cmdline) Run() {
 			c.clear()
 		case EventRune:
 			c.insert(e.Rune)
-		case EventCompleteCmdline:
-			c.complete()
+		case EventCompleteForwardCmdline:
+			c.complete(true)
+			c.redrawCh <- struct{}{}
+			continue
+		case EventCompleteBackCmdline:
+			c.complete(false)
 			c.redrawCh <- struct{}{}
 			continue
 		case EventExecuteCmdline:
@@ -145,7 +149,7 @@ func (c *Cmdline) insert(ch rune) {
 	}
 }
 
-func (c *Cmdline) complete() {
+func (c *Cmdline) complete(forward bool) {
 	cmd, args, err := parse(c.cmdline)
 	if err != nil {
 		c.completionResults = nil
@@ -159,7 +163,11 @@ func (c *Cmdline) complete() {
 	}
 	cmdName := strings.Fields(string(c.cmdline))[0] // todo: parse should return argument position
 	if len(c.completionResults) > 0 {
-		c.completionIndex = (c.completionIndex+2)%(len(c.completionResults)+1) - 1
+		if forward {
+			c.completionIndex = (c.completionIndex+2)%(len(c.completionResults)+1) - 1
+		} else {
+			c.completionIndex = (c.completionIndex+len(c.completionResults)+1)%(len(c.completionResults)+1) - 1
+		}
 		if c.completionIndex < 0 {
 			c.cmdline = []rune(c.completionTarget)
 		} else {
@@ -180,9 +188,16 @@ func (c *Cmdline) complete() {
 		c.cursor = len(c.cmdline)
 		c.completionResults = nil
 	} else if len(c.completionResults) > 1 {
-		c.cmdline = []rune(cmdName + " " + c.completionResults[0])
+		if forward {
+			c.cmdline = []rune(cmdName + " " + c.completionResults[0])
+			c.completionIndex = 0
+			c.cursor = len(c.cmdline)
+		} else {
+			c.cmdline = []rune(cmdName + " " + c.completionResults[len(c.completionResults)-1])
+			c.completionIndex = len(c.completionResults) - 1
+			c.cursor = len(c.cmdline)
+		}
 		c.completionTarget = cmdName + " " + samePrefix(c.completionResults)
-		c.cursor = len(c.cmdline)
 	}
 }
 

@@ -68,7 +68,8 @@ const (
 	EventClearToHeadCmdline
 	EventClearCmdline
 	EventExitCmdline
-	EventCompleteCmdline
+	EventCompleteForwardCmdline
+	EventCompleteBackCmdline
 	EventExecuteCmdline
 
 	EventEdit
