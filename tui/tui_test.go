@@ -6,8 +6,54 @@ import (
 	"testing"
 
 	"github.com/gdamore/tcell"
+
 	. "github.com/itchyny/bed/common"
 )
+
+func mockKeyManager() map[Mode]*KeyManager {
+	kms := make(map[Mode]*KeyManager)
+	km := NewKeyManager(true)
+	km.Register(EventQuit, "Z", "Q")
+	km.Register(EventCursorDown, "j")
+	kms[ModeNormal] = km
+	return kms
+}
+
+func TestTuiRun(t *testing.T) {
+	ui := NewTui()
+	eventCh := make(chan Event)
+	screen := tcell.NewSimulationScreen("")
+	if err := ui.initForTest(eventCh, screen); err != nil {
+		t.Fatal(err)
+	}
+	screen.SetSize(90, 20)
+	go ui.Run(mockKeyManager())
+	screen.InjectKey(tcell.KeyRune, 'Z', tcell.ModNone)
+	screen.InjectKey(tcell.KeyRune, 'Q', tcell.ModNone)
+	e := <-eventCh
+	if e.Type != EventRune {
+		t.Errorf("pressing Z should emit EventRune but got: %+v", e)
+	}
+	e = <-eventCh
+	if e.Type != EventQuit {
+		t.Errorf("pressing ZQ should emit EventQuit but got: %+v", e)
+	}
+	screen.InjectKey(tcell.KeyRune, '7', tcell.ModNone)
+	screen.InjectKey(tcell.KeyRune, '0', tcell.ModNone)
+	screen.InjectKey(tcell.KeyRune, '9', tcell.ModNone)
+	screen.InjectKey(tcell.KeyRune, 'j', tcell.ModNone)
+	e = <-eventCh
+	e = <-eventCh
+	e = <-eventCh
+	e = <-eventCh
+	if e.Type != EventCursorDown {
+		t.Errorf("pressing 709j should emit EventCursorDown but got: %+v", e)
+	}
+	if e.Count != 709 {
+		t.Errorf("pressing 709j should emit event with count %d but got: %+v", 709, e)
+	}
+	ui.Close()
+}
 
 func TestTuiEmpty(t *testing.T) {
 	ui := NewTui()
