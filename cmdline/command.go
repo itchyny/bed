@@ -13,6 +13,9 @@ var commands = []command{
 	{"vne[w]", EventVnew},
 	{"winc[md]", EventWincmd},
 
+	{"u[ndo]", EventUndo},
+	{"red[o]", EventRedo},
+
 	{"exi[t]", EventQuit},
 	{"q[uit]", EventQuit},
 	{"qa[ll]", EventQuitAll},

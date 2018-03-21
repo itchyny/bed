@@ -1130,10 +1130,9 @@ func TestWindowEventUndoRedo(t *testing.T) {
 		window.eventCh <- Event{Type: EventCursorLeft, Mode: ModeInsert}
 		window.eventCh <- Event{Type: EventRune, Rune: 'z', Mode: ModeInsert}
 		window.eventCh <- Event{Type: EventExitInsert}
-		window.eventCh <- Event{Type: EventUndo}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventUndo}
+		window.eventCh <- Event{Type: EventUndo, Count: 2}
 		window.eventCh <- Event{Type: EventStartInsert, Mode: ModeInsert}
 		window.eventCh <- Event{Type: EventRune, Rune: 'w', Mode: ModeInsert}
 
@@ -1142,8 +1141,7 @@ func TestWindowEventUndoRedo(t *testing.T) {
 		window.eventCh <- Event{Type: EventUndo}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventRedo}
-		window.eventCh <- Event{Type: EventRedo}
+		window.eventCh <- Event{Type: EventRedo, Count: 2}
 	}()
 
 	waitRedraw(3)
@@ -1166,10 +1164,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	}
 	waitCh <- struct{}{}
 
-	waitRedraw(7)
+	waitRedraw(6)
 	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hxyxyzello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hxyxyzello, world!\x00", string(state.Bytes))
+	if !strings.HasPrefix(string(state.Bytes), "Hxyxzyzello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hxyxzyzello, world!\x00", string(state.Bytes))
 	}
 	if state.Cursor != 5 {
 		t.Errorf("state.Cursor should be %d but got %d", 5, state.Cursor)
@@ -1196,7 +1194,7 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	}
 	waitCh <- struct{}{}
 
-	waitRedraw(2)
+	waitRedraw(1)
 	state, _ = window.State()
 	if !strings.HasPrefix(string(state.Bytes), "Hxywzello, world!\x00") {
 		t.Errorf("state.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(state.Bytes))

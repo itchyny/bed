@@ -159,12 +159,12 @@ func (w *window) Run() {
 			if e.Mode != ModeNormal {
 				panic("EventUndo should be emitted under normal mode")
 			}
-			w.undo()
+			w.undo(e.Count)
 		case EventRedo:
 			if e.Mode != ModeNormal {
 				panic("EventUndo should be emitted under normal mode")
 			}
-			w.redo()
+			w.redo(e.Count)
 		default:
 			w.mu.Unlock()
 			continue
@@ -235,22 +235,26 @@ func (w *window) delete(offset int64) {
 	w.changedTick++
 }
 
-func (w *window) undo() {
-	buffer, _, offset, cursor := w.history.Undo()
-	if buffer == nil {
-		return
+func (w *window) undo(count int64) {
+	for i := int64(0); i < util.MaxInt64(count, 1); i++ {
+		buffer, _, offset, cursor := w.history.Undo()
+		if buffer == nil {
+			return
+		}
+		w.buffer, w.offset, w.cursor = buffer, offset, cursor
+		w.length, _ = w.buffer.Len()
 	}
-	w.buffer, w.offset, w.cursor = buffer, offset, cursor
-	w.length, _ = buffer.Len()
 }
 
-func (w *window) redo() {
-	buffer, offset, cursor := w.history.Redo()
-	if buffer == nil {
-		return
+func (w *window) redo(count int64) {
+	for i := int64(0); i < util.MaxInt64(count, 1); i++ {
+		buffer, offset, cursor := w.history.Redo()
+		if buffer == nil {
+			return
+		}
+		w.buffer, w.offset, w.cursor = buffer, offset, cursor
+		w.length, _ = w.buffer.Len()
 	}
-	w.buffer, w.offset, w.cursor = buffer, offset, cursor
-	w.length, _ = buffer.Len()
 }
 
 func (w *window) cursorUp(count int64) {
