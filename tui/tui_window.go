@@ -102,7 +102,7 @@ func (ui *tuiWindow) bytesArray(height, width int, state *WindowState) ([][]byte
 			}
 			if state.Pending && i*width+j == int(state.Cursor-state.Offset) {
 				bytes[i][j] = state.PendingByte
-				styles[i][j] = styles[i][j].Foreground(tcell.ColorSkyblue)
+				styles[i][j] = styles[i][j].Foreground(tcell.ColorDodgerBlue)
 				if state.Mode == ModeReplace {
 					k++
 				}
@@ -110,7 +110,7 @@ func (ui *tuiWindow) bytesArray(height, width int, state *WindowState) ([][]byte
 			}
 			bytes[i][j] = state.Bytes[k]
 			if 0 < len(eis) && eis[0] <= int64(k)+state.Offset && int64(k)+state.Offset < eis[1] {
-				styles[i][j] = styles[i][j].Foreground(tcell.ColorSkyblue)
+				styles[i][j] = styles[i][j].Foreground(tcell.ColorDodgerBlue)
 			} else if 0 < len(eis) && eis[1] <= int64(k)+state.Offset {
 				eis = eis[2:]
 			}
