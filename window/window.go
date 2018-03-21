@@ -191,6 +191,18 @@ func (w *window) State() (*WindowState, error) {
 	}, nil
 }
 
+func (w *window) insert(offset int64, c byte) {
+	w.buffer.Insert(offset, c)
+}
+
+func (w *window) replace(offset int64, c byte) {
+	w.buffer.Replace(offset, c)
+}
+
+func (w *window) delete(offset int64) {
+	w.buffer.Delete(offset)
+}
+
 func (w *window) cursorUp(count int64) {
 	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor/w.width) * w.width
 	if w.cursor < w.offset {
@@ -424,7 +436,7 @@ func (w *window) deleteByte(count int64) {
 		w.length-w.cursor,
 	))
 	for i := 0; i < cnt; i++ {
-		w.buffer.Delete(w.cursor)
+		w.delete(w.cursor)
 		w.length--
 		if w.cursor == w.length && w.cursor > 0 {
 			w.cursor--
@@ -435,7 +447,7 @@ func (w *window) deleteByte(count int64) {
 func (w *window) deletePrevByte(count int64) {
 	cnt := int(util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width))
 	for i := 0; i < cnt; i++ {
-		w.buffer.Delete(w.cursor - 1)
+		w.delete(w.cursor - 1)
 		w.cursor--
 		w.length--
 	}
@@ -446,7 +458,7 @@ func (w *window) increment(count int64) {
 	if err != nil {
 		return
 	}
-	w.buffer.Replace(w.cursor, bytes[0]+byte(util.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]+byte(util.MaxInt64(count, 1)%256))
 	if w.length == 0 {
 		w.length++
 	}
@@ -457,7 +469,7 @@ func (w *window) decrement(count int64) {
 	if err != nil {
 		return
 	}
-	w.buffer.Replace(w.cursor, bytes[0]-byte(util.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]-byte(util.MaxInt64(count, 1)%256))
 	if w.length == 0 {
 		w.length++
 	}
@@ -558,11 +570,11 @@ func (w *window) insertByte(mode Mode, b byte) {
 	if w.pending {
 		switch mode {
 		case ModeInsert:
-			w.buffer.Insert(w.cursor, w.pendingByte|b)
+			w.insert(w.cursor, w.pendingByte|b)
 			w.cursor++
 			w.length++
 		case ModeReplace:
-			w.buffer.Replace(w.cursor, w.pendingByte|b)
+			w.replace(w.cursor, w.pendingByte|b)
 			if w.length == 0 {
 				w.length++
 			}
@@ -593,7 +605,7 @@ func (w *window) backspace() {
 		w.pending = false
 		w.pendingByte = '\x00'
 	} else if w.cursor > 0 {
-		w.buffer.Delete(w.cursor - 1)
+		w.delete(w.cursor - 1)
 		w.cursor--
 		w.length--
 	}
