@@ -13,6 +13,7 @@ import (
 
 type window struct {
 	buffer      *buffer.Buffer
+	changedTick uint64
 	filename    string
 	name        string
 	height      int64
@@ -193,14 +194,17 @@ func (w *window) State() (*WindowState, error) {
 
 func (w *window) insert(offset int64, c byte) {
 	w.buffer.Insert(offset, c)
+	w.changedTick++
 }
 
 func (w *window) replace(offset int64, c byte) {
 	w.buffer.Replace(offset, c)
+	w.changedTick++
 }
 
 func (w *window) delete(offset int64) {
 	w.buffer.Delete(offset)
+	w.changedTick++
 }
 
 func (w *window) cursorUp(count int64) {
