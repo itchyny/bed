@@ -630,7 +630,7 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 
 func TestWindowInsertByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	width, height := 16, 10
+	width, height := 16, 1
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
@@ -660,6 +660,31 @@ func TestWindowInsertByte(t *testing.T) {
 	}
 	if state.Length != 14 {
 		t.Errorf("state.Length should be %d but got %d", 14, state.Length)
+	}
+
+	window.exitInsert()
+	window.startAppendEnd()
+	window.insertByte(ModeInsert, 0x04)
+	window.insertByte(ModeInsert, 0x0b)
+	window.insertByte(ModeInsert, 0x04)
+	window.insertByte(ModeInsert, 0x0c)
+	window.insertByte(ModeInsert, 0x04)
+	window.insertByte(ModeInsert, 0x0d)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "M\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "M\x00", string(state.Bytes))
+	}
+	if state.Pending != false {
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	}
+	if state.PendingByte != '\x00' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	}
+	if state.Length != 18 {
+		t.Errorf("state.Length should be %d but got %d", 18, state.Length)
+	}
+	if state.Offset != 16 {
+		t.Errorf("state.Offset should be %d but got %d", 16, state.Offset)
 	}
 }
 
