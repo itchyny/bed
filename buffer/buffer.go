@@ -3,6 +3,7 @@ package buffer
 import (
 	"io"
 	"math"
+	"sync"
 
 	"github.com/itchyny/bed/util"
 )
@@ -11,6 +12,7 @@ import (
 type Buffer struct {
 	rrs   []readerRange
 	index int64
+	mu    *sync.Mutex
 }
 
 type readerRange struct {
@@ -25,11 +27,14 @@ func NewBuffer(r io.ReadSeeker) *Buffer {
 	return &Buffer{
 		rrs:   []readerRange{{r: r, min: 0, max: math.MaxInt64, diff: 0}},
 		index: 0,
+		mu:    new(sync.Mutex),
 	}
 }
 
 // Read reads bytes.
 func (b *Buffer) Read(p []byte) (i int, err error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	for _, rr := range b.rrs {
 		if b.index < rr.min {
 			break
@@ -53,6 +58,8 @@ func (b *Buffer) Read(p []byte) (i int, err error) {
 
 // Seek sets the offset.
 func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	switch whence {
 	case io.SeekStart:
 		b.index = offset
@@ -61,7 +68,7 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	case io.SeekEnd:
 		var l int64
 		var err error
-		if l, err = b.Len(); err != nil {
+		if l, err = b.len(); err != nil {
 			return 0, err
 		}
 		b.index = l + offset
@@ -71,6 +78,12 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 
 // Len returns the total size of the buffer.
 func (b *Buffer) Len() (int64, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.len()
+}
+
+func (b *Buffer) len() (int64, error) {
 	rr := b.rrs[len(b.rrs)-1]
 	l, err := rr.r.Seek(0, io.SeekEnd)
 	if err != nil {
@@ -81,6 +94,8 @@ func (b *Buffer) Len() (int64, error) {
 
 // EditedIndices returns the indices of edited regions.
 func (b *Buffer) EditedIndices() []int64 {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	eis := make([]int64, 0, len(b.rrs))
 	for _, rr := range b.rrs {
 		switch rr.r.(type) {
@@ -94,17 +109,22 @@ func (b *Buffer) EditedIndices() []int64 {
 
 // Clone the buffer.
 func (b *Buffer) Clone() *Buffer {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	newBuf := new(Buffer)
 	newBuf.rrs = make([]readerRange, len(b.rrs))
 	for i, rr := range b.rrs {
 		newBuf.rrs[i] = readerRange{b.clone(rr.r), rr.min, rr.max, rr.diff}
 	}
 	newBuf.index = b.index
+	newBuf.mu = new(sync.Mutex)
 	return newBuf
 }
 
 // Insert inserts a byte at the specific position.
 func (b *Buffer) Insert(offset int64, c byte) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -141,6 +161,8 @@ func (b *Buffer) Insert(offset int64, c byte) {
 
 // Replace replaces a byte at the specific position.
 func (b *Buffer) Replace(offset int64, c byte) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -174,6 +196,8 @@ func (b *Buffer) Replace(offset int64, c byte) {
 
 // Delete deletes a byte at the specific position.
 func (b *Buffer) Delete(offset int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
