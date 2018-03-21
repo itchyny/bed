@@ -157,8 +157,15 @@ func (c *Cmdline) complete() {
 		c.completionIndex = 0
 		return
 	}
-	if c.completionTarget == string(c.cmdline) && len(c.completionResults) > 0 {
-		c.completionIndex = (c.completionIndex + 1) % len(c.completionResults)
+	cmdName := strings.Fields(string(c.cmdline))[0] // todo: parse should return argument position
+	if len(c.completionResults) > 0 {
+		c.completionIndex = (c.completionIndex+2)%(len(c.completionResults)+1) - 1
+		if c.completionIndex < 0 {
+			c.cmdline = []rune(c.completionTarget)
+		} else {
+			c.cmdline = []rune(cmdName + " " + c.completionResults[c.completionIndex])
+		}
+		c.cursor = len(c.cmdline)
 		return
 	}
 	c.completionTarget = string(c.cmdline)
@@ -169,13 +176,12 @@ func (c *Cmdline) complete() {
 		c.completionResults = listFileNames(args[0])
 	}
 	if len(c.completionResults) == 1 {
-		cmdName := strings.Fields(string(c.cmdline))[0] // todo: parse should return argument position
 		c.cmdline = []rune(cmdName + " " + c.completionResults[0])
 		c.cursor = len(c.cmdline)
 		c.completionResults = nil
 	} else if len(c.completionResults) > 1 {
-		cmdName := strings.Fields(string(c.cmdline))[0] // todo: parse should return argument position
-		c.cmdline = []rune(cmdName + " " + samePrefix(c.completionResults))
+		c.cmdline = []rune(cmdName + " " + c.completionResults[0])
+		c.completionTarget = cmdName + " " + samePrefix(c.completionResults)
 		c.cursor = len(c.cmdline)
 	}
 }

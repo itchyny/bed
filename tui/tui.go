@@ -108,7 +108,7 @@ func (ui *Tui) drawVerticalSplit(region region) {
 }
 
 func (ui *Tui) drawCmdline(state State) {
-	_, height := ui.Size()
+	width, height := ui.Size()
 	if state.Error != nil {
 		style := tcell.StyleDefault.Foreground(tcell.ColorRed)
 		if state.ErrorType == MessageInfo {
@@ -116,7 +116,25 @@ func (ui *Tui) drawCmdline(state State) {
 		}
 		ui.setLine(height-1, 0, state.Error.Error(), style)
 	} else if state.Mode == ModeCmdline {
-		ui.setLine(height-1, 0, ":"+string(state.Cmdline)+"      "+strings.Join(state.CompletionResults, "  "), 0)
+		if len(state.CompletionResults) > 0 {
+			var line string
+			var pos int
+			for i, result := range state.CompletionResults {
+				if len(line)+len(result)+2 > width && i <= state.CompletionIndex {
+					line = ""
+				}
+				if state.CompletionIndex == i {
+					pos = len(line)
+				}
+				line += " " + result + " "
+			}
+			ui.setLine(height-2, 0, line+strings.Repeat(" ", width), tcell.StyleDefault.Reverse(true))
+			if state.CompletionIndex >= 0 {
+				ui.setLine(height-2, pos, " "+state.CompletionResults[state.CompletionIndex]+" ",
+					tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
+			}
+		}
+		ui.setLine(height-1, 0, ":"+string(state.Cmdline), tcell.StyleDefault)
 		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
 	}
 }
