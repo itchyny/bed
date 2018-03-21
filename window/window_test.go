@@ -1091,3 +1091,117 @@ func TestWindowEventRuneText(t *testing.T) {
 	}
 	window.Close()
 }
+
+func TestWindowEventUndoRedo(t *testing.T) {
+	width, height := 16, 10
+	redrawCh := make(chan struct{})
+	window, _ := newWindow(strings.NewReader("Hello, world!"), "test", "test", redrawCh)
+	window.setSize(width, height)
+	waitCh := make(chan struct{})
+	defer func() {
+		close(waitCh)
+		close(redrawCh)
+		window.Close()
+	}()
+
+	waitRedraw := func(count int) {
+		for i := 0; i < count; i++ {
+			<-redrawCh
+		}
+	}
+	go func() {
+		window.Run()
+	}()
+	go func() {
+		window.eventCh <- Event{Type: EventUndo}
+		window.eventCh <- Event{Type: EventSwitchFocus}
+		window.eventCh <- Event{Type: EventStartAppend, Mode: ModeInsert}
+
+		<-waitCh
+		window.eventCh <- Event{Type: EventRune, Rune: 'x', Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventRune, Rune: 'y', Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventRune, Rune: 'z', Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventExitInsert}
+
+		<-waitCh
+		window.eventCh <- Event{Type: EventStartInsert, Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventRune, Rune: 'x', Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventRune, Rune: 'y', Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventCursorLeft, Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventRune, Rune: 'z', Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventExitInsert}
+		window.eventCh <- Event{Type: EventUndo}
+
+		<-waitCh
+		window.eventCh <- Event{Type: EventUndo}
+		window.eventCh <- Event{Type: EventStartInsert, Mode: ModeInsert}
+		window.eventCh <- Event{Type: EventRune, Rune: 'w', Mode: ModeInsert}
+
+		<-waitCh
+		window.eventCh <- Event{Type: EventExitInsert}
+		window.eventCh <- Event{Type: EventUndo}
+
+		<-waitCh
+		window.eventCh <- Event{Type: EventRedo}
+		window.eventCh <- Event{Type: EventRedo}
+	}()
+
+	waitRedraw(3)
+	state, _ := window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 1 {
+		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	}
+	waitCh <- struct{}{}
+
+	waitRedraw(4)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hxyzello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hxyzello, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 3 {
+		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	}
+	waitCh <- struct{}{}
+
+	waitRedraw(7)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hxyxyzello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hxyxyzello, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 5 {
+		t.Errorf("state.Cursor should be %d but got %d", 5, state.Cursor)
+	}
+	waitCh <- struct{}{}
+
+	waitRedraw(3)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hxywzello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 4 {
+		t.Errorf("state.Cursor should be %d but got %d", 4, state.Cursor)
+	}
+	waitCh <- struct{}{}
+
+	waitRedraw(2)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hxyzello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hxyzello, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 3 {
+		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	}
+	waitCh <- struct{}{}
+
+	waitRedraw(2)
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "Hxywzello, world!\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(state.Bytes))
+	}
+	if state.Cursor != 4 {
+		t.Errorf("state.Cursor should be %d but got %d", 4, state.Cursor)
+	}
+}
