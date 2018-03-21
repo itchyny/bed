@@ -155,6 +155,7 @@ func (w *window) Run() {
 				w.pending = false
 				w.pendingByte = '\x00'
 			}
+			w.changedTick++
 		case EventUndo:
 			if e.Mode != ModeNormal {
 				panic("EventUndo should be emitted under normal mode")
