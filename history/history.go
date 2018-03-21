@@ -1,8 +1,8 @@
-package window
+package history
 
 import "github.com/itchyny/bed/buffer"
 
-type history struct {
+type History struct {
 	entries []*historyEntry
 	index   int
 }
@@ -13,11 +13,11 @@ type historyEntry struct {
 	cursor int64
 }
 
-func newHistory() *history {
-	return &history{index: -1}
+func NewHistory() *History {
+	return &History{index: -1}
 }
 
-func (h *history) push(buffer *buffer.Buffer, offset int64, cursor int64) {
+func (h *History) Push(buffer *buffer.Buffer, offset int64, cursor int64) {
 	newEntry := &historyEntry{buffer.Clone(), offset, cursor}
 	if len(h.entries)-1 > h.index {
 		h.index++
@@ -29,7 +29,7 @@ func (h *history) push(buffer *buffer.Buffer, offset int64, cursor int64) {
 	}
 }
 
-func (h *history) undo() (*buffer.Buffer, int, int64, int64) {
+func (h *History) Undo() (*buffer.Buffer, int, int64, int64) {
 	if h.index < 0 {
 		return nil, h.index, 0, 0
 	}
@@ -40,7 +40,7 @@ func (h *history) undo() (*buffer.Buffer, int, int64, int64) {
 	return e.buffer.Clone(), h.index, e.offset, e.cursor
 }
 
-func (h *history) redo() (*buffer.Buffer, int64, int64) {
+func (h *History) Redo() (*buffer.Buffer, int64, int64) {
 	if h.index == len(h.entries)-1 || h.index < 0 {
 		return nil, 0, 0
 	}

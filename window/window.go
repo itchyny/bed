@@ -8,6 +8,7 @@ import (
 
 	"github.com/itchyny/bed/buffer"
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/history"
 	"github.com/itchyny/bed/util"
 )
 
@@ -15,7 +16,7 @@ type window struct {
 	buffer      *buffer.Buffer
 	changedTick uint64
 	prevChanged bool
-	history     *history
+	history     *history.History
 	filename    string
 	name        string
 	height      int64
@@ -46,8 +47,8 @@ func newWindow(r io.ReadSeeker, filename string, name string, redrawCh chan<- st
 	if err != nil {
 		return nil, err
 	}
-	history := newHistory()
-	history.push(buffer, 0, 0)
+	history := history.NewHistory()
+	history.Push(buffer, 0, 0)
 	return &window{
 		buffer:   buffer,
 		history:  history,
@@ -171,10 +172,10 @@ func (w *window) Run() {
 		changed := changedTick != w.changedTick
 		if e.Type != EventUndo && e.Type != EventRedo {
 			if e.Mode == ModeNormal && changed || e.Type == EventExitInsert && w.prevChanged {
-				w.history.push(w.buffer, w.offset, w.cursor)
+				w.history.Push(w.buffer, w.offset, w.cursor)
 			} else if e.Mode != ModeNormal && w.prevChanged && !changed &&
 				EventCursorUp <= e.Type && e.Type <= EventJumpBack {
-				w.history.push(w.buffer, offset, cursor)
+				w.history.Push(w.buffer, offset, cursor)
 			}
 		}
 		w.prevChanged = changed
@@ -235,7 +236,7 @@ func (w *window) delete(offset int64) {
 }
 
 func (w *window) undo() {
-	buffer, _, offset, cursor := w.history.undo()
+	buffer, _, offset, cursor := w.history.Undo()
 	if buffer == nil {
 		return
 	}
@@ -244,7 +245,7 @@ func (w *window) undo() {
 }
 
 func (w *window) redo() {
-	buffer, offset, cursor := w.history.redo()
+	buffer, offset, cursor := w.history.Redo()
 	if buffer == nil {
 		return
 	}
