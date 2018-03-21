@@ -147,10 +147,12 @@ func TestEditorCmdlineQuit(t *testing.T) {
 			ch  rune
 		}{
 			{EventStartCmdline, '-'}, {EventRune, 'q'}, {EventRune, 'u'}, {EventRune, 'i'},
-			{EventRune, 't'}, {EventExecuteCmdline, '-'},
+			{EventRune, 't'},
 		} {
 			ui.Emit(Event{Type: e.typ, Rune: e.ch})
 		}
+		time.Sleep(100 * time.Millisecond)
+		ui.Emit(Event{Type: EventExecuteCmdline})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
