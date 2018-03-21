@@ -257,9 +257,10 @@ func listFileNames(prefix string) []string {
 		if err != nil {
 			return nil
 		}
+		lowerBase := strings.ToLower(base)
 		for _, fileInfo := range fileInfos {
 			name := fileInfo.Name()
-			if base != separator && !strings.HasPrefix(name, base) {
+			if base != separator && !strings.HasPrefix(strings.ToLower(name), lowerBase) {
 				continue
 			}
 			name = filepath.Join(dir, name)
