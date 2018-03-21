@@ -273,24 +273,29 @@ func listFileNames(prefix string) []string {
 			targets = append(targets, name)
 		}
 	}
-	sort.SliceStable(targets, func(i, j int) bool {
-		score := func(path string) string {
-			var ret string
-			if strings.HasSuffix(path, separator) {
-				ret += "1"
-			} else {
-				ret += "0"
-			}
-			if strings.HasPrefix(filepath.Base(path), ".") {
-				ret += "1"
-			} else {
-				ret += "0"
-			}
-			return ret + path
-		}
-		return score(targets[i]) < score(targets[j])
-	})
+	sortFilePaths(targets)
 	return targets
+}
+
+func sortFilePaths(paths []string) {
+	sort.SliceStable(paths, func(i, j int) bool {
+		return filePathSorter(paths[i]) < filePathSorter(paths[j])
+	})
+}
+
+func filePathSorter(path string) string {
+	var ret string
+	if path[len(path)-1] == filepath.Separator {
+		ret += "1"
+	} else {
+		ret += "0"
+	}
+	if strings.HasPrefix(filepath.Base(path), ".") {
+		ret += "1"
+	} else {
+		ret += "0"
+	}
+	return ret + path
 }
 
 func samePrefix(results []string) string {
