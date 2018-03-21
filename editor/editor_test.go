@@ -61,6 +61,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 		for _, t := range []EventType{EventIncrement, EventIncrement, EventDecrement} {
 			ui.Emit(Event{Type: t})
 		}
+		time.Sleep(100 * time.Millisecond)
 		ui.Emit(Event{Type: EventWrite, Args: []string{f.Name()}})
 		time.Sleep(100 * time.Millisecond)
 		ui.Emit(Event{Type: EventQuit})
@@ -106,10 +107,12 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 			{EventStartInsert, '-'}, {EventRune, '4'}, {EventRune, '8'}, {EventRune, '0'}, {EventRune, '0'},
 			{EventRune, 'f'}, {EventRune, 'a'}, {EventExitInsert, '-'}, {EventCursorLeft, '-'}, {EventDecrement, '-'},
 			{EventStartInsertHead, '-'}, {EventRune, '1'}, {EventRune, '2'}, {EventExitInsert, '-'},
-			{EventCursorEnd, '-'}, {EventDelete, '-'}, {EventWriteQuit, '-'},
+			{EventCursorEnd, '-'}, {EventDelete, '-'},
 		} {
 			ui.Emit(Event{Type: e.typ, Rune: e.ch})
 		}
+		time.Sleep(100 * time.Millisecond)
+		ui.Emit(Event{Type: EventWriteQuit})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
