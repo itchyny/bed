@@ -39,6 +39,7 @@ const (
 	EventPageEnd
 	EventJumpTo
 	EventJumpBack
+
 	EventDeleteByte
 	EventDeletePrevByte
 	EventIncrement
@@ -55,6 +56,9 @@ const (
 	EventBackspace
 	EventDelete
 	EventRune
+
+	EventUndo
+	EventRedo
 
 	EventSwitchFocus
 	EventStartCmdline

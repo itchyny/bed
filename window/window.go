@@ -14,6 +14,8 @@ import (
 type window struct {
 	buffer      *buffer.Buffer
 	changedTick uint64
+	prevChanged bool
+	history     *history
 	filename    string
 	name        string
 	height      int64
@@ -44,8 +46,11 @@ func newWindow(r io.ReadSeeker, filename string, name string, redrawCh chan<- st
 	if err != nil {
 		return nil, err
 	}
+	history := newHistory()
+	history.push(buffer, 0, 0)
 	return &window{
 		buffer:   buffer,
+		history:  history,
 		filename: filename,
 		name:     name,
 		length:   length,
@@ -71,6 +76,7 @@ func (w *window) setSize(width, height int) {
 func (w *window) Run() {
 	for e := range w.eventCh {
 		w.mu.Lock()
+		offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
 		switch e.Type {
 		case EventCursorUp:
 			w.cursorUp(e.Count)
@@ -112,6 +118,7 @@ func (w *window) Run() {
 			w.jumpTo()
 		case EventJumpBack:
 			w.jumpBack()
+
 		case EventDeleteByte:
 			w.deleteByte(e.Count)
 		case EventDeletePrevByte:
@@ -147,10 +154,30 @@ func (w *window) Run() {
 				w.pending = false
 				w.pendingByte = '\x00'
 			}
+		case EventUndo:
+			if e.Mode != ModeNormal {
+				panic("EventUndo should be emitted under normal mode")
+			}
+			w.undo()
+		case EventRedo:
+			if e.Mode != ModeNormal {
+				panic("EventUndo should be emitted under normal mode")
+			}
+			w.redo()
 		default:
 			w.mu.Unlock()
 			continue
 		}
+		changed := changedTick != w.changedTick
+		if e.Type != EventUndo && e.Type != EventRedo {
+			if e.Mode == ModeNormal && changed || e.Type == EventExitInsert && w.prevChanged {
+				w.history.push(w.buffer, w.offset, w.cursor)
+			} else if e.Mode != ModeNormal && w.prevChanged && !changed &&
+				EventCursorUp <= e.Type && e.Type <= EventJumpBack {
+				w.history.push(w.buffer, offset, cursor)
+			}
+		}
+		w.prevChanged = changed
 		w.mu.Unlock()
 		w.redrawCh <- struct{}{}
 	}
@@ -205,6 +232,24 @@ func (w *window) replace(offset int64, c byte) {
 func (w *window) delete(offset int64) {
 	w.buffer.Delete(offset)
 	w.changedTick++
+}
+
+func (w *window) undo() {
+	buffer, _, offset, cursor := w.history.undo()
+	if buffer == nil {
+		return
+	}
+	w.buffer, w.offset, w.cursor = buffer, offset, cursor
+	w.length, _ = buffer.Len()
+}
+
+func (w *window) redo() {
+	buffer, offset, cursor := w.history.redo()
+	if buffer == nil {
+		return
+	}
+	w.buffer, w.offset, w.cursor = buffer, offset, cursor
+	w.length, _ = buffer.Len()
 }
 
 func (w *window) cursorUp(count int64) {

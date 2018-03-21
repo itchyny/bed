@@ -50,6 +50,9 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventStartReplaceByte, "r")
 	km.Register(EventStartReplace, "R")
 
+	km.Register(EventUndo, "u")
+	km.Register(EventRedo, "c-r")
+
 	km.Register(EventSwitchFocus, "tab")
 	km.Register(EventStartCmdline, ":")
 
