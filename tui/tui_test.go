@@ -66,6 +66,7 @@ func TestTuiEmpty(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
+	ui.Close()
 }
 
 func TestTuiScrollBar(t *testing.T) {
@@ -125,6 +126,7 @@ func TestTuiScrollBar(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
+	ui.Close()
 }
 
 func TestTuiHorizontalSplit(t *testing.T) {
@@ -195,6 +197,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
+	ui.Close()
 }
 
 func TestTuiVerticalSplit(t *testing.T) {
@@ -263,6 +266,7 @@ func TestTuiVerticalSplit(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
+	ui.Close()
 }
 
 func TestTuiCmdline(t *testing.T) {
@@ -306,4 +310,5 @@ func TestTuiCmdline(t *testing.T) {
 	if !strings.HasPrefix(got, expected) {
 		t.Errorf("cmdline should start with %q but got %q", expected, got)
 	}
+	ui.Close()
 }
