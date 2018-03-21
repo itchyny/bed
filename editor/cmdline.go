@@ -6,5 +6,5 @@ import . "github.com/itchyny/bed/common"
 type Cmdline interface {
 	Init(chan<- Event, <-chan Event, chan<- struct{})
 	Run()
-	Get() ([]rune, int)
+	Get() ([]rune, int, []string, int)
 }

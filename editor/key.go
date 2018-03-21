@@ -123,6 +123,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventClearCmdline, "c-k")
 	km.Register(EventExitCmdline, "escape")
 	km.Register(EventExitCmdline, "c-c")
+	km.Register(EventCompleteCmdline, "tab")
 	km.Register(EventExecuteCmdline, "enter")
 	km.Register(EventExecuteCmdline, "c-j")
 	km.Register(EventExecuteCmdline, "c-m")

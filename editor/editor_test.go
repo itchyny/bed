@@ -38,7 +38,7 @@ func (c *testCmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawC
 
 func (c *testCmdline) Run() {}
 
-func (c *testCmdline) Get() ([]rune, int) { return nil, 0 }
+func (c *testCmdline) Get() ([]rune, int, []string, int) { return nil, 0, nil, 0 }
 
 func (c *testCmdline) Execute() {}
 

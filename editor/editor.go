@@ -124,7 +124,7 @@ func (e *Editor) redraw() (err error) {
 	}
 	state.WindowStates[windowIndex].Mode = e.mode
 	state.Mode, state.Error, state.ErrorType = e.mode, e.err, e.errtyp
-	state.Cmdline, state.CmdlineCursor = e.cmdline.Get()
+	state.Cmdline, state.CmdlineCursor, state.CompletionResults, state.CompletionIndex = e.cmdline.Get()
 	return e.ui.Redraw(state)
 }
 

@@ -108,15 +108,15 @@ func (ui *Tui) drawVerticalSplit(region region) {
 }
 
 func (ui *Tui) drawCmdline(state State) {
-	width, height := ui.Size()
+	_, height := ui.Size()
 	if state.Error != nil {
 		style := tcell.StyleDefault.Foreground(tcell.ColorRed)
 		if state.ErrorType == MessageInfo {
 			style = style.Foreground(tcell.ColorYellow)
 		}
-		ui.setLine(height-1, 0, state.Error.Error()+strings.Repeat(" ", width), style)
+		ui.setLine(height-1, 0, state.Error.Error(), style)
 	} else if state.Mode == ModeCmdline {
-		ui.setLine(height-1, 0, ":"+string(state.Cmdline)+strings.Repeat(" ", width), 0)
+		ui.setLine(height-1, 0, ":"+string(state.Cmdline)+"      "+strings.Join(state.CompletionResults, "  "), 0)
 		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
 	}
 }

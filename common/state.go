@@ -2,13 +2,15 @@ package common
 
 // State holds the state of the editor to display the user interface.
 type State struct {
-	Mode          Mode
-	WindowStates  map[int]*WindowState
-	Layout        Layout
-	Cmdline       []rune
-	CmdlineCursor int
-	Error         error
-	ErrorType     int
+	Mode              Mode
+	WindowStates      map[int]*WindowState
+	Layout            Layout
+	Cmdline           []rune
+	CmdlineCursor     int
+	CompletionResults []string
+	CompletionIndex   int
+	Error             error
+	ErrorType         int
 }
 
 // WindowState holds the state of one window.
