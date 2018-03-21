@@ -48,6 +48,7 @@ var keyMap = map[tcell.Key]Key{
 	tcell.KeyCtrlG:      Key("c-g"),
 	tcell.KeyBackspace:  Key("backspace"),
 	tcell.KeyTab:        Key("tab"),
+	tcell.KeyBacktab:    Key("backtab"),
 	tcell.KeyCtrlJ:      Key("c-j"),
 	tcell.KeyCtrlK:      Key("c-k"),
 	tcell.KeyCtrlL:      Key("c-l"),

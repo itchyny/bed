@@ -54,6 +54,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventRedo, "c-r")
 
 	km.Register(EventSwitchFocus, "tab")
+	km.Register(EventSwitchFocus, "backtab")
 	km.Register(EventStartCmdline, ":")
 
 	km.Register(EventNew, "c-w", "n")
@@ -102,6 +103,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventBackspace, "backspace2")
 	km.Register(EventDelete, "delete")
 	km.Register(EventSwitchFocus, "tab")
+	km.Register(EventSwitchFocus, "backtab")
 	kms[ModeInsert] = km
 	kms[ModeReplace] = km
 
