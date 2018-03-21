@@ -543,18 +543,18 @@ func (w *window) insertRune(mode Mode, ch rune) {
 			buf := make([]byte, 4)
 			n := utf8.EncodeRune(buf, ch)
 			for i := 0; i < n; i++ {
-				w.insert(mode, byte(buf[i]>>4))
-				w.insert(mode, byte(buf[i]&0x0f))
+				w.insertByte(mode, byte(buf[i]>>4))
+				w.insertByte(mode, byte(buf[i]&0x0f))
 			}
 		} else if '0' <= ch && ch <= '9' {
-			w.insert(mode, byte(ch-'0'))
+			w.insertByte(mode, byte(ch-'0'))
 		} else if 'a' <= ch && ch <= 'f' {
-			w.insert(mode, byte(ch-'a'+0x0a))
+			w.insertByte(mode, byte(ch-'a'+0x0a))
 		}
 	}
 }
 
-func (w *window) insert(mode Mode, b byte) {
+func (w *window) insertByte(mode Mode, b byte) {
 	if w.pending {
 		switch mode {
 		case ModeInsert:
