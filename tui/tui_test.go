@@ -9,6 +9,124 @@ import (
 	. "github.com/itchyny/bed/common"
 )
 
+func TestTuiEmpty(t *testing.T) {
+	ui := NewTui()
+	eventCh := make(chan Event)
+	screen := tcell.NewSimulationScreen("")
+	if err := ui.initForTest(eventCh, screen); err != nil {
+		t.Fatal(err)
+	}
+	screen.SetSize(90, 20)
+	width, height := screen.Size()
+
+	state := State{
+		WindowStates: map[int]*WindowState{
+			0: &WindowState{
+				Name:   "",
+				Width:  16,
+				Offset: 0,
+				Cursor: 0,
+				Bytes:  []byte(strings.Repeat("\x00", 16*(height-1))),
+				Size:   16 * (height - 1),
+				Length: 0,
+				Mode:   ModeNormal,
+			},
+		},
+		Layout: NewLayout(0).Resize(0, 0, width, height-1),
+	}
+	ui.Redraw(state)
+
+	cells, _, _ := screen.GetContents()
+	var runes []rune
+	for i, cell := range cells {
+		runes = append(runes, cell.Runes...)
+		if (i+1)%width == 0 {
+			runes = append(runes, '\n')
+		}
+	}
+	got := string(runes)
+	expectedStrs := []string{
+		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                   ",
+		" 000000 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
+		" 000010 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
+		" 000020 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
+		" 000100 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
+		" [No name]: 000000 / 000000 (0.00%) [0x00 '\\x00']                            ",
+	}
+	for _, expected := range expectedStrs {
+		if !strings.Contains(got, expected) {
+			t.Errorf("screen should contain %q but got %v", expected, got)
+		}
+	}
+
+	x, y, visible := screen.GetCursor()
+	if x != 10 || y != 1 {
+		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 10, 1, x, y)
+	}
+	if visible != true {
+		t.Errorf("cursor should be visible but got %v", visible)
+	}
+}
+
+func TestTuiScrollBar(t *testing.T) {
+	ui := NewTui()
+	eventCh := make(chan Event)
+	screen := tcell.NewSimulationScreen("")
+	if err := ui.initForTest(eventCh, screen); err != nil {
+		t.Fatal(err)
+	}
+	screen.SetSize(90, 20)
+	width, height := screen.Size()
+
+	state := State{
+		WindowStates: map[int]*WindowState{
+			0: &WindowState{
+				Name:   "",
+				Width:  16,
+				Offset: 0,
+				Cursor: 0,
+				Bytes:  []byte(strings.Repeat("a", 16*(height-1))),
+				Size:   16 * (height - 1),
+				Length: int64(16 * (height - 1) * 3),
+				Mode:   ModeNormal,
+			},
+		},
+		Layout: NewLayout(0).Resize(0, 0, width, height-1),
+	}
+	ui.Redraw(state)
+
+	cells, _, _ := screen.GetContents()
+	var runes []rune
+	for i, cell := range cells {
+		runes = append(runes, cell.Runes...)
+		if (i+1)%width == 0 {
+			runes = append(runes, '\n')
+		}
+	}
+	got := string(runes)
+	expectedStrs := []string{
+		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                    ",
+		" 000000 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa # ",
+		" 000050 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa # ",
+		" 000060 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa | ",
+		" 000100 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa | ",
+		" [No name]: 000000 / 000390 (0.00%) [0x61 'a']                                 ",
+	}
+	for _, expected := range expectedStrs {
+		if !strings.Contains(got, expected) {
+			t.Errorf("screen should contain %q but got %v", expected, got)
+		}
+	}
+
+	x, y, visible := screen.GetCursor()
+	if x != 10 || y != 1 {
+		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 10, 1, x, y)
+	}
+	if visible != true {
+		t.Errorf("cursor should be visible but got %v", visible)
+	}
+}
+
 func TestTuiHorizontalSplit(t *testing.T) {
 	ui := NewTui()
 	eventCh := make(chan Event)
@@ -19,7 +137,6 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	screen.SetSize(110, 20)
 	width, height := screen.Size()
 
-	layout := NewLayout(0).SplitBottom(1).Resize(0, 0, width, height-1)
 	state := State{
 		WindowStates: map[int]*WindowState{
 			0: &WindowState{
@@ -43,7 +160,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 				Mode:   ModeNormal,
 			},
 		},
-		Layout: layout,
+		Layout: NewLayout(0).SplitBottom(1).Resize(0, 0, width, height-1),
 	}
 	ui.Redraw(state)
 
@@ -90,7 +207,6 @@ func TestTuiVerticalSplit(t *testing.T) {
 	screen.SetSize(110, 20)
 	width, height := screen.Size()
 
-	layout := NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1)
 	state := State{
 		WindowStates: map[int]*WindowState{
 			0: &WindowState{
@@ -114,7 +230,7 @@ func TestTuiVerticalSplit(t *testing.T) {
 				Mode:   ModeNormal,
 			},
 		},
-		Layout: layout,
+		Layout: NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1),
 	}
 	ui.Redraw(state)
 
