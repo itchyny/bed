@@ -757,6 +757,42 @@ func TestWindowInsertHead(t *testing.T) {
 	}
 }
 
+func TestWindowInsertHeadEmpty(t *testing.T) {
+	r := strings.NewReader("")
+	width, height := 16, 10
+	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window.setSize(width, height)
+
+	window.startInsertHead()
+	state, _ := window.State()
+	if state.Pending != false {
+		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	}
+	if state.PendingByte != '\x00' {
+		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+
+	window.insertByte(ModeInsert, 0x04)
+	window.insertByte(ModeInsert, 0x0a)
+	window.exitInsert()
+	state, _ = window.State()
+	if !strings.HasPrefix(string(state.Bytes), "J\x00") {
+		t.Errorf("state.Bytes should start with %q but got %q", "J\x00", string(state.Bytes))
+	}
+	if state.Length != 1 {
+		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	}
+	if state.Cursor != 0 {
+		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	}
+}
+
 func TestWindowAppend(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
