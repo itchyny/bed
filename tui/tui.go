@@ -118,15 +118,17 @@ func (ui *Tui) drawCmdline(state State) {
 	} else if state.Mode == ModeCmdline {
 		if len(state.CompletionResults) > 0 {
 			var line string
-			var pos int
+			var pos, lineWidth int
 			for i, result := range state.CompletionResults {
-				if len(line)+len(result)+2 > width && i <= state.CompletionIndex {
-					line = ""
+				w := runewidth.StringWidth(result)
+				if lineWidth+w+2 > width && i <= state.CompletionIndex {
+					line, lineWidth = "", 0
 				}
 				if state.CompletionIndex == i {
-					pos = len(line)
+					pos = lineWidth
 				}
 				line += " " + result + " "
+				lineWidth += w + 2
 			}
 			ui.setLine(height-2, 0, line+strings.Repeat(" ", width), tcell.StyleDefault.Reverse(true))
 			if state.CompletionIndex >= 0 {
