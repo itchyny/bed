@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"strings"
 	"unicode"
 
 	. "github.com/itchyny/bed/common"
@@ -159,7 +160,7 @@ func (c *Cmdline) execute() {
 		return
 	}
 	if cmd.name != "" {
-		c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Args: args}
+		c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: strings.Join(args, " ")}
 	}
 }
 

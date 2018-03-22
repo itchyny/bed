@@ -152,11 +152,9 @@ func (m *Manager) Emit(event Event) {
 			m.eventCh <- Event{Type: EventRedraw}
 		}
 	case EventWincmd:
-		if len(event.Args) > 1 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("too many arguments for %s", event.CmdName)}
-		} else if len(event.Args) == 0 {
+		if len(event.Arg) == 0 {
 			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("an argument is required for %s", event.CmdName)}
-		} else if err := m.wincmd(event.Args[0]); err != nil {
+		} else if err := m.wincmd(event.Arg); err != nil {
 			m.eventCh <- Event{Type: EventError, Error: err}
 		} else {
 			m.eventCh <- Event{Type: EventRedraw}
@@ -212,13 +210,8 @@ func (m *Manager) Emit(event Event) {
 }
 
 func (m *Manager) cursorGoto(event Event) error {
-	if len(event.Args) > 1 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
-	}
-	if len(event.Args) == 1 {
-		event.Count = parseGotoPos(event.Args[0])
-		m.windows[m.windowIndex].eventCh <- event
-	}
+	event.Count = parseGotoPos(event.Arg)
+	m.windows[m.windowIndex].eventCh <- event
 	return nil
 }
 
@@ -248,14 +241,11 @@ func parseGotoPos(pos string) int64 {
 func (m *Manager) edit(event Event) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if len(event.Args) > 1 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
-	}
 	var name string
-	if len(event.Args) == 0 {
+	if len(event.Arg) == 0 {
 		name = m.windows[m.windowIndex].filename
 	} else {
-		name = event.Args[0]
+		name = event.Arg
 	}
 	window, err := m.open(name)
 	if err != nil {
@@ -271,14 +261,7 @@ func (m *Manager) edit(event Event) error {
 func (m *Manager) newWindow(event Event, vertical bool) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if len(event.Args) > 1 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
-	}
-	var name string
-	if len(event.Args) > 0 {
-		name = event.Args[0]
-	}
-	window, err := m.open(name)
+	window, err := m.open(event.Arg)
 	if err != nil {
 		return err
 	}
@@ -351,6 +334,7 @@ func (m *Manager) wincmd(arg string) error {
 			return LayoutVertical{Left: y, Right: x}
 		})
 	}
+	// TODO: return error
 	return nil
 }
 
@@ -376,7 +360,7 @@ func (m *Manager) move(modifier func(LayoutWindow, Layout) Layout) {
 }
 
 func (m *Manager) quit(event Event) error {
-	if len(event.Args) > 0 {
+	if len(event.Arg) > 0 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
 	w, h := m.layout.Count()
@@ -393,14 +377,7 @@ func (m *Manager) quit(event Event) error {
 }
 
 func (m *Manager) write(event Event) error {
-	if len(event.Args) > 1 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
-	}
-	var name string
-	if len(event.Args) > 0 {
-		name = event.Args[0]
-	}
-	filename, n, err := m.writeFile(name)
+	filename, n, err := m.writeFile(event.Arg)
 	if err != nil {
 		return err
 	}
@@ -409,7 +386,7 @@ func (m *Manager) write(event Event) error {
 }
 
 func (m *Manager) writeQuit(event Event) error {
-	if len(event.Args) > 0 {
+	if len(event.Arg) > 0 {
 		return fmt.Errorf("too many arguments for %s", event.CmdName)
 	}
 	if _, _, err := m.writeFile(""); err != nil {

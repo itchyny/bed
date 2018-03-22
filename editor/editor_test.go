@@ -62,7 +62,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 			ui.Emit(Event{Type: t})
 		}
 		time.Sleep(100 * time.Millisecond)
-		ui.Emit(Event{Type: EventWrite, Args: []string{f.Name()}})
+		ui.Emit(Event{Type: EventWrite, Arg: f.Name()})
 		time.Sleep(100 * time.Millisecond)
 		ui.Emit(Event{Type: EventQuit})
 	}()

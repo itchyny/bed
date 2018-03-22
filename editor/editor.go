@@ -45,7 +45,7 @@ func (e *Editor) listen() {
 	for event := range e.eventCh {
 		switch event.Type {
 		case EventQuitAll:
-			if len(event.Args) > 0 {
+			if len(event.Arg) > 0 {
 				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", event.CmdName), MessageError
 				e.redrawCh <- struct{}{}
 			} else {

@@ -6,7 +6,7 @@ type Event struct {
 	Count   int64
 	Rune    rune
 	CmdName string
-	Args    []string
+	Arg     string
 	Error   error
 	Mode    Mode
 }
