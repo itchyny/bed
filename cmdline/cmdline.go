@@ -21,7 +21,7 @@ type Cmdline struct {
 
 // NewCmdline creates a new Cmdline.
 func NewCmdline() *Cmdline {
-	return &Cmdline{completor: newCompletor()}
+	return &Cmdline{completor: newCompletor(&filesystem{})}
 }
 
 // Init initializes the Cmdline.

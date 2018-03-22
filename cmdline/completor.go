@@ -1,7 +1,6 @@
 package cmdline
 
 import (
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -12,13 +11,14 @@ import (
 )
 
 type completor struct {
+	fs      fs
 	target  string
 	results []string
 	index   int
 }
 
-func newCompletor() *completor {
-	return &completor{}
+func newCompletor(fs fs) *completor {
+	return &completor{fs: fs}
 }
 
 func (c *completor) clear() {
@@ -50,9 +50,9 @@ func (c *completor) complete(cmdline string, cmd command, prefix string, arg str
 	c.target = cmdline
 	c.index = 0
 	if len(arg) == 0 {
-		c.results = listFileNames("")
+		c.results = c.listFileNames("")
 	} else {
-		c.results = listFileNames(arg)
+		c.results = c.listFileNames(arg)
 	}
 	if len(c.results) == 1 {
 		cmdline := prefix + c.results[0]
@@ -71,11 +71,11 @@ func (c *completor) complete(cmdline string, cmd command, prefix string, arg str
 	return cmdline
 }
 
-func listFileNames(prefix string) []string {
+func (c *completor) listFileNames(prefix string) []string {
 	var targets []string
 	separator := string(filepath.Separator)
 	if prefix == "" {
-		f, err := os.Open(".")
+		f, err := c.fs.Open(".")
 		if err != nil {
 			return nil
 		}
@@ -105,7 +105,7 @@ func listFileNames(prefix string) []string {
 			path += separator
 		}
 		if !strings.HasSuffix(prefix, "/") && !strings.HasSuffix(prefix, ".") {
-			stat, err := os.Stat(path)
+			stat, err := c.fs.Stat(path)
 			if err == nil && stat.IsDir() {
 				return []string{prefix + "/"}
 			}
@@ -118,7 +118,7 @@ func listFileNames(prefix string) []string {
 				base = ""
 			}
 		}
-		f, err := os.Open(dir)
+		f, err := c.fs.Open(dir)
 		if err != nil {
 			return nil
 		}
