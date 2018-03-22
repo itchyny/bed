@@ -1,7 +1,6 @@
 package cmdline
 
 import (
-	"strings"
 	"unicode"
 
 	. "github.com/itchyny/bed/common"
@@ -144,23 +143,23 @@ func (c *Cmdline) insert(ch rune) {
 }
 
 func (c *Cmdline) complete(forward bool) {
-	cmd, args, err := parse(c.cmdline)
+	cmd, arg, err := parse(c.cmdline)
 	if err != nil {
 		c.completor.clear()
 		return
 	}
-	c.cmdline = []rune(c.completor.complete(string(c.cmdline), cmd, args, forward))
+	c.cmdline = []rune(c.completor.complete(string(c.cmdline), cmd, arg, forward))
 	c.cursor = len(c.cmdline)
 }
 
 func (c *Cmdline) execute() {
-	cmd, args, err := parse(c.cmdline)
+	cmd, arg, err := parse(c.cmdline)
 	if err != nil {
 		c.eventCh <- Event{Type: EventError, Error: err}
 		return
 	}
 	if cmd.name != "" {
-		c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: strings.Join(args, " ")}
+		c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: arg}
 	}
 }
 

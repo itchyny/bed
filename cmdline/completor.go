@@ -27,7 +27,7 @@ func (c *completor) clear() {
 	c.index = 0
 }
 
-func (c *completor) complete(cmdline string, cmd command, args []string, forward bool) string {
+func (c *completor) complete(cmdline string, cmd command, arg string, forward bool) string {
 	if cmd.eventType != EventEdit && cmd.eventType != EventNew && cmd.eventType != EventVnew {
 		c.results = nil
 		c.index = 0
@@ -47,10 +47,10 @@ func (c *completor) complete(cmdline string, cmd command, args []string, forward
 	}
 	c.target = cmdline
 	c.index = 0
-	if len(args) == 0 {
+	if len(arg) == 0 {
 		c.results = listFileNames("")
-	} else if len(args) == 1 {
-		c.results = listFileNames(args[0])
+	} else {
+		c.results = listFileNames(arg)
 	}
 	if len(c.results) == 1 {
 		cmdline := cmdName + " " + c.results[0]
