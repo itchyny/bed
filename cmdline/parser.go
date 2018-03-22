@@ -8,17 +8,21 @@ import (
 	. "github.com/itchyny/bed/common"
 )
 
-func parse(cmdline []rune) (command, string, error) {
+func parse(cmdline []rune) (command, string, string, error) {
 	i, l := 0, len(cmdline)
 	for i < l && (unicode.IsSpace(cmdline[i]) || cmdline[i] == ':') {
 		i++
 	}
 	if i == l {
-		return command{}, "", nil
+		return command{}, "", "", nil
 	}
 	j := i
 	for j < l && !unicode.IsSpace(cmdline[j]) {
 		j++
+	}
+	k := j
+	for k < l && unicode.IsSpace(cmdline[k]) {
+		k++
 	}
 	cmdName := string(cmdline[i:j])
 	for _, cmd := range commands {
@@ -27,13 +31,13 @@ func parse(cmdline []rune) (command, string, error) {
 		}
 		for _, c := range expand(cmd.name) {
 			if cmdName == c {
-				return cmd, strings.TrimSpace(string(cmdline[j:])), nil
+				return cmd, string(cmdline[:k]), strings.TrimSpace(string(cmdline[k:])), nil
 			}
 		}
 	}
-	if len(strings.Fields(string(cmdline[j:]))) == 0 {
+	if len(strings.Fields(string(cmdline[k:]))) == 0 {
 		if cmdName == "$" {
-			return command{cmdName, EventCursorGotoAbs}, cmdName, nil
+			return command{cmdName, EventCursorGotoAbs}, string(cmdline[:k]), cmdName, nil
 		}
 		relative, eventType := false, EventCursorGotoAbs
 		for _, c := range cmdName {
@@ -46,10 +50,10 @@ func parse(cmdline []rune) (command, string, error) {
 			}
 		}
 		if eventType != EventNop {
-			return command{cmdName, EventType(eventType)}, cmdName, nil
+			return command{cmdName, EventType(eventType)}, string(cmdline[:k]), cmdName, nil
 		}
 	}
-	return command{}, "", fmt.Errorf("unknown command: %s", string(cmdline))
+	return command{}, "", "", fmt.Errorf("unknown command: %s", string(cmdline))
 }
 
 func expand(name string) []string {

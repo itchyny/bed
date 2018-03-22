@@ -143,17 +143,18 @@ func (c *Cmdline) insert(ch rune) {
 }
 
 func (c *Cmdline) complete(forward bool) {
-	cmd, arg, err := parse(c.cmdline)
+	cmd, prefix, arg, err := parse(c.cmdline)
 	if err != nil {
 		c.completor.clear()
 		return
 	}
-	c.cmdline = []rune(c.completor.complete(string(c.cmdline), cmd, arg, forward))
+	c.cmdline = []rune(c.completor.complete(
+		string(c.cmdline), cmd, prefix, arg, forward))
 	c.cursor = len(c.cmdline)
 }
 
 func (c *Cmdline) execute() {
-	cmd, arg, err := parse(c.cmdline)
+	cmd, _, arg, err := parse(c.cmdline)
 	if err != nil {
 		c.eventCh <- Event{Type: EventError, Error: err}
 		return

@@ -27,13 +27,15 @@ func (c *completor) clear() {
 	c.index = 0
 }
 
-func (c *completor) complete(cmdline string, cmd command, arg string, forward bool) string {
+func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
 	if cmd.eventType != EventEdit && cmd.eventType != EventNew && cmd.eventType != EventVnew {
 		c.results = nil
 		c.index = 0
 		return cmdline
 	}
-	cmdName := strings.Fields(cmdline)[0] // todo: parse should return argument position
+	if !strings.HasSuffix(prefix, " ") {
+		prefix += " "
+	}
 	if len(c.results) > 0 {
 		if forward {
 			c.index = (c.index+2)%(len(c.results)+1) - 1
@@ -43,7 +45,7 @@ func (c *completor) complete(cmdline string, cmd command, arg string, forward bo
 		if c.index < 0 {
 			return c.target
 		}
-		return cmdName + " " + c.results[c.index]
+		return prefix + c.results[c.index]
 	}
 	c.target = cmdline
 	c.index = 0
@@ -53,18 +55,18 @@ func (c *completor) complete(cmdline string, cmd command, arg string, forward bo
 		c.results = listFileNames(arg)
 	}
 	if len(c.results) == 1 {
-		cmdline := cmdName + " " + c.results[0]
+		cmdline := prefix + c.results[0]
 		c.results = nil
 		return cmdline
 	}
 	if len(c.results) > 1 {
-		c.target = cmdName + " " + samePrefix(c.results)
+		c.target = prefix + samePrefix(c.results)
 		if forward {
 			c.index = 0
-			return cmdName + " " + c.results[0]
+			return prefix + c.results[0]
 		}
 		c.index = len(c.results) - 1
-		return cmdName + " " + c.results[len(c.results)-1]
+		return prefix + c.results[len(c.results)-1]
 	}
 	return cmdline
 }
