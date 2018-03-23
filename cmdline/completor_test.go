@@ -78,6 +78,34 @@ func TestCompletorComplete(t *testing.T) {
 	if c.index != 2 {
 		t.Errorf("completion index should be %d but got %d", 2, c.index)
 	}
+
+	c.clear()
+	cmdline = "new Gopkg.to"
+	cmd, prefix, arg, _ = parse([]rune(cmdline))
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	if cmdline != "new Gopkg.toml" {
+		t.Errorf("cmdline should be %q but got %q", "new Gopkg.toml", cmdline)
+	}
+	if c.target != "new Gopkg.to" {
+		t.Errorf("completion target should be %q but got %q", "new Gopkg.to", c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+
+	c.clear()
+	cmdline = "edit"
+	cmd, prefix, arg, _ = parse([]rune(cmdline))
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	if cmdline != "edit Gopkg.toml" {
+		t.Errorf("cmdline should be %q but got %q", "edit Gopkg.toml", cmdline)
+	}
+	if c.target != "edit" {
+		t.Errorf("completion target should be %q but got %q", "edit", c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
 }
 
 func TestCompletorCompleteKeepPrefix(t *testing.T) {
@@ -161,18 +189,18 @@ func TestCompletorCompleteHomedirDot(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "vnew ~/."
 	cmd, prefix, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
-	if cmdline != "vnew ~/.vimrc" {
-		t.Errorf("cmdline should be %q but got %q", "vnew ~/.vimrc", cmdline)
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
+	if cmdline != "vnew ~/.zshrc" {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/.zshrc", cmdline)
 	}
 	if c.target != "vnew ~/." {
 		t.Errorf("completion target should be %q but got %q", "vnew ~/.", c.target)
 	}
-	if c.index != 0 {
-		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	if c.index != 1 {
+		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
 	if cmdline != "vnew ~/." {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/.", cmdline)
 	}
