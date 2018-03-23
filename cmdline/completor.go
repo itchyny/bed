@@ -29,11 +29,17 @@ func (c *completor) clear() {
 }
 
 func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
-	if cmd.eventType != EventEdit && cmd.eventType != EventNew && cmd.eventType != EventVnew {
+	switch cmd.eventType {
+	case EventEdit, EventNew, EventVnew:
+		return c.completeFilePaths(cmdline, prefix, arg, forward)
+	default:
 		c.results = nil
 		c.index = 0
 		return cmdline
 	}
+}
+
+func (c *completor) completeFilePaths(cmdline string, prefix string, arg string, forward bool) string {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
 	}
