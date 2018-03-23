@@ -147,22 +147,22 @@ func (c *completor) listFileNames(prefix string) []string {
 }
 
 func sortFilePaths(paths []string) {
-	sort.SliceStable(paths, func(i, j int) bool {
-		return filePathSorter(paths[i]) < filePathSorter(paths[j])
-	})
-}
-
-func filePathSorter(path string) string {
-	var ret string
-	if path[len(path)-1] == filepath.Separator {
-		ret += "1"
-	} else {
-		ret += "0"
+	for i, path := range paths {
+		prefix := make([]rune, 2)
+		if path[len(path)-1] == filepath.Separator {
+			prefix[0] = '1'
+		} else {
+			prefix[0] = '0'
+		}
+		if strings.HasPrefix(filepath.Base(path), ".") {
+			prefix[1] = '1'
+		} else {
+			prefix[1] = '0'
+		}
+		paths[i] = string(prefix) + path
 	}
-	if strings.HasPrefix(filepath.Base(path), ".") {
-		ret += "1"
-	} else {
-		ret += "0"
+	sort.Strings(paths)
+	for i, path := range paths {
+		paths[i] = path[2:]
 	}
-	return ret + path
 }
