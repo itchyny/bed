@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -132,11 +133,19 @@ func (c *completor) listFileNames(prefix string) []string {
 			if base != separator && !strings.HasPrefix(strings.ToLower(name), lowerBase) {
 				continue
 			}
+			isDir := fileInfo.IsDir()
+			if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
+				fileInfo, err = c.fs.Stat(filepath.Join(dir, name))
+				if err != nil {
+					return nil
+				}
+				isDir = fileInfo.IsDir()
+			}
 			name = filepath.Join(dir, name)
 			if prefix[0] == '~' {
 				name = filepath.Join("~", strings.TrimPrefix(name, homeDir))
 			}
-			if fileInfo.IsDir() {
+			if isDir {
 				name += separator
 			}
 			targets = append(targets, name)
