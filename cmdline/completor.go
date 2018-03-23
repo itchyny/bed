@@ -134,7 +134,7 @@ func (c *completor) listFileNames(prefix string) []string {
 			}
 			name = filepath.Join(dir, name)
 			if prefix[0] == '~' {
-				name = filepath.Join("~", strings.TrimLeft(name, homeDir))
+				name = filepath.Join("~", strings.TrimPrefix(name, homeDir))
 			}
 			if fileInfo.IsDir() {
 				name += separator
