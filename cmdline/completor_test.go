@@ -112,3 +112,71 @@ func TestCompletorCompleteKeepPrefix(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
 	}
 }
+
+func TestCompletorCompleteHomedir(t *testing.T) {
+	c := newCompletor(&mockFilesystem{})
+	cmdline := "vnew ~/"
+	cmd, prefix, arg, _ := parse([]rune(cmdline))
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	if cmdline != "vnew ~/example.txt" {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/example.txt", cmdline)
+	}
+	if c.target != "vnew ~/" {
+		t.Errorf("completion target should be %q but got %q", "vnew ~/", c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	if cmdline != "vnew ~/.vimrc" {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/.vimrc", cmdline)
+	}
+	if c.index != 1 {
+		t.Errorf("completion index should be %d but got %d", 1, c.index)
+	}
+
+	for i := 0; i < 3; i++ {
+		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	}
+	if cmdline != "vnew ~/Library/" {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/Library/", cmdline)
+	}
+	if c.index != 4 {
+		t.Errorf("completion index should be %d but got %d", 4, c.index)
+	}
+
+	for i := 0; i < 2; i++ {
+		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	}
+	if cmdline != "vnew ~/" {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/", cmdline)
+	}
+	if c.index != -1 {
+		t.Errorf("completion index should be %d but got %d", -1, c.index)
+	}
+}
+
+func TestCompletorCompleteHomedirDot(t *testing.T) {
+	c := newCompletor(&mockFilesystem{})
+	cmdline := "vnew ~/."
+	cmd, prefix, arg, _ := parse([]rune(cmdline))
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	if cmdline != "vnew ~/.vimrc" {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/.vimrc", cmdline)
+	}
+	if c.target != "vnew ~/." {
+		t.Errorf("completion target should be %q but got %q", "vnew ~/.", c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+
+	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
+	if cmdline != "vnew ~/." {
+		t.Errorf("cmdline should be %q but got %q", "vnew ~/.", cmdline)
+	}
+	if c.index != -1 {
+		t.Errorf("completion index should be %d but got %d", -1, c.index)
+	}
+}

@@ -3,6 +3,8 @@ package cmdline
 import (
 	"os"
 	"time"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 type mockFilesystem struct {
@@ -43,6 +45,20 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 			&fileInfo{"cmdline", true},
 			&fileInfo{"buffer", true},
 			&fileInfo{"common", true},
+		}), nil
+	}
+	homeDir, err := homedir.Dir()
+	if err != nil {
+		panic(err)
+	}
+	if f.path == homeDir {
+		return createFileInfoList([]*fileInfo{
+			&fileInfo{"Documents", true},
+			&fileInfo{"Pictures", true},
+			&fileInfo{"Library", true},
+			&fileInfo{".vimrc", false},
+			&fileInfo{".zshrc", false},
+			&fileInfo{"example.txt", false},
 		}), nil
 	}
 	if f.path == "/" {
