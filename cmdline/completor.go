@@ -60,7 +60,6 @@ func (c *completor) complete(cmdline string, cmd command, prefix string, arg str
 		return cmdline
 	}
 	if len(c.results) > 1 {
-		c.target = prefix + samePrefix(c.results)
 		if forward {
 			c.index = 0
 			return prefix + c.results[0]
@@ -166,27 +165,4 @@ func filePathSorter(path string) string {
 		ret += "0"
 	}
 	return ret + path
-}
-
-func samePrefix(results []string) string {
-	var xs string
-	for i, ys := range results {
-		if i == 0 {
-			xs = ys
-		} else {
-			yss := []rune(ys)
-			for j, x := range xs {
-				if j < len(yss) {
-					if x != yss[j] {
-						xs = string(yss[:j])
-						break
-					}
-				} else {
-					xs = string(yss)
-					break
-				}
-			}
-		}
-	}
-	return xs
 }
