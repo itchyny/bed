@@ -80,7 +80,7 @@ func (c *completor) listFileNames(prefix string) []string {
 			return nil
 		}
 		defer f.Close()
-		fileInfos, err := f.Readdir(100)
+		fileInfos, err := f.Readdir(500)
 		if err != nil {
 			return nil
 		}
@@ -123,7 +123,7 @@ func (c *completor) listFileNames(prefix string) []string {
 			return nil
 		}
 		defer f.Close()
-		fileInfos, err := f.Readdir(300)
+		fileInfos, err := f.Readdir(500)
 		if err != nil {
 			return nil
 		}
