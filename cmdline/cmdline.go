@@ -14,6 +14,7 @@ type Cmdline struct {
 	completor         *completor
 	completionResults []string
 	completionIndex   int
+	typ               rune
 	eventCh           chan<- Event
 	cmdlineCh         <-chan Event
 	redrawCh          chan<- struct{}
@@ -34,6 +35,7 @@ func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
 		case EventStartCmdlineCommand:
+			c.typ = ':'
 			c.clear()
 		case EventExitCmdline:
 			// do nothing here but redraw
@@ -154,13 +156,18 @@ func (c *Cmdline) complete(forward bool) {
 }
 
 func (c *Cmdline) execute() {
-	cmd, _, arg, err := parse(c.cmdline)
-	if err != nil {
-		c.eventCh <- Event{Type: EventError, Error: err}
-		return
-	}
-	if cmd.name != "" {
-		c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: arg}
+	switch c.typ {
+	case ':':
+		cmd, _, arg, err := parse(c.cmdline)
+		if err != nil {
+			c.eventCh <- Event{Type: EventError, Error: err}
+			return
+		}
+		if cmd.name != "" {
+			c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: arg}
+		}
+	default:
+		panic("Cmdline#execute: unreachable")
 	}
 }
 

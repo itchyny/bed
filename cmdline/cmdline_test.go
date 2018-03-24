@@ -302,6 +302,7 @@ func TestCmdlineQuit(t *testing.T) {
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
+		c.typ = ':'
 		c.execute()
 		e := <-ch
 		if e.CmdName != cmd.name {
@@ -326,6 +327,7 @@ func TestCmdlineExecuteQuitAll(t *testing.T) {
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
+		c.typ = ':'
 		c.execute()
 		e := <-ch
 		if e.CmdName != cmd.name {
@@ -353,6 +355,7 @@ func TestCmdlineExecuteWriteQuit(t *testing.T) {
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
+		c.typ = ':'
 		c.execute()
 		e := <-ch
 		if e.CmdName != cmd.name {
@@ -381,6 +384,7 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
+		c.typ = ':'
 		c.execute()
 		e := <-ch
 		if e.CmdName != cmd.name {
