@@ -62,7 +62,21 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 		}), nil
 	}
 	if f.path == "/" {
-		return nil, nil
+		return createFileInfoList([]*fileInfo{
+			&fileInfo{"bin", true},
+			&fileInfo{"tmp", true},
+			&fileInfo{"var", true},
+			&fileInfo{"usr", true},
+		}), nil
+	}
+	if f.path == "/bin" {
+		return createFileInfoList([]*fileInfo{
+			&fileInfo{"cp", false},
+			&fileInfo{"echo", false},
+			&fileInfo{"rm", false},
+			&fileInfo{"ls", false},
+			&fileInfo{"kill", false},
+		}), nil
 	}
 	return nil, nil
 }

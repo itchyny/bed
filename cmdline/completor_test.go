@@ -209,6 +209,41 @@ func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {
 	}
 }
 
+func TestCompletorCompleteFilepathRoot(t *testing.T) {
+	c := newCompletor(&mockFilesystem{})
+	cmdline := "e /"
+	cmd, prefix, arg, _ := parse([]rune(cmdline))
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	if cmdline != "e /bin/" {
+		t.Errorf("cmdline should be %q but got %q", "e /bin/", cmdline)
+	}
+	if c.target != "e /" {
+		t.Errorf("completion target should be %q but got %q", "e /", c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	if cmdline != "e /tmp/" {
+		t.Errorf("cmdline should be %q but got %q", "e /tmp/", cmdline)
+	}
+	if c.index != 1 {
+		t.Errorf("completion index should be %d but got %d", 1, c.index)
+	}
+
+	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	c.clear()
+	cmd, prefix, arg, _ = parse([]rune(cmdline))
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	if cmdline != "e /bin/cp" {
+		t.Errorf("cmdline should be %q but got %q", "e /bin/cp", cmdline)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+}
+
 func TestCompletorCompleteWincmd(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "winc"
