@@ -14,6 +14,7 @@ import (
 type completor struct {
 	fs      fs
 	target  string
+	arg     string
 	results []string
 	index   int
 }
@@ -24,6 +25,7 @@ func newCompletor(fs fs) *completor {
 
 func (c *completor) clear() {
 	c.target = ""
+	c.arg = ""
 	c.results = nil
 	c.index = 0
 }
@@ -50,7 +52,7 @@ func (c *completor) completeNext(prefix string, forward bool) string {
 	if c.index < 0 {
 		return c.target
 	}
-	return prefix + c.results[c.index]
+	return prefix + c.arg + c.results[c.index]
 }
 
 func (c *completor) completeFilepaths(cmdline string, prefix string, arg string, forward bool) string {
@@ -63,38 +65,38 @@ func (c *completor) completeFilepaths(cmdline string, prefix string, arg string,
 	c.target = cmdline
 	c.index = 0
 	if len(arg) == 0 {
-		c.results = c.listFileNames("")
+		c.arg, c.results = c.listFileNames("")
 	} else {
-		c.results = c.listFileNames(arg)
+		c.arg, c.results = c.listFileNames(arg)
 	}
 	if len(c.results) == 1 {
-		cmdline := prefix + c.results[0]
+		cmdline := prefix + c.arg + c.results[0]
 		c.results = nil
 		return cmdline
 	}
 	if len(c.results) > 1 {
 		if forward {
 			c.index = 0
-			return prefix + c.results[0]
+			return prefix + c.arg + c.results[0]
 		}
 		c.index = len(c.results) - 1
-		return prefix + c.results[len(c.results)-1]
+		return prefix + c.arg + c.results[len(c.results)-1]
 	}
 	return cmdline
 }
 
-func (c *completor) listFileNames(prefix string) []string {
+func (c *completor) listFileNames(arg string) (string, []string) {
 	var targets []string
 	separator := string(filepath.Separator)
-	if prefix == "" {
+	if arg == "" {
 		f, err := c.fs.Open(".")
 		if err != nil {
-			return nil
+			return arg, nil
 		}
 		defer f.Close()
 		fileInfos, err := f.Readdir(500)
 		if err != nil {
-			return nil
+			return arg, nil
 		}
 		for _, fileInfo := range fileInfos {
 			name := fileInfo.Name()
@@ -104,27 +106,27 @@ func (c *completor) listFileNames(prefix string) []string {
 			targets = append(targets, name)
 		}
 	} else {
-		path, err := homedir.Expand(prefix)
+		path, err := homedir.Expand(arg)
 		if err != nil {
-			return nil
+			return arg, nil
 		}
 		homeDir, err := homedir.Dir()
 		if err != nil {
-			return nil
+			return arg, nil
 		}
-		if len(prefix) > 1 && strings.HasSuffix(prefix, separator) ||
-			prefix[0] == '~' && strings.HasSuffix(prefix, "/.") {
+		if len(arg) > 1 && strings.HasSuffix(arg, separator) ||
+			arg[0] == '~' && strings.HasSuffix(arg, "/.") {
 			path += separator
 		}
-		if !strings.HasSuffix(prefix, "/") && !strings.HasSuffix(prefix, ".") {
+		if !strings.HasSuffix(arg, "/") && !strings.HasSuffix(arg, ".") {
 			stat, err := c.fs.Stat(path)
 			if err == nil && stat.IsDir() {
-				return []string{prefix + "/"}
+				return "", []string{arg + "/"}
 			}
 		}
 		dir, base := filepath.Dir(path), filepath.Base(path)
 		if strings.HasSuffix(path, separator) {
-			if strings.HasSuffix(prefix, "/.") {
+			if strings.HasSuffix(arg, "/.") {
 				base = "."
 			} else {
 				base = ""
@@ -132,12 +134,12 @@ func (c *completor) listFileNames(prefix string) []string {
 		}
 		f, err := c.fs.Open(dir)
 		if err != nil {
-			return nil
+			return arg, nil
 		}
 		defer f.Close()
 		fileInfos, err := f.Readdir(500)
 		if err != nil {
-			return nil
+			return arg, nil
 		}
 		lowerBase := strings.ToLower(base)
 		for _, fileInfo := range fileInfos {
@@ -149,22 +151,31 @@ func (c *completor) listFileNames(prefix string) []string {
 			if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
 				fileInfo, err = c.fs.Stat(filepath.Join(dir, name))
 				if err != nil {
-					return nil
+					return arg, nil
 				}
 				isDir = fileInfo.IsDir()
-			}
-			name = filepath.Join(dir, name)
-			if prefix[0] == '~' {
-				name = filepath.Join("~", strings.TrimPrefix(name, homeDir))
 			}
 			if isDir {
 				name += separator
 			}
 			targets = append(targets, name)
 		}
+		if !strings.HasSuffix(dir, "/") {
+			dir += separator
+		}
+		if arg[0] == '~' {
+			arg = filepath.Join("~", strings.TrimPrefix(dir, homeDir))
+			if !strings.HasSuffix(arg, "/") {
+				arg += separator
+			}
+		} else if arg[0] != '.' && dir[0] == '.' {
+			arg = ""
+		} else {
+			arg = dir
+		}
 	}
 	sortFilePaths(targets)
-	return targets
+	return arg, targets
 }
 
 func sortFilePaths(paths []string) {
