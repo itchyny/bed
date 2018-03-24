@@ -8,7 +8,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "new "
 	cmd, prefix, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "new Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "new Gopkg.toml", cmdline)
 	}
@@ -20,7 +20,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if cmdline != "new .gitignore" {
 		t.Errorf("cmdline should be %q but got %q", "new .gitignore", cmdline)
@@ -33,7 +33,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	for i := 0; i < 4; i++ {
-		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if cmdline != "new editor/" {
 		t.Errorf("cmdline should be %q but got %q", "new editor/", cmdline)
@@ -45,7 +45,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 7, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "new " {
 		t.Errorf("cmdline should be %q but got %q", "new ", cmdline)
 	}
@@ -53,7 +53,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "new Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "new Gopkg.toml", cmdline)
 	}
@@ -61,7 +61,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
 	if cmdline != "new " {
 		t.Errorf("cmdline should be %q but got %q", "new ", cmdline)
 	}
@@ -70,7 +70,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if cmdline != "new README.md" {
 		t.Errorf("cmdline should be %q but got %q", "new README.md", cmdline)
@@ -82,7 +82,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	c.clear()
 	cmdline = "new Gopkg.to"
 	cmd, prefix, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "new Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "new Gopkg.toml", cmdline)
 	}
@@ -96,7 +96,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	c.clear()
 	cmdline = "edit"
 	cmd, prefix, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "edit Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "edit Gopkg.toml", cmdline)
 	}
@@ -112,7 +112,7 @@ func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := " : : :  new   C"
 	cmd, prefix, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != " : : :  new   cmdline/" {
 		t.Errorf("cmdline should be %q but got %q", " : : :  new   cmdline/", cmdline)
 	}
@@ -123,7 +123,7 @@ func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != " : : :  new   common/" {
 		t.Errorf("cmdline should be %q but got %q", " : : :  new   common/", cmdline)
 	}
@@ -131,8 +131,8 @@ func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
 	if cmdline != " : : :  new   C" {
 		t.Errorf("cmdline should be %q but got %q", " : : :  new   C", cmdline)
 	}
@@ -145,7 +145,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "vnew ~/"
 	cmd, prefix, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "vnew ~/example.txt" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/example.txt", cmdline)
 	}
@@ -156,7 +156,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "vnew ~/.vimrc" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/.vimrc", cmdline)
 	}
@@ -165,7 +165,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if cmdline != "vnew ~/Library/" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/Library/", cmdline)
@@ -175,7 +175,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	}
 
 	for i := 0; i < 2; i++ {
-		cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if cmdline != "vnew ~/" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/", cmdline)
@@ -189,7 +189,7 @@ func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "vnew ~/."
 	cmd, prefix, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
 	if cmdline != "vnew ~/.zshrc" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/.zshrc", cmdline)
 	}
@@ -200,7 +200,7 @@ func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	cmdline = c.complete(string(cmdline), cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "vnew ~/." {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/.", cmdline)
 	}
