@@ -19,6 +19,28 @@ func mockKeyManager() map[Mode]*KeyManager {
 	return kms
 }
 
+func getContents(screen tcell.SimulationScreen) string {
+	width, _ := screen.Size()
+	cells, _, _ := screen.GetContents()
+	var runes []rune
+	for i, cell := range cells {
+		runes = append(runes, cell.Runes...)
+		if (i+1)%width == 0 {
+			runes = append(runes, '\n')
+		}
+	}
+	return string(runes)
+}
+
+func shouldContain(t *testing.T, screen tcell.SimulationScreen, expected []string) {
+	got := getContents(screen)
+	for _, str := range expected {
+		if !strings.Contains(got, str) {
+			t.Errorf("screen should contain %q but got\n%v", str, got)
+		}
+	}
+}
+
 func TestTuiRun(t *testing.T) {
 	ui := NewTui()
 	eventCh := make(chan Event)
@@ -82,28 +104,14 @@ func TestTuiEmpty(t *testing.T) {
 	}
 	ui.Redraw(state)
 
-	cells, _, _ := screen.GetContents()
-	var runes []rune
-	for i, cell := range cells {
-		runes = append(runes, cell.Runes...)
-		if (i+1)%width == 0 {
-			runes = append(runes, '\n')
-		}
-	}
-	got := string(runes)
-	expectedStrs := []string{
+	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                   ",
 		" 000000 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
 		" 000010 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
 		" 000020 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
 		" 000100 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
 		" [No name]: 000000 / 000000 (0.00%) [0x00 '\\x00']                            ",
-	}
-	for _, expected := range expectedStrs {
-		if !strings.Contains(got, expected) {
-			t.Errorf("screen should contain %q but got %v", expected, got)
-		}
-	}
+	})
 
 	x, y, visible := screen.GetCursor()
 	if x != 10 || y != 1 {
@@ -142,28 +150,14 @@ func TestTuiScrollBar(t *testing.T) {
 	}
 	ui.Redraw(state)
 
-	cells, _, _ := screen.GetContents()
-	var runes []rune
-	for i, cell := range cells {
-		runes = append(runes, cell.Runes...)
-		if (i+1)%width == 0 {
-			runes = append(runes, '\n')
-		}
-	}
-	got := string(runes)
-	expectedStrs := []string{
+	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                    ",
 		" 000000 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa # ",
 		" 000050 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa # ",
 		" 000060 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa | ",
 		" 000100 | 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 | aaaaaaaaaaaaaaaa | ",
 		" [No name]: 000000 / 000390 (0.00%) [0x61 'a']                                 ",
-	}
-	for _, expected := range expectedStrs {
-		if !strings.Contains(got, expected) {
-			t.Errorf("screen should contain %q but got %v", expected, got)
-		}
-	}
+	})
 
 	x, y, visible := screen.GetCursor()
 	if x != 10 || y != 1 {
@@ -212,16 +206,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	}
 	ui.Redraw(state)
 
-	cells, _, _ := screen.GetContents()
-	var runes []rune
-	for i, cell := range cells {
-		runes = append(runes, cell.Runes...)
-		if (i+1)%width == 0 {
-			runes = append(runes, '\n')
-		}
-	}
-	got := string(runes)
-	expectedStrs := []string{
+	shouldContain(t, screen, []string{
 		" 000000 | 54 65 73 74 20 77 69 6e 64 6f 77 20 30 2e 00 00 | Test window 0... #",
 		" 000010 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................ #",
 		" test0: 000000 / 000258 (0.00%) [0x54 'T']                                    ",
@@ -229,12 +214,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 		" 000000 | 54 65 73 74 20 77 69 6e 64 6f 77 20 31 2e 20 20 | Test window 1.   #",
 		" 000010 | 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 |                  #",
 		" test1: 000000 / 000320 (0.00%) [0x54 'T']                                    ",
-	}
-	for _, expected := range expectedStrs {
-		if !strings.Contains(got, expected) {
-			t.Errorf("screen should contain %q but got %v", expected, got)
-		}
-	}
+	})
 
 	x, y, visible := screen.GetCursor()
 	if x != 10 || y != 10 {
@@ -283,27 +263,13 @@ func TestTuiVerticalSplit(t *testing.T) {
 	}
 	ui.Redraw(state)
 
-	cells, _, _ := screen.GetContents()
-	var runes []rune
-	for i, cell := range cells {
-		runes = append(runes, cell.Runes...)
-		if (i+1)%width == 0 {
-			runes = append(runes, '\n')
-		}
-	}
-	got := string(runes)
-	expectedStrs := []string{
+	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7 |                    |        |  0  1  2  3  4  5  6  7 |",
 		" 000000 | 54 65 73 74 20 77 69 6e | Test win #         | 000000 | 54 65 73 74 20 77 69 6e | Test win #",
 		" 000008 | 64 6f 77 20 30 2e 00 00 | dow 0... #         | 000008 | 64 6f 77 20 31 2e 20 20 | dow 1.   #",
 		" 000010 | 00 00 00 00 00 00 00 00 | ........ #         | 000010 | 20 20 20 20 20 20 20 20 |          #",
 		" test0: 000000 / 000258 (0.00%) [0x54 'T']             | test1: 000000 / 000320 (0.00%) [0x54 'T']",
-	}
-	for _, expected := range expectedStrs {
-		if !strings.Contains(got, expected) {
-			t.Errorf("screen should contain %q but got %v", expected, got)
-		}
-	}
+	})
 
 	x, y, visible := screen.GetCursor()
 	if x != 66 || y != 1 {
@@ -367,7 +333,6 @@ func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 		t.Fatal(err)
 	}
 	screen.SetSize(20, 15)
-	width, _ := screen.Size()
 
 	state := State{
 		Mode:              ModeCmdline,
@@ -378,47 +343,18 @@ func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 	}
 	ui.Redraw(state)
 
-	cells, _, _ := screen.GetContents()
-	var runes []rune
-	for i, cell := range cells {
-		runes = append(runes, cell.Runes...)
-		if (i+1)%width == 0 {
-			runes = append(runes, '\n')
-		}
-	}
-	got := string(runes)
-	expectedStrs := []string{
+	shouldContain(t, screen, []string{
 		" test1  test2  test3",
 		":new test2",
-	}
-	for _, expected := range expectedStrs {
-		if !strings.Contains(got, expected) {
-			t.Errorf("screen should contain %q but got %v", expected, got)
-		}
-	}
+	})
 
 	state.CompletionIndex += 2
 	state.Cmdline = []rune("new test9/")
 	ui.Redraw(state)
 
-	cells, _, _ = screen.GetContents()
-	runes = nil
-	for i, cell := range cells {
-		runes = append(runes, cell.Runes...)
-		if (i+1)%width == 0 {
-			runes = append(runes, '\n')
-		}
-	}
-	got = string(runes)
-	expectedStrs = []string{
+	shouldContain(t, screen, []string{
 		" test3  test9/  /bin",
 		":new test9/",
-	}
-	for _, expected := range expectedStrs {
-		if !strings.Contains(got, expected) {
-			t.Errorf("screen should contain %q but got %v", expected, got)
-		}
-	}
-
+	})
 	ui.Close()
 }
