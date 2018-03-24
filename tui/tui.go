@@ -116,32 +116,36 @@ func (ui *Tui) drawCmdline(state State) {
 		}
 		ui.setLine(height-1, 0, state.Error.Error(), style)
 	} else if state.Mode == ModeCmdline {
-		if len(state.CompletionResults) > 0 {
-			var line string
-			var pos, lineWidth int
-			for i, result := range state.CompletionResults {
-				w := runewidth.StringWidth(result)
-				if lineWidth+w+2 > width && i <= state.CompletionIndex {
-					line, lineWidth = "", 0
-				}
-				if state.CompletionIndex == i {
-					pos = lineWidth
-				}
-				line += " " + result + " "
-				lineWidth += w + 2
-			}
-			ui.setLine(height-2, 0, line+strings.Repeat(" ", width), tcell.StyleDefault.Reverse(true))
-			if state.CompletionIndex >= 0 {
-				ui.setLine(height-2, pos, " "+state.CompletionResults[state.CompletionIndex]+" ",
-					tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
-			}
-		}
+		ui.drawCompletionResults(state, width, height)
 		ui.setLine(height-1, 0, ":"+string(state.Cmdline), tcell.StyleDefault)
 		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
 	} else if state.SearchMode != '\x00' {
 		ui.setLine(height-1, 0, string(state.SearchMode)+string(state.Cmdline), tcell.StyleDefault)
 		if state.Mode == ModeSearch {
 			ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
+		}
+	}
+}
+
+func (ui *Tui) drawCompletionResults(state State, width int, height int) {
+	if len(state.CompletionResults) > 0 {
+		var line string
+		var pos, lineWidth int
+		for i, result := range state.CompletionResults {
+			w := runewidth.StringWidth(result)
+			if lineWidth+w+2 > width && i <= state.CompletionIndex {
+				line, lineWidth = "", 0
+			}
+			if state.CompletionIndex == i {
+				pos = lineWidth
+			}
+			line += " " + result + " "
+			lineWidth += w + 2
+		}
+		ui.setLine(height-2, 0, line+strings.Repeat(" ", width), tcell.StyleDefault.Reverse(true))
+		if state.CompletionIndex >= 0 {
+			ui.setLine(height-2, pos, " "+state.CompletionResults[state.CompletionIndex]+" ",
+				tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
 		}
 	}
 }
