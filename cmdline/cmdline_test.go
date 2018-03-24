@@ -48,7 +48,7 @@ func TestCmdlineRun(t *testing.T) {
 	<-redrawCh
 	cmdline, cursor, _, _ := c.Get()
 	if string(cmdline) != "te" {
-		t.Errorf("cmdline should be %q got %q", "te", cursor)
+		t.Errorf("cmdline should be %q got %q", "te", string(cmdline))
 	}
 	if cursor != 2 {
 		t.Errorf("cursor should be 2 but got %v", cursor)
@@ -389,5 +389,86 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		if e.Type != cmd.typ {
 			t.Errorf("cmdline should emit %q but got %q with %q", cmd.typ, e.Type, cmd.cmd)
 		}
+	}
+}
+
+func TestCmdlineComplete(t *testing.T) {
+	c := NewCmdline()
+	c.completor = newCompletor(&mockFilesystem{})
+	eventCh, cmdlineCh, redrawCh := make(chan Event), make(chan Event), make(chan struct{})
+	c.Init(eventCh, cmdlineCh, redrawCh)
+	waitCh := make(chan struct{})
+	go c.Run()
+	go func() {
+		cmdlineCh <- Event{Type: EventStartCmdline}
+		cmdlineCh <- Event{Type: EventRune, Rune: 'e'}
+		cmdlineCh <- Event{Type: EventRune, Rune: ' '}
+		cmdlineCh <- Event{Type: EventRune, Rune: '/'}
+		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		<-waitCh
+		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		<-waitCh
+		cmdlineCh <- Event{Type: EventCompleteBackCmdline}
+		<-waitCh
+		cmdlineCh <- Event{Type: EventCursorEnd}
+		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		<-waitCh
+		cmdlineCh <- Event{Type: EventExecuteCmdline}
+	}()
+	for i := 0; i < 5; i++ {
+		<-redrawCh
+	}
+	cmdline, cursor, _, _ := c.Get()
+	if string(cmdline) != "e /bin/" {
+		t.Errorf("cmdline should be %q got %q", "e /bin/", string(cmdline))
+	}
+	if cursor != 7 {
+		t.Errorf("cursor should be 7 but got %v", cursor)
+	}
+	waitCh <- struct{}{}
+	<-redrawCh
+	cmdline, cursor, _, _ = c.Get()
+	if string(cmdline) != "e /tmp/" {
+		t.Errorf("cmdline should be %q got %q", "e /tmp/", string(cmdline))
+	}
+	if cursor != 7 {
+		t.Errorf("cursor should be 7 but got %v", cursor)
+	}
+	waitCh <- struct{}{}
+	<-redrawCh
+	cmdline, cursor, _, _ = c.Get()
+	if string(cmdline) != "e /bin/" {
+		t.Errorf("cmdline should be %q got %q", "e /bin/", string(cmdline))
+	}
+	if cursor != 7 {
+		t.Errorf("cursor should be 7 but got %v", cursor)
+	}
+	waitCh <- struct{}{}
+	<-redrawCh
+	<-redrawCh
+	<-redrawCh
+	cmdline, cursor, _, _ = c.Get()
+	if string(cmdline) != "e /bin/echo" {
+		t.Errorf("cmdline should be %q got %q", "e /bin/echo", string(cmdline))
+	}
+	if cursor != 11 {
+		t.Errorf("cursor should be 11 but got %v", cursor)
+	}
+	waitCh <- struct{}{}
+	cmdline, cursor, _, _ = c.Get()
+	if string(cmdline) != "e /bin/echo" {
+		t.Errorf("cmdline should be %q got %q", "e /bin/echo", string(cmdline))
+	}
+	if cursor != 11 {
+		t.Errorf("cursor should be 11 but got %v", cursor)
+	}
+	e := <-eventCh
+	<-redrawCh
+	if e.Type != EventEdit {
+		t.Errorf("cmdline should emit EventEdit but got %v", e)
+	}
+	if e.Arg != "/bin/echo" {
+		t.Errorf("cmdline should emit event with arg %q but got %q", "/bin/echo", e)
 	}
 }
