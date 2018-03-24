@@ -358,3 +358,67 @@ func TestTuiCmdline(t *testing.T) {
 	}
 	ui.Close()
 }
+
+func TestTuiCmdlineCompletionCandidates(t *testing.T) {
+	ui := NewTui()
+	eventCh := make(chan Event)
+	screen := tcell.NewSimulationScreen("")
+	if err := ui.initForTest(eventCh, screen); err != nil {
+		t.Fatal(err)
+	}
+	screen.SetSize(20, 15)
+	width, _ := screen.Size()
+
+	state := State{
+		Mode:              ModeCmdline,
+		Cmdline:           []rune("new test2"),
+		CmdlineCursor:     9,
+		CompletionResults: []string{"test1", "test2", "test3", "test9/", "/bin/ls"},
+		CompletionIndex:   1,
+	}
+	ui.Redraw(state)
+
+	cells, _, _ := screen.GetContents()
+	var runes []rune
+	for i, cell := range cells {
+		runes = append(runes, cell.Runes...)
+		if (i+1)%width == 0 {
+			runes = append(runes, '\n')
+		}
+	}
+	got := string(runes)
+	expectedStrs := []string{
+		" test1  test2  test3",
+		":new test2",
+	}
+	for _, expected := range expectedStrs {
+		if !strings.Contains(got, expected) {
+			t.Errorf("screen should contain %q but got %v", expected, got)
+		}
+	}
+
+	state.CompletionIndex += 2
+	state.Cmdline = []rune("new test9/")
+	ui.Redraw(state)
+
+	cells, _, _ = screen.GetContents()
+	runes = nil
+	for i, cell := range cells {
+		runes = append(runes, cell.Runes...)
+		if (i+1)%width == 0 {
+			runes = append(runes, '\n')
+		}
+	}
+	got = string(runes)
+	expectedStrs = []string{
+		" test3  test9/  /bin",
+		":new test9/",
+	}
+	for _, expected := range expectedStrs {
+		if !strings.Contains(got, expected) {
+			t.Errorf("screen should contain %q but got %v", expected, got)
+		}
+	}
+
+	ui.Close()
+}
