@@ -168,7 +168,11 @@ func (w *window) Run() {
 			}
 			w.redo(e.Count)
 		case EventExecuteSearch:
-			w.search(e.Arg)
+			w.search(e.Arg, e.Rune == '/')
+		case EventNextSearch:
+			w.search(e.Arg, e.Rune == '/')
+		case EventPreviousSearch:
+			w.search(e.Arg, e.Rune != '/')
 		default:
 			w.mu.Unlock()
 			continue
@@ -669,19 +673,43 @@ func (w *window) backspace() {
 	}
 }
 
-func (w *window) search(str string) {
+func (w *window) search(str string, forward bool) {
+	if forward {
+		w.searchForward(str)
+	} else {
+		w.searchBackward(str)
+	}
+}
+
+func (w *window) searchForward(str string) {
 	target := []byte(str)
-	_, bs, err := w.readBytes(
-		w.cursor+1,
-		util.MaxInt(int(w.height*w.width)*100, len(target)*100))
+	base, size := w.cursor+1, util.MaxInt(int(w.height*w.width)*50, len(target)*500)
+	_, bs, err := w.readBytes(base, size)
 	if err != nil {
 		return
 	}
 	i := bytes.Index(bs, target)
 	if i >= 0 {
-		w.cursor += 1 + int64(i)
+		w.cursor = base + int64(i)
 		if w.cursor >= w.offset+w.height*w.width {
-			w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+			w.offset = (w.cursor - w.height*w.width + w.width + 1) / w.width * w.width
+		}
+	}
+}
+
+func (w *window) searchBackward(str string) {
+	target := []byte(str)
+	size := util.MaxInt(int(w.height*w.width)*50, len(target)*500)
+	base := util.MaxInt64(0, w.cursor-int64(size))
+	_, bs, err := w.readBytes(base, int(util.MinInt64(int64(size), w.cursor)))
+	if err != nil {
+		return
+	}
+	i := bytes.LastIndex(bs, target)
+	if i >= 0 {
+		w.cursor = base + int64(i)
+		if w.cursor < w.offset {
+			w.offset = w.cursor / w.width * w.width
 		}
 	}
 }

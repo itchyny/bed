@@ -9,6 +9,7 @@ type State struct {
 	CmdlineCursor     int
 	CompletionResults []string
 	CompletionIndex   int
+	SearchMode        rune
 	Error             error
 	ErrorType         int
 }

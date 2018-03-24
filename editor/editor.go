@@ -9,15 +9,18 @@ import (
 
 // Editor is the main struct for this command.
 type Editor struct {
-	ui        UI
-	wm        Manager
-	cmdline   Cmdline
-	mode      Mode
-	err       error
-	errtyp    int
-	eventCh   chan Event
-	redrawCh  chan struct{}
-	cmdlineCh chan Event
+	ui            UI
+	wm            Manager
+	cmdline       Cmdline
+	mode          Mode
+	searchTarget  string
+	searchMode    rune
+	prevEventType EventType
+	err           error
+	errtyp        int
+	eventCh       chan Event
+	redrawCh      chan struct{}
+	cmdlineCh     chan Event
 }
 
 // NewEditor creates a new editor.
@@ -43,6 +46,9 @@ func (e *Editor) listen() {
 		}
 	}()
 	for event := range e.eventCh {
+		if event.Type != EventRedraw {
+			e.prevEventType = event.Type
+		}
 		switch event.Type {
 		case EventQuitAll:
 			if len(event.Arg) > 0 {
@@ -72,11 +78,24 @@ func (e *Editor) listen() {
 			case EventStartCmdlineCommand:
 				e.mode = ModeCmdline
 				e.err = nil
-			case EventStartCmdlineSearch:
+			case EventStartCmdlineSearchForward:
 				e.mode = ModeSearch
 				e.err = nil
-			case EventExitCmdline, EventExecuteCmdline:
+				e.searchMode = '/'
+			case EventStartCmdlineSearchBackward:
+				e.mode = ModeSearch
+				e.err = nil
+				e.searchMode = '?'
+			case EventExitCmdline:
 				e.mode = ModeNormal
+			case EventExecuteCmdline:
+				e.mode = ModeNormal
+			case EventExecuteSearch:
+				e.searchTarget, e.searchMode = event.Arg, event.Rune
+			case EventNextSearch:
+				event.Arg, event.Rune = e.searchTarget, e.searchMode
+			case EventPreviousSearch:
+				event.Arg, event.Rune = e.searchTarget, e.searchMode
 			}
 			if e.mode == ModeCmdline || e.mode == ModeSearch ||
 				event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
@@ -129,6 +148,17 @@ func (e *Editor) redraw() (err error) {
 	state.WindowStates[windowIndex].Mode = e.mode
 	state.Mode, state.Error, state.ErrorType = e.mode, e.err, e.errtyp
 	state.Cmdline, state.CmdlineCursor, state.CompletionResults, state.CompletionIndex = e.cmdline.Get()
+	if e.mode == ModeSearch || e.prevEventType == EventExecuteSearch {
+		state.SearchMode = e.searchMode
+	} else if e.prevEventType == EventNextSearch {
+		state.SearchMode, state.Cmdline = e.searchMode, []rune(e.searchTarget)
+	} else if e.prevEventType == EventPreviousSearch {
+		if e.searchMode == '/' {
+			state.SearchMode, state.Cmdline = '?', []rune(e.searchTarget)
+		} else {
+			state.SearchMode, state.Cmdline = '/', []rune(e.searchTarget)
+		}
+	}
 	return e.ui.Redraw(state)
 }
 
