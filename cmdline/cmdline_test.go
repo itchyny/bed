@@ -23,7 +23,7 @@ func TestCmdlineRun(t *testing.T) {
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	go c.Run()
 	events := []Event{
-		Event{Type: EventStartCmdline}, Event{Type: EventNop},
+		Event{Type: EventStartCmdlineCommand}, Event{Type: EventNop},
 		Event{Type: EventRune, Rune: 't'}, Event{Type: EventRune, Rune: 'e'},
 		Event{Type: EventCursorLeft}, Event{Type: EventCursorRight},
 		Event{Type: EventCursorHead}, Event{Type: EventCursorEnd},
@@ -31,7 +31,7 @@ func TestCmdlineRun(t *testing.T) {
 		Event{Type: EventDeleteWordCmdline}, Event{Type: EventClearToHeadCmdline},
 		Event{Type: EventClearCmdline}, Event{Type: EventRune, Rune: 't'},
 		Event{Type: EventRune, Rune: 'e'}, Event{Type: EventExecuteCmdline},
-		Event{Type: EventStartCmdline}, Event{Type: EventExecuteCmdline},
+		Event{Type: EventStartCmdlineCommand}, Event{Type: EventExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events {
@@ -400,7 +400,7 @@ func TestCmdlineComplete(t *testing.T) {
 	waitCh := make(chan struct{})
 	go c.Run()
 	go func() {
-		cmdlineCh <- Event{Type: EventStartCmdline}
+		cmdlineCh <- Event{Type: EventStartCmdlineCommand}
 		cmdlineCh <- Event{Type: EventRune, Rune: 'e'}
 		cmdlineCh <- Event{Type: EventRune, Rune: ' '}
 		cmdlineCh <- Event{Type: EventRune, Rune: '/'}

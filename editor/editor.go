@@ -69,7 +69,7 @@ func (e *Editor) listen() {
 				e.mode = ModeReplace
 			case EventExitInsert:
 				e.mode = ModeNormal
-			case EventStartCmdline:
+			case EventStartCmdlineCommand:
 				e.mode = ModeCmdline
 				e.err = nil
 			case EventExitCmdline, EventExecuteCmdline:

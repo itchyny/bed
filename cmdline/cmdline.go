@@ -33,7 +33,7 @@ func (c *Cmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh ch
 func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
-		case EventStartCmdline:
+		case EventStartCmdlineCommand:
 			c.clear()
 		case EventExitCmdline:
 			// do nothing here but redraw

@@ -146,7 +146,7 @@ func TestEditorCmdlineQuit(t *testing.T) {
 			typ EventType
 			ch  rune
 		}{
-			{EventStartCmdline, '-'}, {EventRune, 'q'}, {EventRune, 'u'}, {EventRune, 'i'},
+			{EventStartCmdlineCommand, ':'}, {EventRune, 'q'}, {EventRune, 'u'}, {EventRune, 'i'},
 			{EventRune, 't'},
 		} {
 			ui.Emit(Event{Type: e.typ, Rune: e.ch})

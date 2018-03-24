@@ -61,7 +61,7 @@ const (
 	EventRedo
 
 	EventSwitchFocus
-	EventStartCmdline
+	EventStartCmdlineCommand
 	EventBackspaceCmdline
 	EventDeleteCmdline
 	EventDeleteWordCmdline
