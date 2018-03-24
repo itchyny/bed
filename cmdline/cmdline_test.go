@@ -476,3 +476,65 @@ func TestCmdlineComplete(t *testing.T) {
 		t.Errorf("cmdline should emit event with arg %q but got %q", "/bin/echo", e)
 	}
 }
+
+func TestCmdlineSearch(t *testing.T) {
+	c := NewCmdline()
+	eventCh, cmdlineCh, redrawCh := make(chan Event), make(chan Event), make(chan struct{})
+	waitCh := make(chan struct{})
+	c.Init(eventCh, cmdlineCh, redrawCh)
+	defer func() {
+		close(eventCh)
+		close(cmdlineCh)
+		close(redrawCh)
+	}()
+	go c.Run()
+	events1 := []Event{
+		Event{Type: EventStartCmdlineSearchForward},
+		Event{Type: EventRune, Rune: 't'}, Event{Type: EventRune, Rune: 't'},
+		Event{Type: EventCursorLeft}, Event{Type: EventRune, Rune: 'e'},
+		Event{Type: EventRune, Rune: 's'}, Event{Type: EventExecuteCmdline},
+	}
+	events2 := []Event{
+		Event{Type: EventStartCmdlineSearchBackward},
+		Event{Type: EventRune, Rune: 'x'}, Event{Type: EventRune, Rune: 'y'},
+		Event{Type: EventRune, Rune: 'z'}, Event{Type: EventExecuteCmdline},
+	}
+	go func() {
+		for _, e := range events1 {
+			cmdlineCh <- e
+		}
+		<-waitCh
+		for _, e := range events2 {
+			cmdlineCh <- e
+		}
+	}()
+	for i := 0; i < len(events1)-1; i++ {
+		<-redrawCh
+	}
+	e := <-eventCh
+	<-redrawCh
+	if e.Type != EventExecuteSearch {
+		t.Errorf("cmdline should emit EventExecuteSearch but got %v", e)
+	}
+	if e.Arg != "test" {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", "test", e.Arg)
+	}
+	if e.Rune != '/' {
+		t.Errorf("cmdline should emit search event with Rune %q but got %q", '/', e.Rune)
+	}
+	waitCh <- struct{}{}
+	for i := 0; i < len(events2)-1; i++ {
+		<-redrawCh
+	}
+	e = <-eventCh
+	<-redrawCh
+	if e.Type != EventExecuteSearch {
+		t.Errorf("cmdline should emit EventExecuteSearch but got %v", e)
+	}
+	if e.Arg != "xyz" {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", "xyz", e.Arg)
+	}
+	if e.Rune != '?' {
+		t.Errorf("cmdline should emit search event with Rune %q but got %q", '?', e.Rune)
+	}
+}
