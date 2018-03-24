@@ -1,8 +1,6 @@
 package common
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // Key represents one keyboard stroke.
 type Key string

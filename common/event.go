@@ -62,6 +62,7 @@ const (
 
 	EventSwitchFocus
 	EventStartCmdlineCommand
+	EventStartCmdlineSearch
 	EventBackspaceCmdline
 	EventDeleteCmdline
 	EventDeleteWordCmdline
@@ -71,6 +72,7 @@ const (
 	EventCompleteForwardCmdline
 	EventCompleteBackCmdline
 	EventExecuteCmdline
+	EventExecuteSearch
 
 	EventEdit
 	EventNew

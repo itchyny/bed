@@ -1,6 +1,7 @@
 package window
 
 import (
+	"bytes"
 	"io"
 	"strconv"
 	"sync"
@@ -166,6 +167,8 @@ func (w *window) Run() {
 				panic("EventUndo should be emitted under normal mode")
 			}
 			w.redo(e.Count)
+		case EventExecuteSearch:
+			w.search(e.Arg)
 		default:
 			w.mu.Unlock()
 			continue
@@ -663,6 +666,23 @@ func (w *window) backspace() {
 		w.delete(w.cursor - 1)
 		w.cursor--
 		w.length--
+	}
+}
+
+func (w *window) search(str string) {
+	target := []byte(str)
+	_, bs, err := w.readBytes(
+		w.cursor+1,
+		util.MaxInt(int(w.height*w.width)*100, len(target)*100))
+	if err != nil {
+		return
+	}
+	i := bytes.Index(bs, target)
+	if i >= 0 {
+		w.cursor += 1 + int64(i)
+		if w.cursor >= w.offset+w.height*w.width {
+			w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+		}
 	}
 }
 

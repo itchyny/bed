@@ -9,4 +9,5 @@ const (
 	ModeInsert
 	ModeReplace
 	ModeCmdline
+	ModeSearch
 )

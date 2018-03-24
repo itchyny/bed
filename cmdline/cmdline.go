@@ -37,6 +37,9 @@ func (c *Cmdline) Run() {
 		case EventStartCmdlineCommand:
 			c.typ = ':'
 			c.clear()
+		case EventStartCmdlineSearch:
+			c.typ = '/'
+			c.clear()
 		case EventExitCmdline:
 			// do nothing here but redraw
 		case EventCursorLeft:
@@ -166,6 +169,8 @@ func (c *Cmdline) execute() {
 		if cmd.name != "" {
 			c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: arg}
 		}
+	case '/':
+		c.eventCh <- Event{Type: EventExecuteSearch, Arg: string(c.cmdline), Rune: '/'}
 	default:
 		panic("Cmdline#execute: unreachable")
 	}

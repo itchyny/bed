@@ -138,6 +138,9 @@ func (ui *Tui) drawCmdline(state State) {
 		}
 		ui.setLine(height-1, 0, ":"+string(state.Cmdline), tcell.StyleDefault)
 		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
+	} else if state.Mode == ModeSearch {
+		ui.setLine(height-1, 0, "/"+string(state.Cmdline), tcell.StyleDefault)
+		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
 	}
 }
 

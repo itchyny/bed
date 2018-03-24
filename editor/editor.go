@@ -72,10 +72,14 @@ func (e *Editor) listen() {
 			case EventStartCmdlineCommand:
 				e.mode = ModeCmdline
 				e.err = nil
+			case EventStartCmdlineSearch:
+				e.mode = ModeSearch
+				e.err = nil
 			case EventExitCmdline, EventExecuteCmdline:
 				e.mode = ModeNormal
 			}
-			if e.mode == ModeCmdline || event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
+			if e.mode == ModeCmdline || e.mode == ModeSearch ||
+				event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
 				e.cmdlineCh <- event
 			} else {
 				event.Mode = e.mode
