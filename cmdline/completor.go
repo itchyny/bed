@@ -31,7 +31,9 @@ func (c *completor) clear() {
 func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
 	switch cmd.eventType {
 	case EventEdit, EventNew, EventVnew:
-		return c.completeFilePaths(cmdline, prefix, arg, forward)
+		return c.completeFilepaths(cmdline, prefix, arg, forward)
+	case EventWincmd:
+		return c.completeWincmd(cmdline, prefix, arg, forward)
 	default:
 		c.results = nil
 		c.index = 0
@@ -39,20 +41,24 @@ func (c *completor) complete(cmdline string, cmd command, prefix string, arg str
 	}
 }
 
-func (c *completor) completeFilePaths(cmdline string, prefix string, arg string, forward bool) string {
+func (c *completor) completeNext(prefix string, forward bool) string {
+	if forward {
+		c.index = (c.index+2)%(len(c.results)+1) - 1
+	} else {
+		c.index = (c.index+len(c.results)+1)%(len(c.results)+1) - 1
+	}
+	if c.index < 0 {
+		return c.target
+	}
+	return prefix + c.results[c.index]
+}
+
+func (c *completor) completeFilepaths(cmdline string, prefix string, arg string, forward bool) string {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
 	}
 	if len(c.results) > 0 {
-		if forward {
-			c.index = (c.index+2)%(len(c.results)+1) - 1
-		} else {
-			c.index = (c.index+len(c.results)+1)%(len(c.results)+1) - 1
-		}
-		if c.index < 0 {
-			return c.target
-		}
-		return prefix + c.results[c.index]
+		return c.completeNext(prefix, forward)
 	}
 	c.target = cmdline
 	c.index = 0
@@ -180,4 +186,20 @@ func sortFilePaths(paths []string) {
 	for i, path := range paths {
 		paths[i] = path[2:]
 	}
+}
+
+func (c *completor) completeWincmd(cmdline string, prefix string, arg string, forward bool) string {
+	if !strings.HasSuffix(prefix, " ") {
+		prefix += " "
+	}
+	if len(c.results) > 0 {
+		return c.completeNext(prefix, forward)
+	}
+	if len(arg) > 0 {
+		return cmdline
+	}
+	c.target = cmdline
+	c.results = []string{"n", "h", "l", "k", "j", "H", "L", "K", "J", "t", "b", "p"}
+	c.index = -1
+	return cmdline
 }
