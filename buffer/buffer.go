@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	"errors"
 	"io"
 	"math"
 	"sync"
@@ -68,20 +69,27 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (b *Buffer) seek(offset int64, whence int) (int64, error) {
+	var index int64
 	switch whence {
 	case io.SeekStart:
-		b.index = offset
+		index = offset
 	case io.SeekCurrent:
-		b.index += offset
+		index = b.index + offset
 	case io.SeekEnd:
 		var l int64
 		var err error
 		if l, err = b.len(); err != nil {
 			return 0, err
 		}
-		b.index = l + offset
+		index = l + offset
+	default:
+		return 0, errors.New("buffer.Buffer.Seek: invalid whence")
 	}
-	return b.index, nil
+	if index < 0 {
+		return 0, errors.New("buffer.Buffer.Seek: negative position")
+	}
+	b.index = index
+	return index, nil
 }
 
 // Len returns the total size of the buffer.
