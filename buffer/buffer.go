@@ -32,9 +32,13 @@ func NewBuffer(r io.ReadSeeker) *Buffer {
 }
 
 // Read reads bytes.
-func (b *Buffer) Read(p []byte) (i int, err error) {
+func (b *Buffer) Read(p []byte) (int, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	return b.read(p)
+}
+
+func (b *Buffer) read(p []byte) (i int, err error) {
 	for _, rr := range b.rrs {
 		if b.index < rr.min {
 			break
@@ -60,6 +64,10 @@ func (b *Buffer) Read(p []byte) (i int, err error) {
 func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	return b.seek(offset, whence)
+}
+
+func (b *Buffer) seek(offset int64, whence int) (int64, error) {
 	switch whence {
 	case io.SeekStart:
 		b.index = offset
