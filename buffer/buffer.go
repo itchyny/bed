@@ -108,6 +108,16 @@ func (b *Buffer) len() (int64, error) {
 	return l - rr.diff, nil
 }
 
+// ReadAt reads bytes at the specific offset.
+func (b *Buffer) ReadAt(p []byte, offset int64) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if _, err := b.seek(offset, io.SeekStart); err != nil {
+		return 0, err
+	}
+	return b.read(p)
+}
+
 // EditedIndices returns the indices of edited regions.
 func (b *Buffer) EditedIndices() []int64 {
 	b.mu.Lock()

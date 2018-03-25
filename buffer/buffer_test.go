@@ -98,6 +98,25 @@ func TestBuffer(t *testing.T) {
 	if string(p) != "cdefcdef" {
 		t.Errorf("p should be cdefcdef but got: %s", string(p))
 	}
+
+	n, err = b.ReadAt(p, 7)
+	if err != nil {
+		t.Errorf("err should be EOF but got: %v", err)
+	}
+	if n != 8 {
+		t.Errorf("n should be 8 but got: %d", n)
+	}
+	if string(p) != "789abcde" {
+		t.Errorf("p should be 789abcde but got: %s", string(p))
+	}
+
+	n, err = b.ReadAt(p, -1)
+	if err == nil {
+		t.Errorf("err should not be nil but got: %v", err)
+	}
+	if n != 0 {
+		t.Errorf("n should be 0 but got: %d", n)
+	}
 }
 
 func TestBufferClone(t *testing.T) {
