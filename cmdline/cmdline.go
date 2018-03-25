@@ -177,7 +177,7 @@ func (c *Cmdline) execute() {
 	case '?':
 		c.eventCh <- Event{Type: EventExecuteSearch, Arg: string(c.cmdline), Rune: '?'}
 	default:
-		panic("Cmdline#execute: unreachable")
+		panic("cmdline.Cmdline.execute: unreachable")
 	}
 }
 

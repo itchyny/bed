@@ -156,7 +156,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 		b.cleanup()
 		return
 	}
-	panic("Buffer#Insert: unreachable")
+	panic("buffer.Buffer.Insert: unreachable")
 }
 
 // Replace replaces a byte at the specific position.
@@ -191,7 +191,7 @@ func (b *Buffer) Replace(offset int64, c byte) {
 		b.cleanup()
 		return
 	}
-	panic("Buffer#Replace: unreachable")
+	panic("buffer.Buffer.Replace: unreachable")
 }
 
 // Delete deletes a byte at the specific position.
@@ -234,7 +234,7 @@ func (b *Buffer) Delete(offset int64) {
 		b.cleanup()
 		return
 	}
-	panic("Buffer#Delete: unreachable")
+	panic("buffer.Buffer.Delete: unreachable")
 }
 
 func (b *Buffer) clone(r io.ReadSeeker) io.ReadSeeker {
