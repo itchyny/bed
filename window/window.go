@@ -192,13 +192,9 @@ func (w *window) Run() {
 	}
 }
 
-func (w *window) readBytes(pos int64, len int) (int, []byte, error) {
+func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
 	bytes := make([]byte, len)
-	_, err := w.buffer.Seek(pos, io.SeekStart)
-	if err != nil {
-		return 0, bytes, err
-	}
-	n, err := w.buffer.Read(bytes)
+	n, err := w.buffer.ReadAt(bytes, offset)
 	if err != nil && err != io.EOF {
 		return 0, bytes, err
 	}
