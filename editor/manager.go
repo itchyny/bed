@@ -1,6 +1,9 @@
 package editor
 
-import . "github.com/itchyny/bed/common"
+import (
+	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/layout"
+)
 
 // Manager defines the required window manager interface for the editor.
 type Manager interface {
@@ -10,6 +13,6 @@ type Manager interface {
 	Resize(int, int)
 	Run()
 	Emit(Event)
-	State() (map[int]*WindowState, Layout, int, error)
+	State() (map[int]*WindowState, layout.Layout, int, error)
 	Close()
 }

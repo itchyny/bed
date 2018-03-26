@@ -1,12 +1,12 @@
 package tui
 
-import . "github.com/itchyny/bed/common"
+import "github.com/itchyny/bed/layout"
 
 type region struct {
 	left, top, height, width int
 }
 
-func fromLayout(l Layout) region {
+func fromLayout(l layout.Layout) region {
 	return region{
 		left:   l.LeftMargin(),
 		top:    l.TopMargin(),

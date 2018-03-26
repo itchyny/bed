@@ -8,6 +8,7 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/layout"
 )
 
 // Tui implements UI
@@ -80,17 +81,17 @@ func (ui *Tui) Redraw(state State) error {
 	return nil
 }
 
-func (ui *Tui) drawWindows(windowStates map[int]*WindowState, layout Layout) {
-	switch l := layout.(type) {
-	case LayoutWindow:
-		r := fromLayout(layout)
+func (ui *Tui) drawWindows(windowStates map[int]*WindowState, l layout.Layout) {
+	switch l := l.(type) {
+	case layout.Window:
+		r := fromLayout(l)
 		if r.valid() {
 			ui.newTuiWindow(r).drawWindow(windowStates[l.Index], l.Active)
 		}
-	case LayoutHorizontal:
+	case layout.Horizontal:
 		ui.drawWindows(windowStates, l.Top)
 		ui.drawWindows(windowStates, l.Bottom)
-	case LayoutVertical:
+	case layout.Vertical:
 		ui.drawWindows(windowStates, l.Left)
 		ui.drawWindows(windowStates, l.Right)
 		ui.drawVerticalSplit(fromLayout(l.Left))

@@ -8,6 +8,7 @@ import (
 	"github.com/gdamore/tcell"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/layout"
 )
 
 func mockKeyManager() map[Mode]*KeyManager {
@@ -100,7 +101,7 @@ func TestTuiEmpty(t *testing.T) {
 				Mode:   ModeNormal,
 			},
 		},
-		Layout: NewLayout(0).Resize(0, 0, width, height-1),
+		Layout: layout.NewLayout(0).Resize(0, 0, width, height-1),
 	}
 	ui.Redraw(state)
 
@@ -146,7 +147,7 @@ func TestTuiScrollBar(t *testing.T) {
 				Mode:   ModeNormal,
 			},
 		},
-		Layout: NewLayout(0).Resize(0, 0, width, height-1),
+		Layout: layout.NewLayout(0).Resize(0, 0, width, height-1),
 	}
 	ui.Redraw(state)
 
@@ -202,7 +203,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 				Mode:   ModeNormal,
 			},
 		},
-		Layout: NewLayout(0).SplitBottom(1).Resize(0, 0, width, height-1),
+		Layout: layout.NewLayout(0).SplitBottom(1).Resize(0, 0, width, height-1),
 	}
 	ui.Redraw(state)
 
@@ -259,7 +260,7 @@ func TestTuiVerticalSplit(t *testing.T) {
 				Mode:   ModeNormal,
 			},
 		},
-		Layout: NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1),
+		Layout: layout.NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1),
 	}
 	ui.Redraw(state)
 

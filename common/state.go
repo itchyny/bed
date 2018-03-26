@@ -1,10 +1,12 @@
 package common
 
+import "github.com/itchyny/bed/layout"
+
 // State holds the state of the editor to display the user interface.
 type State struct {
 	Mode              Mode
 	WindowStates      map[int]*WindowState
-	Layout            Layout
+	Layout            layout.Layout
 	Cmdline           []rune
 	CmdlineCursor     int
 	CompletionResults []string

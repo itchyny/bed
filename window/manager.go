@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/mathutil"
 )
 
@@ -22,7 +23,7 @@ type Manager struct {
 	width           int
 	height          int
 	windows         []*window
-	layout          Layout
+	layout          layout.Layout
 	mu              *sync.Mutex
 	windowIndex     int
 	prevWindowIndex int
@@ -58,7 +59,7 @@ func (m *Manager) Open(filename string) error {
 	}
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
-	m.layout = NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
+	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
 	return nil
 }
 
@@ -280,68 +281,68 @@ func (m *Manager) wincmd(arg string) error {
 	case "n":
 		return m.newWindow(Event{}, false)
 	case "l":
-		m.focus(func(x, y LayoutWindow) bool {
+		m.focus(func(x, y layout.Window) bool {
 			return x.LeftMargin()+x.Width()+1 == y.LeftMargin() &&
 				y.TopMargin() <= x.TopMargin() &&
 				x.TopMargin() < y.TopMargin()+y.Height()
 		})
 	case "h":
-		m.focus(func(x, y LayoutWindow) bool {
+		m.focus(func(x, y layout.Window) bool {
 			return y.LeftMargin()+y.Width()+1 == x.LeftMargin() &&
 				y.TopMargin() <= x.TopMargin() &&
 				x.TopMargin() < y.TopMargin()+y.Height()
 		})
 	case "k":
-		m.focus(func(x, y LayoutWindow) bool {
+		m.focus(func(x, y layout.Window) bool {
 			return y.TopMargin()+y.Height() == x.TopMargin() &&
 				y.LeftMargin() <= x.LeftMargin() &&
 				x.LeftMargin() < y.LeftMargin()+y.Width()
 		})
 	case "j":
-		m.focus(func(x, y LayoutWindow) bool {
+		m.focus(func(x, y layout.Window) bool {
 			return x.TopMargin()+x.Height() == y.TopMargin() &&
 				y.LeftMargin() <= x.LeftMargin() &&
 				x.LeftMargin() < y.LeftMargin()+y.Width()
 		})
 	case "t":
-		m.focus(func(_, y LayoutWindow) bool {
+		m.focus(func(_, y layout.Window) bool {
 			return y.LeftMargin() == 0 && y.TopMargin() == 0
 		})
 	case "b":
-		m.focus(func(_, y LayoutWindow) bool {
+		m.focus(func(_, y layout.Window) bool {
 			return m.layout.LeftMargin()+m.layout.Width() == y.LeftMargin()+y.Width() &&
 				m.layout.TopMargin()+m.layout.Height() == y.TopMargin()+y.Height()
 		})
 	case "p":
-		m.focus(func(_, y LayoutWindow) bool {
+		m.focus(func(_, y layout.Window) bool {
 			return y.Index == m.prevWindowIndex
 		})
 	case "K":
-		m.move(func(x LayoutWindow, y Layout) Layout {
-			return LayoutHorizontal{Top: x, Bottom: y}
+		m.move(func(x layout.Window, y layout.Layout) layout.Layout {
+			return layout.Horizontal{Top: x, Bottom: y}
 		})
 	case "J":
-		m.move(func(x LayoutWindow, y Layout) Layout {
-			return LayoutHorizontal{Top: y, Bottom: x}
+		m.move(func(x layout.Window, y layout.Layout) layout.Layout {
+			return layout.Horizontal{Top: y, Bottom: x}
 		})
 	case "H":
-		m.move(func(x LayoutWindow, y Layout) Layout {
-			return LayoutVertical{Left: x, Right: y}
+		m.move(func(x layout.Window, y layout.Layout) layout.Layout {
+			return layout.Vertical{Left: x, Right: y}
 		})
 	case "L":
-		m.move(func(x LayoutWindow, y Layout) Layout {
-			return LayoutVertical{Left: y, Right: x}
+		m.move(func(x layout.Window, y layout.Layout) layout.Layout {
+			return layout.Vertical{Left: y, Right: x}
 		})
 	}
 	// TODO: return error
 	return nil
 }
 
-func (m *Manager) focus(search func(LayoutWindow, LayoutWindow) bool) {
+func (m *Manager) focus(search func(layout.Window, layout.Window) bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	activeWindow := m.layout.ActiveWindow()
-	newWindow := m.layout.Lookup(func(l LayoutWindow) bool {
+	newWindow := m.layout.Lookup(func(l layout.Window) bool {
 		return search(activeWindow, l)
 	})
 	if newWindow.Index >= 0 {
@@ -350,7 +351,7 @@ func (m *Manager) focus(search func(LayoutWindow, LayoutWindow) bool) {
 	}
 }
 
-func (m *Manager) move(modifier func(LayoutWindow, Layout) Layout) {
+func (m *Manager) move(modifier func(layout.Window, layout.Layout) layout.Layout) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	activeWindow := m.layout.ActiveWindow()
@@ -396,7 +397,7 @@ func (m *Manager) writeQuit(event Event) error {
 }
 
 // State returns the state of the windows.
-func (m *Manager) State() (map[int]*WindowState, Layout, int, error) {
+func (m *Manager) State() (map[int]*WindowState, layout.Layout, int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	layouts := m.layout.Collect()

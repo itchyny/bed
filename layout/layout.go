@@ -1,11 +1,11 @@
-package common
+package layout
 
 import "github.com/itchyny/bed/mathutil"
 
 // Layout represents the window layout.
 type Layout interface {
 	isLayout()
-	Collect() map[int]LayoutWindow
+	Collect() map[int]Window
 	Replace(int) Layout
 	Resize(int, int, int, int) Layout
 	LeftMargin() int
@@ -19,13 +19,13 @@ type Layout interface {
 	Count() (int, int)
 	Activate(int) Layout
 	ActivateFirst() Layout
-	ActiveWindow() LayoutWindow
-	Lookup(func(LayoutWindow) bool) LayoutWindow
+	ActiveWindow() Window
+	Lookup(func(Window) bool) Window
 	Close() Layout
 }
 
-// LayoutWindow holds the window index and it is active or not.
-type LayoutWindow struct {
+// Window holds the window index and it is active or not.
+type Window struct {
 	Index  int
 	Active bool
 	left   int
@@ -36,18 +36,18 @@ type LayoutWindow struct {
 
 // NewLayout creates a new Layout from a window index.
 func NewLayout(index int) Layout {
-	return LayoutWindow{Index: index, Active: true}
+	return Window{Index: index, Active: true}
 }
 
-func (l LayoutWindow) isLayout() {}
+func (l Window) isLayout() {}
 
-// Collect returns all the LayoutWindow.
-func (l LayoutWindow) Collect() map[int]LayoutWindow {
-	return map[int]LayoutWindow{l.Index: l}
+// Collect returns all the Window.
+func (l Window) Collect() map[int]Window {
+	return map[int]Window{l.Index: l}
 }
 
 // Replace the active window with new window index.
-func (l LayoutWindow) Replace(index int) Layout {
+func (l Window) Replace(index int) Layout {
 	if l.Active {
 		l.Index = index
 	}
@@ -55,118 +55,118 @@ func (l LayoutWindow) Replace(index int) Layout {
 }
 
 // Resize recalculates the position.
-func (l LayoutWindow) Resize(left, top, width, height int) Layout {
+func (l Window) Resize(left, top, width, height int) Layout {
 	l.left, l.top, l.width, l.height = left, top, width, height
 	return l
 }
 
 // LeftMargin returns the left margin.
-func (l LayoutWindow) LeftMargin() int {
+func (l Window) LeftMargin() int {
 	return l.left
 }
 
 // TopMargin returns the top margin.
-func (l LayoutWindow) TopMargin() int {
+func (l Window) TopMargin() int {
 	return l.top
 }
 
 // Width returns the width.
-func (l LayoutWindow) Width() int {
+func (l Window) Width() int {
 	return l.width
 }
 
 // Height returns the height.
-func (l LayoutWindow) Height() int {
+func (l Window) Height() int {
 	return l.height
 }
 
 // SplitTop splits the layout and opens a new window to the top.
-func (l LayoutWindow) SplitTop(index int) Layout {
+func (l Window) SplitTop(index int) Layout {
 	if !l.Active {
 		return l
 	}
-	return LayoutHorizontal{
-		Top:    LayoutWindow{Index: index, Active: true},
-		Bottom: LayoutWindow{Index: l.Index, Active: false},
+	return Horizontal{
+		Top:    Window{Index: index, Active: true},
+		Bottom: Window{Index: l.Index, Active: false},
 	}
 }
 
 // SplitBottom splits the layout and opens a new window to the bottom.
-func (l LayoutWindow) SplitBottom(index int) Layout {
+func (l Window) SplitBottom(index int) Layout {
 	if !l.Active {
 		return l
 	}
-	return LayoutHorizontal{
-		Top:    LayoutWindow{Index: l.Index, Active: false},
-		Bottom: LayoutWindow{Index: index, Active: true},
+	return Horizontal{
+		Top:    Window{Index: l.Index, Active: false},
+		Bottom: Window{Index: index, Active: true},
 	}
 }
 
 // SplitLeft splits the layout and opens a new window to the left.
-func (l LayoutWindow) SplitLeft(index int) Layout {
+func (l Window) SplitLeft(index int) Layout {
 	if !l.Active {
 		return l
 	}
-	return LayoutVertical{
-		Left:  LayoutWindow{Index: index, Active: true},
-		Right: LayoutWindow{Index: l.Index, Active: false},
+	return Vertical{
+		Left:  Window{Index: index, Active: true},
+		Right: Window{Index: l.Index, Active: false},
 	}
 }
 
 // SplitRight splits the layout and opens a new window to the right.
-func (l LayoutWindow) SplitRight(index int) Layout {
+func (l Window) SplitRight(index int) Layout {
 	if !l.Active {
 		return l
 	}
-	return LayoutVertical{
-		Left:  LayoutWindow{Index: l.Index, Active: false},
-		Right: LayoutWindow{Index: index, Active: true},
+	return Vertical{
+		Left:  Window{Index: l.Index, Active: false},
+		Right: Window{Index: index, Active: true},
 	}
 }
 
 // Count returns the width and height counts.
-func (l LayoutWindow) Count() (int, int) {
+func (l Window) Count() (int, int) {
 	return 1, 1
 }
 
 // Activate the specific window layout.
-func (l LayoutWindow) Activate(i int) Layout {
+func (l Window) Activate(i int) Layout {
 	l.Active = l.Index == i
 	return l
 }
 
 // ActivateFirst the first layout.
-func (l LayoutWindow) ActivateFirst() Layout {
+func (l Window) ActivateFirst() Layout {
 	l.Active = true
 	return l
 }
 
 // ActiveWindow returns the active window.
-func (l LayoutWindow) ActiveWindow() LayoutWindow {
+func (l Window) ActiveWindow() Window {
 	if l.Active {
 		return l
 	}
-	return LayoutWindow{Index: -1}
+	return Window{Index: -1}
 }
 
 // Lookup search for the window meets the condition.
-func (l LayoutWindow) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
+func (l Window) Lookup(cond func(Window) bool) Window {
 	if cond(l) {
 		return l
 	}
-	return LayoutWindow{Index: -1}
+	return Window{Index: -1}
 }
 
 // Close the active layout.
-func (l LayoutWindow) Close() Layout {
+func (l Window) Close() Layout {
 	if l.Active {
-		panic("Active LayoutWindow should not be closed")
+		panic("Active Window should not be closed")
 	}
 	return l
 }
 
-// LayoutHorizontal holds two layout horizontally.
-type LayoutHorizontal struct {
+// Horizontal holds two layout horizontally.
+type Horizontal struct {
 	Top    Layout
 	Bottom Layout
 	left   int
@@ -175,10 +175,10 @@ type LayoutHorizontal struct {
 	height int
 }
 
-func (l LayoutHorizontal) isLayout() {}
+func (l Horizontal) isLayout() {}
 
-// Collect returns all the LayoutWindow.
-func (l LayoutHorizontal) Collect() map[int]LayoutWindow {
+// Collect returns all the Window.
+func (l Horizontal) Collect() map[int]Window {
 	m := l.Top.Collect()
 	for i, l := range l.Bottom.Collect() {
 		m[i] = l
@@ -187,8 +187,8 @@ func (l LayoutHorizontal) Collect() map[int]LayoutWindow {
 }
 
 // Replace the active window with new window index.
-func (l LayoutHorizontal) Replace(index int) Layout {
-	return LayoutHorizontal{
+func (l Horizontal) Replace(index int) Layout {
+	return Horizontal{
 		Top:    l.Top.Replace(index),
 		Bottom: l.Bottom.Replace(index),
 		left:   l.left,
@@ -199,11 +199,11 @@ func (l LayoutHorizontal) Replace(index int) Layout {
 }
 
 // Resize recalculates the position.
-func (l LayoutHorizontal) Resize(left, top, width, height int) Layout {
+func (l Horizontal) Resize(left, top, width, height int) Layout {
 	_, h1 := l.Top.Count()
 	_, h2 := l.Bottom.Count()
 	topHeight := height * h1 / (h1 + h2)
-	return LayoutHorizontal{
+	return Horizontal{
 		Top:    l.Top.Resize(left, top, width, topHeight),
 		Bottom: l.Bottom.Resize(left, top+topHeight, width, height-topHeight),
 		left:   left,
@@ -214,67 +214,67 @@ func (l LayoutHorizontal) Resize(left, top, width, height int) Layout {
 }
 
 // LeftMargin returns the left margin.
-func (l LayoutHorizontal) LeftMargin() int {
+func (l Horizontal) LeftMargin() int {
 	return l.left
 }
 
 // TopMargin returns the top margin.
-func (l LayoutHorizontal) TopMargin() int {
+func (l Horizontal) TopMargin() int {
 	return l.top
 }
 
 // Width returns the width.
-func (l LayoutHorizontal) Width() int {
+func (l Horizontal) Width() int {
 	return l.width
 }
 
 // Height returns the height.
-func (l LayoutHorizontal) Height() int {
+func (l Horizontal) Height() int {
 	return l.height
 }
 
 // SplitTop splits the layout and opens a new window to the top.
-func (l LayoutHorizontal) SplitTop(index int) Layout {
-	return LayoutHorizontal{
+func (l Horizontal) SplitTop(index int) Layout {
+	return Horizontal{
 		Top:    l.Top.SplitTop(index),
 		Bottom: l.Bottom.SplitTop(index),
 	}
 }
 
 // SplitBottom splits the layout and opens a new window to the bottom.
-func (l LayoutHorizontal) SplitBottom(index int) Layout {
-	return LayoutHorizontal{
+func (l Horizontal) SplitBottom(index int) Layout {
+	return Horizontal{
 		Top:    l.Top.SplitBottom(index),
 		Bottom: l.Bottom.SplitBottom(index),
 	}
 }
 
 // SplitLeft splits the layout and opens a new window to the left.
-func (l LayoutHorizontal) SplitLeft(index int) Layout {
-	return LayoutHorizontal{
+func (l Horizontal) SplitLeft(index int) Layout {
+	return Horizontal{
 		Top:    l.Top.SplitLeft(index),
 		Bottom: l.Bottom.SplitLeft(index),
 	}
 }
 
 // SplitRight splits the layout and opens a new window to the right.
-func (l LayoutHorizontal) SplitRight(index int) Layout {
-	return LayoutHorizontal{
+func (l Horizontal) SplitRight(index int) Layout {
+	return Horizontal{
 		Top:    l.Top.SplitRight(index),
 		Bottom: l.Bottom.SplitRight(index),
 	}
 }
 
 // Count returns the width and height counts.
-func (l LayoutHorizontal) Count() (int, int) {
+func (l Horizontal) Count() (int, int) {
 	w1, h1 := l.Top.Count()
 	w2, h2 := l.Bottom.Count()
 	return mathutil.MaxInt(w1, w2), h1 + h2
 }
 
 // Activate the specific window layout.
-func (l LayoutHorizontal) Activate(i int) Layout {
-	return LayoutHorizontal{
+func (l Horizontal) Activate(i int) Layout {
+	return Horizontal{
 		Top:    l.Top.Activate(i),
 		Bottom: l.Bottom.Activate(i),
 		left:   l.left,
@@ -285,8 +285,8 @@ func (l LayoutHorizontal) Activate(i int) Layout {
 }
 
 // ActivateFirst the first layout.
-func (l LayoutHorizontal) ActivateFirst() Layout {
-	return LayoutHorizontal{
+func (l Horizontal) ActivateFirst() Layout {
+	return Horizontal{
 		Top:    l.Top.ActivateFirst(),
 		Bottom: l.Bottom,
 		left:   l.left,
@@ -297,7 +297,7 @@ func (l LayoutHorizontal) ActivateFirst() Layout {
 }
 
 // ActiveWindow returns the active window.
-func (l LayoutHorizontal) ActiveWindow() LayoutWindow {
+func (l Horizontal) ActiveWindow() Window {
 	if layout := l.Top.ActiveWindow(); layout.Index >= 0 {
 		return layout
 	}
@@ -305,7 +305,7 @@ func (l LayoutHorizontal) ActiveWindow() LayoutWindow {
 }
 
 // Lookup search for the window meets the condition.
-func (l LayoutHorizontal) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
+func (l Horizontal) Lookup(cond func(Window) bool) Window {
 	if layout := l.Top.Lookup(cond); layout.Index >= 0 {
 		return layout
 	}
@@ -313,27 +313,27 @@ func (l LayoutHorizontal) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
 }
 
 // Close the active layout.
-func (l LayoutHorizontal) Close() Layout {
+func (l Horizontal) Close() Layout {
 	switch m := l.Top.(type) {
-	case LayoutWindow:
+	case Window:
 		if m.Active {
 			return l.Bottom.ActivateFirst()
 		}
 	}
 	switch m := l.Bottom.(type) {
-	case LayoutWindow:
+	case Window:
 		if m.Active {
 			return l.Top.ActivateFirst()
 		}
 	}
-	return LayoutHorizontal{
+	return Horizontal{
 		Top:    l.Top.Close(),
 		Bottom: l.Bottom.Close(),
 	}
 }
 
-// LayoutVertical holds two layout vertically.
-type LayoutVertical struct {
+// Vertical holds two layout vertically.
+type Vertical struct {
 	Left   Layout
 	Right  Layout
 	left   int
@@ -342,10 +342,10 @@ type LayoutVertical struct {
 	height int
 }
 
-func (l LayoutVertical) isLayout() {}
+func (l Vertical) isLayout() {}
 
-// Collect returns all the LayoutWindow.
-func (l LayoutVertical) Collect() map[int]LayoutWindow {
+// Collect returns all the Window.
+func (l Vertical) Collect() map[int]Window {
 	m := l.Left.Collect()
 	for i, l := range l.Right.Collect() {
 		m[i] = l
@@ -354,8 +354,8 @@ func (l LayoutVertical) Collect() map[int]LayoutWindow {
 }
 
 // Replace the active window with new window index.
-func (l LayoutVertical) Replace(index int) Layout {
-	return LayoutVertical{
+func (l Vertical) Replace(index int) Layout {
+	return Vertical{
 		Left:   l.Left.Replace(index),
 		Right:  l.Right.Replace(index),
 		left:   l.left,
@@ -366,11 +366,11 @@ func (l LayoutVertical) Replace(index int) Layout {
 }
 
 // Resize recalculates the position.
-func (l LayoutVertical) Resize(left, top, width, height int) Layout {
+func (l Vertical) Resize(left, top, width, height int) Layout {
 	w1, _ := l.Left.Count()
 	w2, _ := l.Right.Count()
 	leftWidth := width * w1 / (w1 + w2)
-	return LayoutVertical{
+	return Vertical{
 		Left: l.Left.Resize(left, top, leftWidth, height),
 		Right: l.Right.Resize(
 			mathutil.MinInt(left+leftWidth+1, left+width), top,
@@ -383,67 +383,67 @@ func (l LayoutVertical) Resize(left, top, width, height int) Layout {
 }
 
 // LeftMargin returns the left margin.
-func (l LayoutVertical) LeftMargin() int {
+func (l Vertical) LeftMargin() int {
 	return l.left
 }
 
 // TopMargin returns the top margin.
-func (l LayoutVertical) TopMargin() int {
+func (l Vertical) TopMargin() int {
 	return l.top
 }
 
 // Width returns the width.
-func (l LayoutVertical) Width() int {
+func (l Vertical) Width() int {
 	return l.width
 }
 
 // Height returns the height.
-func (l LayoutVertical) Height() int {
+func (l Vertical) Height() int {
 	return l.height
 }
 
 // SplitTop splits the layout and opens a new window to the top.
-func (l LayoutVertical) SplitTop(index int) Layout {
-	return LayoutVertical{
+func (l Vertical) SplitTop(index int) Layout {
+	return Vertical{
 		Left:  l.Left.SplitTop(index),
 		Right: l.Right.SplitTop(index),
 	}
 }
 
 // SplitBottom splits the layout and opens a new window to the bottom.
-func (l LayoutVertical) SplitBottom(index int) Layout {
-	return LayoutVertical{
+func (l Vertical) SplitBottom(index int) Layout {
+	return Vertical{
 		Left:  l.Left.SplitBottom(index),
 		Right: l.Right.SplitBottom(index),
 	}
 }
 
 // SplitLeft splits the layout and opens a new window to the left.
-func (l LayoutVertical) SplitLeft(index int) Layout {
-	return LayoutVertical{
+func (l Vertical) SplitLeft(index int) Layout {
+	return Vertical{
 		Left:  l.Left.SplitLeft(index),
 		Right: l.Right.SplitLeft(index),
 	}
 }
 
 // SplitRight splits the layout and opens a new window to the right.
-func (l LayoutVertical) SplitRight(index int) Layout {
-	return LayoutVertical{
+func (l Vertical) SplitRight(index int) Layout {
+	return Vertical{
 		Left:  l.Left.SplitRight(index),
 		Right: l.Right.SplitRight(index),
 	}
 }
 
 // Count returns the width and height counts.
-func (l LayoutVertical) Count() (int, int) {
+func (l Vertical) Count() (int, int) {
 	w1, h1 := l.Left.Count()
 	w2, h2 := l.Right.Count()
 	return w1 + w2, mathutil.MaxInt(h1, h2)
 }
 
 // Activate the specific window layout.
-func (l LayoutVertical) Activate(i int) Layout {
-	return LayoutVertical{
+func (l Vertical) Activate(i int) Layout {
+	return Vertical{
 		Left:   l.Left.Activate(i),
 		Right:  l.Right.Activate(i),
 		left:   l.left,
@@ -454,8 +454,8 @@ func (l LayoutVertical) Activate(i int) Layout {
 }
 
 // ActivateFirst the first layout.
-func (l LayoutVertical) ActivateFirst() Layout {
-	return LayoutVertical{
+func (l Vertical) ActivateFirst() Layout {
+	return Vertical{
 		Left:   l.Left.ActivateFirst(),
 		Right:  l.Right,
 		left:   l.left,
@@ -466,7 +466,7 @@ func (l LayoutVertical) ActivateFirst() Layout {
 }
 
 // ActiveWindow returns the active window.
-func (l LayoutVertical) ActiveWindow() LayoutWindow {
+func (l Vertical) ActiveWindow() Window {
 	if layout := l.Left.ActiveWindow(); layout.Index >= 0 {
 		return layout
 	}
@@ -474,7 +474,7 @@ func (l LayoutVertical) ActiveWindow() LayoutWindow {
 }
 
 // Lookup search for the window meets the condition.
-func (l LayoutVertical) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
+func (l Vertical) Lookup(cond func(Window) bool) Window {
 	if layout := l.Left.Lookup(cond); layout.Index >= 0 {
 		return layout
 	}
@@ -482,20 +482,20 @@ func (l LayoutVertical) Lookup(cond func(LayoutWindow) bool) LayoutWindow {
 }
 
 // Close the active layout.
-func (l LayoutVertical) Close() Layout {
+func (l Vertical) Close() Layout {
 	switch m := l.Left.(type) {
-	case LayoutWindow:
+	case Window:
 		if m.Active {
 			return l.Right.ActivateFirst()
 		}
 	}
 	switch m := l.Right.(type) {
-	case LayoutWindow:
+	case Window:
 		if m.Active {
 			return l.Left.ActivateFirst()
 		}
 	}
-	return LayoutVertical{
+	return Vertical{
 		Left:  l.Left.Close(),
 		Right: l.Right.Close(),
 	}
