@@ -7,16 +7,17 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/layout"
+	"github.com/itchyny/bed/mode"
+	"github.com/itchyny/bed/state"
 )
 
 // Tui implements UI
 type Tui struct {
 	eventCh chan<- event.Event
-	mode    Mode
+	mode    mode.Mode
 	screen  tcell.Screen
 }
 
@@ -28,7 +29,7 @@ func NewTui() *Tui {
 // Init initializes the Tui.
 func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 	ui.eventCh = eventCh
-	ui.mode = ModeNormal
+	ui.mode = mode.Normal
 	if ui.screen, err = tcell.NewScreen(); err != nil {
 		return
 	}
@@ -37,13 +38,13 @@ func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 
 func (ui *Tui) initForTest(eventCh chan<- event.Event, screen tcell.SimulationScreen) (err error) {
 	ui.eventCh = eventCh
-	ui.mode = ModeNormal
+	ui.mode = mode.Normal
 	ui.screen = screen
 	return ui.screen.Init()
 }
 
 // Run the Tui.
-func (ui *Tui) Run(kms map[Mode]*key.Manager) {
+func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 	for {
 		e := ui.screen.PollEvent()
 		switch ev := e.(type) {
@@ -74,16 +75,16 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 }
 
 // Redraw redraws the state.
-func (ui *Tui) Redraw(state State) error {
-	ui.mode = state.Mode
+func (ui *Tui) Redraw(s state.State) error {
+	ui.mode = s.Mode
 	ui.screen.Clear()
-	ui.drawWindows(state.WindowStates, state.Layout)
-	ui.drawCmdline(state)
+	ui.drawWindows(s.WindowStates, s.Layout)
+	ui.drawCmdline(s)
 	ui.screen.Show()
 	return nil
 }
 
-func (ui *Tui) drawWindows(windowStates map[int]*WindowState, l layout.Layout) {
+func (ui *Tui) drawWindows(windowStates map[int]*state.WindowState, l layout.Layout) {
 	switch l := l.(type) {
 	case layout.Window:
 		r := fromLayout(l)
@@ -110,44 +111,44 @@ func (ui *Tui) drawVerticalSplit(region region) {
 	}
 }
 
-func (ui *Tui) drawCmdline(state State) {
+func (ui *Tui) drawCmdline(s state.State) {
 	width, height := ui.Size()
-	if state.Error != nil {
+	if s.Error != nil {
 		style := tcell.StyleDefault.Foreground(tcell.ColorRed)
-		if state.ErrorType == MessageInfo {
+		if s.ErrorType == state.MessageInfo {
 			style = style.Foreground(tcell.ColorYellow)
 		}
-		ui.setLine(height-1, 0, state.Error.Error(), style)
-	} else if state.Mode == ModeCmdline {
-		ui.drawCompletionResults(state, width, height)
-		ui.setLine(height-1, 0, ":"+string(state.Cmdline), tcell.StyleDefault)
-		ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
-	} else if state.SearchMode != '\x00' {
-		ui.setLine(height-1, 0, string(state.SearchMode)+string(state.Cmdline), tcell.StyleDefault)
-		if state.Mode == ModeSearch {
-			ui.screen.ShowCursor(1+runewidth.StringWidth(string(state.Cmdline[:state.CmdlineCursor])), height-1)
+		ui.setLine(height-1, 0, s.Error.Error(), style)
+	} else if s.Mode == mode.Cmdline {
+		ui.drawCompletionResults(s, width, height)
+		ui.setLine(height-1, 0, ":"+string(s.Cmdline), tcell.StyleDefault)
+		ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
+	} else if s.SearchMode != '\x00' {
+		ui.setLine(height-1, 0, string(s.SearchMode)+string(s.Cmdline), tcell.StyleDefault)
+		if s.Mode == mode.Search {
+			ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
 		}
 	}
 }
 
-func (ui *Tui) drawCompletionResults(state State, width int, height int) {
-	if len(state.CompletionResults) > 0 {
+func (ui *Tui) drawCompletionResults(s state.State, width int, height int) {
+	if len(s.CompletionResults) > 0 {
 		var line string
 		var pos, lineWidth int
-		for i, result := range state.CompletionResults {
+		for i, result := range s.CompletionResults {
 			w := runewidth.StringWidth(result)
-			if lineWidth+w+2 > width && i <= state.CompletionIndex {
+			if lineWidth+w+2 > width && i <= s.CompletionIndex {
 				line, lineWidth = "", 0
 			}
-			if state.CompletionIndex == i {
+			if s.CompletionIndex == i {
 				pos = lineWidth
 			}
 			line += " " + result + " "
 			lineWidth += w + 2
 		}
 		ui.setLine(height-2, 0, line+strings.Repeat(" ", width), tcell.StyleDefault.Reverse(true))
-		if state.CompletionIndex >= 0 {
-			ui.setLine(height-2, pos, " "+state.CompletionResults[state.CompletionIndex]+" ",
+		if s.CompletionIndex >= 0 {
+			ui.setLine(height-2, pos, " "+s.CompletionResults[s.CompletionIndex]+" ",
 				tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
 		}
 	}
@@ -189,11 +190,11 @@ func prettyRune(b byte) string {
 	}
 }
 
-func prettyMode(mode Mode) string {
-	switch mode {
-	case ModeInsert:
+func prettyMode(m mode.Mode) string {
+	switch m {
+	case mode.Insert:
 		return "[INSERT] "
-	case ModeReplace:
+	case mode.Replace:
 		return "[REPLACE] "
 	default:
 		return ""

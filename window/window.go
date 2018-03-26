@@ -8,10 +8,11 @@ import (
 	"unicode/utf8"
 
 	"github.com/itchyny/bed/buffer"
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/history"
 	"github.com/itchyny/bed/mathutil"
+	"github.com/itchyny/bed/mode"
+	"github.com/itchyny/bed/state"
 )
 
 type window struct {
@@ -164,12 +165,12 @@ func (w *window) Run() {
 			}
 			w.changedTick++
 		case event.Undo:
-			if e.Mode != ModeNormal {
+			if e.Mode != mode.Normal {
 				panic("event.Undo should be emitted under normal mode")
 			}
 			w.undo(e.Count)
 		case event.Redo:
-			if e.Mode != ModeNormal {
+			if e.Mode != mode.Normal {
 				panic("event.Undo should be emitted under normal mode")
 			}
 			w.redo(e.Count)
@@ -185,9 +186,9 @@ func (w *window) Run() {
 		}
 		changed := changedTick != w.changedTick
 		if e.Type != event.Undo && e.Type != event.Redo {
-			if e.Mode == ModeNormal && changed || e.Type == event.ExitInsert && w.prevChanged {
+			if e.Mode == mode.Normal && changed || e.Type == event.ExitInsert && w.prevChanged {
 				w.history.Push(w.buffer, w.offset, w.cursor)
-			} else if e.Mode != ModeNormal && w.prevChanged && !changed &&
+			} else if e.Mode != mode.Normal && w.prevChanged && !changed &&
 				event.CursorUp <= e.Type && e.Type <= event.JumpBack {
 				w.history.Push(w.buffer, offset, cursor)
 			}
@@ -215,14 +216,14 @@ func (w *window) writeTo(dst io.Writer) (int64, error) {
 }
 
 // State returns the current state of the buffer.
-func (w *window) State() (*WindowState, error) {
+func (w *window) State() (*state.WindowState, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
 		return nil, err
 	}
-	return &WindowState{
+	return &state.WindowState{
 		Name:          w.name,
 		Width:         int(w.width),
 		Offset:        w.offset,
@@ -304,8 +305,8 @@ func (w *window) cursorLeft(count int64) {
 	}
 }
 
-func (w *window) cursorRight(mode Mode, count int64) {
-	if mode == ModeNormal {
+func (w *window) cursorRight(m mode.Mode, count int64) {
+	if m == mode.Normal {
 		w.cursor += mathutil.MinInt64(
 			mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
 			mathutil.MaxInt64(w.length, 1)-1-w.cursor,
@@ -337,8 +338,8 @@ func (w *window) cursorPrev(count int64) {
 	}
 }
 
-func (w *window) cursorNext(mode Mode, count int64) {
-	if mode == ModeNormal {
+func (w *window) cursorNext(m mode.Mode, count int64) {
+	if m == mode.Normal {
 		w.cursor += mathutil.MinInt64(mathutil.MaxInt64(count, 1), mathutil.MaxInt64(w.length, 1)-1-w.cursor)
 	} else if !w.extending {
 		w.cursor += mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.length-w.cursor)
@@ -620,31 +621,31 @@ func (w *window) exitInsert() {
 	}
 }
 
-func (w *window) insertRune(mode Mode, ch rune) {
-	if mode == ModeInsert || mode == ModeReplace {
+func (w *window) insertRune(m mode.Mode, ch rune) {
+	if m == mode.Insert || m == mode.Replace {
 		if w.focusText {
 			buf := make([]byte, 4)
 			n := utf8.EncodeRune(buf, ch)
 			for i := 0; i < n; i++ {
-				w.insertByte(mode, byte(buf[i]>>4))
-				w.insertByte(mode, byte(buf[i]&0x0f))
+				w.insertByte(m, byte(buf[i]>>4))
+				w.insertByte(m, byte(buf[i]&0x0f))
 			}
 		} else if '0' <= ch && ch <= '9' {
-			w.insertByte(mode, byte(ch-'0'))
+			w.insertByte(m, byte(ch-'0'))
 		} else if 'a' <= ch && ch <= 'f' {
-			w.insertByte(mode, byte(ch-'a'+0x0a))
+			w.insertByte(m, byte(ch-'a'+0x0a))
 		}
 	}
 }
 
-func (w *window) insertByte(mode Mode, b byte) {
+func (w *window) insertByte(m mode.Mode, b byte) {
 	if w.pending {
-		switch mode {
-		case ModeInsert:
+		switch m {
+		case mode.Insert:
 			w.insert(w.cursor, w.pendingByte|b)
 			w.cursor++
 			w.length++
-		case ModeReplace:
+		case mode.Replace:
 			w.replace(w.cursor, w.pendingByte|b)
 			if w.length == 0 {
 				w.length++

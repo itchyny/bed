@@ -13,10 +13,10 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/mathutil"
+	"github.com/itchyny/bed/state"
 )
 
 // Manager manages the windows and files.
@@ -398,11 +398,11 @@ func (m *Manager) writeQuit(e event.Event) error {
 }
 
 // State returns the state of the windows.
-func (m *Manager) State() (map[int]*WindowState, layout.Layout, int, error) {
+func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	layouts := m.layout.Collect()
-	states := make(map[int]*WindowState, len(m.windows))
+	states := make(map[int]*state.WindowState, len(m.windows))
 	for i, window := range m.windows {
 		if l, ok := layouts[i]; ok {
 			window.setSize(hexWindowWidth(l.Width()), mathutil.MaxInt(l.Height()-2, 1))

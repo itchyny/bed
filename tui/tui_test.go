@@ -7,18 +7,19 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/layout"
+	"github.com/itchyny/bed/mode"
+	"github.com/itchyny/bed/state"
 )
 
-func mockKeyManager() map[Mode]*key.Manager {
-	kms := make(map[Mode]*key.Manager)
+func mockKeyManager() map[mode.Mode]*key.Manager {
+	kms := make(map[mode.Mode]*key.Manager)
 	km := key.NewManager(true)
 	km.Register(event.Quit, "Z", "Q")
 	km.Register(event.CursorDown, "j")
-	kms[ModeNormal] = km
+	kms[mode.Normal] = km
 	return kms
 }
 
@@ -90,9 +91,9 @@ func TestTuiEmpty(t *testing.T) {
 	screen.SetSize(90, 20)
 	width, height := screen.Size()
 
-	state := State{
-		WindowStates: map[int]*WindowState{
-			0: &WindowState{
+	s := state.State{
+		WindowStates: map[int]*state.WindowState{
+			0: &state.WindowState{
 				Name:   "",
 				Width:  16,
 				Offset: 0,
@@ -100,12 +101,12 @@ func TestTuiEmpty(t *testing.T) {
 				Bytes:  []byte(strings.Repeat("\x00", 16*(height-1))),
 				Size:   16 * (height - 1),
 				Length: 0,
-				Mode:   ModeNormal,
+				Mode:   mode.Normal,
 			},
 		},
 		Layout: layout.NewLayout(0).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                   ",
@@ -136,9 +137,9 @@ func TestTuiScrollBar(t *testing.T) {
 	screen.SetSize(90, 20)
 	width, height := screen.Size()
 
-	state := State{
-		WindowStates: map[int]*WindowState{
-			0: &WindowState{
+	s := state.State{
+		WindowStates: map[int]*state.WindowState{
+			0: &state.WindowState{
 				Name:   "",
 				Width:  16,
 				Offset: 0,
@@ -146,12 +147,12 @@ func TestTuiScrollBar(t *testing.T) {
 				Bytes:  []byte(strings.Repeat("a", 16*(height-1))),
 				Size:   16 * (height - 1),
 				Length: int64(16 * (height - 1) * 3),
-				Mode:   ModeNormal,
+				Mode:   mode.Normal,
 			},
 		},
 		Layout: layout.NewLayout(0).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                    ",
@@ -182,9 +183,9 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	screen.SetSize(110, 20)
 	width, height := screen.Size()
 
-	state := State{
-		WindowStates: map[int]*WindowState{
-			0: &WindowState{
+	s := state.State{
+		WindowStates: map[int]*state.WindowState{
+			0: &state.WindowState{
 				Name:   "test0",
 				Width:  16,
 				Offset: 0,
@@ -192,9 +193,9 @@ func TestTuiHorizontalSplit(t *testing.T) {
 				Bytes:  []byte("Test window 0." + strings.Repeat("\x00", 110*10)),
 				Size:   110 * 10,
 				Length: 600,
-				Mode:   ModeNormal,
+				Mode:   mode.Normal,
 			},
-			1: &WindowState{
+			1: &state.WindowState{
 				Name:   "test1",
 				Width:  16,
 				Offset: 0,
@@ -202,12 +203,12 @@ func TestTuiHorizontalSplit(t *testing.T) {
 				Bytes:  []byte("Test window 1." + strings.Repeat(" ", 110*10)),
 				Size:   110 * 10,
 				Length: 800,
-				Mode:   ModeNormal,
+				Mode:   mode.Normal,
 			},
 		},
 		Layout: layout.NewLayout(0).SplitBottom(1).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	shouldContain(t, screen, []string{
 		" 000000 | 54 65 73 74 20 77 69 6e 64 6f 77 20 30 2e 00 00 | Test window 0... #",
@@ -239,9 +240,9 @@ func TestTuiVerticalSplit(t *testing.T) {
 	screen.SetSize(110, 20)
 	width, height := screen.Size()
 
-	state := State{
-		WindowStates: map[int]*WindowState{
-			0: &WindowState{
+	s := state.State{
+		WindowStates: map[int]*state.WindowState{
+			0: &state.WindowState{
 				Name:   "test0",
 				Width:  8,
 				Offset: 0,
@@ -249,9 +250,9 @@ func TestTuiVerticalSplit(t *testing.T) {
 				Bytes:  []byte("Test window 0." + strings.Repeat("\x00", 55*19)),
 				Size:   55 * 19,
 				Length: 600,
-				Mode:   ModeNormal,
+				Mode:   mode.Normal,
 			},
-			1: &WindowState{
+			1: &state.WindowState{
 				Name:   "test1",
 				Width:  8,
 				Offset: 0,
@@ -259,12 +260,12 @@ func TestTuiVerticalSplit(t *testing.T) {
 				Bytes:  []byte("Test window 1." + strings.Repeat(" ", 54*19)),
 				Size:   54 * 19,
 				Length: 800,
-				Mode:   ModeNormal,
+				Mode:   mode.Normal,
 			},
 		},
 		Layout: layout.NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7 |                    |        |  0  1  2  3  4  5  6  7 |",
@@ -301,25 +302,25 @@ func TestTuiCmdline(t *testing.T) {
 		return string(runes)
 	}
 
-	state := State{
-		Mode:          ModeCmdline,
+	s := state.State{
+		Mode:          mode.Cmdline,
 		Cmdline:       []rune("vnew test"),
 		CmdlineCursor: 9,
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	got, expected := getCmdline(), ":vnew test "
 	if !strings.HasPrefix(got, expected) {
 		t.Errorf("cmdline should start with %q but got %q", expected, got)
 	}
 
-	state = State{
-		Mode:          ModeNormal,
+	s = state.State{
+		Mode:          mode.Normal,
 		Error:         errors.New("error"),
 		Cmdline:       []rune("vnew test"),
 		CmdlineCursor: 9,
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	got, expected = getCmdline(), "error "
 	if !strings.HasPrefix(got, expected) {
@@ -337,23 +338,23 @@ func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 	}
 	screen.SetSize(20, 15)
 
-	state := State{
-		Mode:              ModeCmdline,
+	s := state.State{
+		Mode:              mode.Cmdline,
 		Cmdline:           []rune("new test2"),
 		CmdlineCursor:     9,
 		CompletionResults: []string{"test1", "test2", "test3", "test9/", "/bin/ls"},
 		CompletionIndex:   1,
 	}
-	ui.Redraw(state)
+	ui.Redraw(s)
 
 	shouldContain(t, screen, []string{
 		" test1  test2  test3",
 		":new test2",
 	})
 
-	state.CompletionIndex += 2
-	state.Cmdline = []rune("new test9/")
-	ui.Redraw(state)
+	s.CompletionIndex += 2
+	s.Cmdline = []rune("new test9/")
+	ui.Redraw(s)
 
 	shouldContain(t, screen, []string{
 		" test3  test9/  /bin",

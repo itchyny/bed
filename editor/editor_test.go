@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/itchyny/bed/cmdline"
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
+	"github.com/itchyny/bed/mode"
+	"github.com/itchyny/bed/state"
 	"github.com/itchyny/bed/window"
 )
 
@@ -22,13 +23,13 @@ func (ui *testUI) Init(eventCh chan<- event.Event) error {
 	return nil
 }
 
-func (ui *testUI) Run(km map[Mode]*key.Manager) {}
+func (ui *testUI) Run(km map[mode.Mode]*key.Manager) {}
 
 func (ui *testUI) Height() int { return 10 }
 
 func (ui *testUI) Size() (int, int) { return 10, 10 }
 
-func (ui *testUI) Redraw(state State) error { return nil }
+func (ui *testUI) Redraw(_ state.State) error { return nil }
 
 func (ui *testUI) Close() error { return nil }
 
@@ -72,7 +73,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if editor.errtyp != MessageInfo {
+	if editor.errtyp != state.MessageInfo {
 		t.Errorf("errtyp should be MessageInfo but got: %v", editor.errtyp)
 	}
 	if err := editor.Close(); err != nil {

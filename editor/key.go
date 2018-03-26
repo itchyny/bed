@@ -1,13 +1,13 @@
 package editor
 
 import (
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
+	"github.com/itchyny/bed/mode"
 )
 
-func defaultKeyManagers() map[Mode]*key.Manager {
-	kms := make(map[Mode]*key.Manager)
+func defaultKeyManagers() map[mode.Mode]*key.Manager {
+	kms := make(map[mode.Mode]*key.Manager)
 	km := key.NewManager(true)
 	km.Register(event.Quit, "Z", "Q")
 	km.Register(event.Quit, "c-w", "q")
@@ -90,7 +90,7 @@ func defaultKeyManagers() map[Mode]*key.Manager {
 	km.Register(event.MoveWindowBottom, "c-w", "J")
 	km.Register(event.MoveWindowLeft, "c-w", "H")
 	km.Register(event.MoveWindowRight, "c-w", "L")
-	kms[ModeNormal] = km
+	kms[mode.Normal] = km
 
 	km = key.NewManager(false)
 	km.Register(event.ExitInsert, "escape")
@@ -112,8 +112,8 @@ func defaultKeyManagers() map[Mode]*key.Manager {
 	km.Register(event.Delete, "delete")
 	km.Register(event.SwitchFocus, "tab")
 	km.Register(event.SwitchFocus, "backtab")
-	kms[ModeInsert] = km
-	kms[ModeReplace] = km
+	kms[mode.Insert] = km
+	kms[mode.Replace] = km
 
 	km = key.NewManager(false)
 	km.Register(event.CursorLeft, "left")
@@ -138,7 +138,7 @@ func defaultKeyManagers() map[Mode]*key.Manager {
 	km.Register(event.ExecuteCmdline, "enter")
 	km.Register(event.ExecuteCmdline, "c-j")
 	km.Register(event.ExecuteCmdline, "c-m")
-	kms[ModeCmdline] = km
-	kms[ModeSearch] = km
+	kms[mode.Cmdline] = km
+	kms[mode.Search] = km
 	return kms
 }

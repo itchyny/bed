@@ -1,6 +1,6 @@
 package event
 
-import . "github.com/itchyny/bed/common"
+import "github.com/itchyny/bed/mode"
 
 // Event represents the event emitted by UI.
 type Event struct {
@@ -10,7 +10,7 @@ type Event struct {
 	CmdName string
 	Arg     string
 	Error   error
-	Mode    Mode
+	Mode    mode.Mode
 }
 
 // Type ...

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/event"
+	"github.com/itchyny/bed/mode"
 )
 
 func TestWindowState(t *testing.T) {
@@ -19,50 +19,50 @@ func TestWindowState(t *testing.T) {
 	}
 	window.setSize(width, height)
 
-	state, err := window.State()
+	s, err := window.State()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if state.Name != "test" {
-		t.Errorf("state.Name should be %q but got %q", "test", state.Name)
+	if s.Name != "test" {
+		t.Errorf("state.Name should be %q but got %q", "test", s.Name)
 	}
 
-	if state.Width != width {
-		t.Errorf("state.Width should be %d but got %d", width, state.Width)
+	if s.Width != width {
+		t.Errorf("state.Width should be %d but got %d", width, s.Width)
 	}
 
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
-	if state.Size != 13 {
-		t.Errorf("state.Size should be %d but got %d", 13, state.Size)
+	if s.Size != 13 {
+		t.Errorf("s.Size should be %d but got %d", 13, s.Size)
 	}
 
-	if state.Length != 13 {
-		t.Errorf("state.Length should be %d but got %d", 13, state.Length)
+	if s.Length != 13 {
+		t.Errorf("s.Length should be %d but got %d", 13, s.Length)
 	}
 
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
 
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
 
-	if !reflect.DeepEqual(state.EditedIndices, []int64{}) {
-		t.Errorf("state.EditedIndices should be empty but got %v", state.EditedIndices)
+	if !reflect.DeepEqual(s.EditedIndices, []int64{}) {
+		t.Errorf("state.EditedIndices should be empty but got %v", s.EditedIndices)
 	}
 
 	expected := []byte("Hello, world!" + strings.Repeat("\x00", height*width-13))
-	if !reflect.DeepEqual(state.Bytes, expected) {
-		t.Errorf("state.Bytes should be %q but got %q", expected, state.Bytes)
+	if !reflect.DeepEqual(s.Bytes, expected) {
+		t.Errorf("s.Bytes should be %q but got %q", expected, s.Bytes)
 	}
 }
 
@@ -75,60 +75,60 @@ func TestWindowEmptyState(t *testing.T) {
 	}
 	window.setSize(width, height)
 
-	state, err := window.State()
+	s, err := window.State()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if state.Name != "test" {
-		t.Errorf("state.Name should be %q but got %q", "test", state.Name)
+	if s.Name != "test" {
+		t.Errorf("state.Name should be %q but got %q", "test", s.Name)
 	}
 
-	if state.Width != width {
-		t.Errorf("state.Width should be %d but got %d", width, state.Width)
+	if s.Width != width {
+		t.Errorf("state.Width should be %d but got %d", width, s.Width)
 	}
 
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
-	if state.Size != 0 {
-		t.Errorf("state.Size should be %d but got %d", 0, state.Size)
+	if s.Size != 0 {
+		t.Errorf("s.Size should be %d but got %d", 0, s.Size)
 	}
 
-	if state.Length != 0 {
-		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	if s.Length != 0 {
+		t.Errorf("s.Length should be %d but got %d", 0, s.Length)
 	}
 
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
 
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
 
-	if !reflect.DeepEqual(state.EditedIndices, []int64{}) {
-		t.Errorf("state.EditedIndices should be empty but got %v", state.EditedIndices)
+	if !reflect.DeepEqual(s.EditedIndices, []int64{}) {
+		t.Errorf("state.EditedIndices should be empty but got %v", s.EditedIndices)
 	}
 
 	expected := []byte(strings.Repeat("\x00", height*width))
-	if !reflect.DeepEqual(state.Bytes, expected) {
-		t.Errorf("state.Bytes should be %q but got %q", expected, state.Bytes)
+	if !reflect.DeepEqual(s.Bytes, expected) {
+		t.Errorf("s.Bytes should be %q but got %q", expected, s.Bytes)
 	}
 
 	window.scrollDown(0)
-	state, err = window.State()
+	s, err = window.State()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 }
 
@@ -141,172 +141,172 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 	window.setSize(width, height)
 
-	state, _ := window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
 	window.cursorDown(0)
-	state, _ = window.State()
-	if state.Cursor != int64(width) {
-		t.Errorf("state.Cursor should be %d but got %d", width, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width) {
+		t.Errorf("s.Cursor should be %d but got %d", width, s.Cursor)
 	}
 
 	window.cursorDown(1)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*2 {
-		t.Errorf("state.Cursor should be %d but got %d", width*2, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*2 {
+		t.Errorf("s.Cursor should be %d but got %d", width*2, s.Cursor)
 	}
 
 	window.cursorUp(0)
-	state, _ = window.State()
-	if state.Cursor != int64(width) {
-		t.Errorf("state.Cursor should be %d but got %d", width, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width) {
+		t.Errorf("s.Cursor should be %d but got %d", width, s.Cursor)
 	}
 
 	window.cursorDown(10)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*11 {
-		t.Errorf("state.Cursor should be %d but got %d", width*11, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*11 {
+		t.Errorf("s.Cursor should be %d but got %d", width*11, s.Cursor)
 	}
-	if state.Offset != int64(width)*2 {
-		t.Errorf("state.Offset should be %d but got %d", width*2, state.Offset)
+	if s.Offset != int64(width)*2 {
+		t.Errorf("s.Offset should be %d but got %d", width*2, s.Offset)
 	}
-	if !strings.HasPrefix(string(state.Bytes), " world!") {
-		t.Errorf("state.Bytes should start with %q but got %q", " world!", string(state.Bytes))
-	}
-
-	window.cursorRight(ModeNormal, 3)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*11+3 {
-		t.Errorf("state.Cursor should be %d but got %d", width*11+3, state.Cursor)
+	if !strings.HasPrefix(string(s.Bytes), " world!") {
+		t.Errorf("s.Bytes should start with %q but got %q", " world!", string(s.Bytes))
 	}
 
-	window.cursorRight(ModeNormal, 20)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*12-1 {
-		t.Errorf("state.Cursor should be %d but got %d", width*12-1, state.Cursor)
+	window.cursorRight(mode.Normal, 3)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*11+3 {
+		t.Errorf("s.Cursor should be %d but got %d", width*11+3, s.Cursor)
+	}
+
+	window.cursorRight(mode.Normal, 20)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*12-1 {
+		t.Errorf("s.Cursor should be %d but got %d", width*12-1, s.Cursor)
 	}
 
 	window.cursorLeft(3)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*12-4 {
-		t.Errorf("state.Cursor should be %d but got %d", width*12-4, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*12-4 {
+		t.Errorf("s.Cursor should be %d but got %d", width*12-4, s.Cursor)
 	}
 
 	window.cursorLeft(20)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*11 {
-		t.Errorf("state.Cursor should be %d but got %d", width*11, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*11 {
+		t.Errorf("s.Cursor should be %d but got %d", width*11, s.Cursor)
 	}
 
 	window.cursorPrev(154)
-	state, _ = window.State()
-	if state.Cursor != 22 {
-		t.Errorf("state.Cursor should be %d but got %d", 22, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 22 {
+		t.Errorf("s.Cursor should be %d but got %d", 22, s.Cursor)
 	}
-	if state.Offset != int64(width) {
-		t.Errorf("state.Offset should be %d but got %d", width, state.Offset)
-	}
-
-	window.cursorNext(ModeNormal, 200)
-	state, _ = window.State()
-	if state.Cursor != 222 {
-		t.Errorf("state.Cursor should be %d but got %d", 222, state.Cursor)
-	}
-	if state.Offset != int64(width)*4 {
-		t.Errorf("state.Offset should be %d but got %d", width*4, state.Offset)
+	if s.Offset != int64(width) {
+		t.Errorf("s.Offset should be %d but got %d", width, s.Offset)
 	}
 
-	window.cursorNext(ModeNormal, 2000)
-	state, _ = window.State()
-	if state.Cursor != 1299 {
-		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
+	window.cursorNext(mode.Normal, 200)
+	s, _ = window.State()
+	if s.Cursor != 222 {
+		t.Errorf("s.Cursor should be %d but got %d", 222, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*4 {
+		t.Errorf("s.Offset should be %d but got %d", width*4, s.Offset)
+	}
+
+	window.cursorNext(mode.Normal, 2000)
+	s, _ = window.State()
+	if s.Cursor != 1299 {
+		t.Errorf("s.Cursor should be %d but got %d", 1299, s.Cursor)
+	}
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
 	window.cursorHead(1)
-	state, _ = window.State()
-	if state.Cursor != 1296 {
-		t.Errorf("state.Cursor should be %d but got %d", 1296, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 1296 {
+		t.Errorf("s.Cursor should be %d but got %d", 1296, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
 	window.cursorEnd(1)
-	state, _ = window.State()
-	if state.Cursor != 1299 {
-		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 1299 {
+		t.Errorf("s.Cursor should be %d but got %d", 1299, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
 	window.cursorUp(20)
 	window.cursorEnd(1)
-	state, _ = window.State()
-	if state.Cursor != 991 {
-		t.Errorf("state.Cursor should be %d but got %d", 991, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 991 {
+		t.Errorf("s.Cursor should be %d but got %d", 991, s.Cursor)
 	}
-	if state.Offset != int64(width)*61 {
-		t.Errorf("state.Offset should be %d but got %d", width*61, state.Offset)
+	if s.Offset != int64(width)*61 {
+		t.Errorf("s.Offset should be %d but got %d", width*61, s.Offset)
 	}
 
 	window.cursorEnd(11)
-	state, _ = window.State()
-	if state.Cursor != 1151 {
-		t.Errorf("state.Cursor should be %d but got %d", 1151, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 1151 {
+		t.Errorf("s.Cursor should be %d but got %d", 1151, s.Cursor)
 	}
-	if state.Offset != int64(width)*62 {
-		t.Errorf("state.Offset should be %d but got %d", width*62, state.Offset)
+	if s.Offset != int64(width)*62 {
+		t.Errorf("s.Offset should be %d but got %d", width*62, s.Offset)
 	}
 
 	window.cursorDown(30)
-	state, _ = window.State()
-	if state.Cursor != 1299 {
-		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 1299 {
+		t.Errorf("s.Cursor should be %d but got %d", 1299, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
 	window.cursorPrev(2000)
-	state, _ = window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 
 	window.cursorDown(2000)
-	state, _ = window.State()
-	if state.Cursor != int64(width)*81 {
-		t.Errorf("state.Cursor should be %d but got %d", width*81, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != int64(width)*81 {
+		t.Errorf("s.Cursor should be %d but got %d", width*81, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
-	window.cursorRight(ModeNormal, 1000)
-	state, _ = window.State()
-	if state.Cursor != 1299 {
-		t.Errorf("state.Cursor should be %d but got %d", 1299, state.Cursor)
+	window.cursorRight(mode.Normal, 1000)
+	s, _ = window.State()
+	if s.Cursor != 1299 {
+		t.Errorf("s.Cursor should be %d but got %d", 1299, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
 	window.cursorUp(2000)
-	state, _ = window.State()
-	if state.Cursor != 3 {
-		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 3 {
+		t.Errorf("s.Cursor should be %d but got %d", 3, s.Cursor)
 	}
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 }
 
@@ -344,99 +344,99 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 	window.setSize(width, height)
 
-	state, _ := window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
 	window.pageDown()
-	state, _ = window.State()
-	if state.Cursor != 128 {
-		t.Errorf("state.Cursor should be %d but got %d", 128, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 128 {
+		t.Errorf("s.Cursor should be %d but got %d", 128, s.Cursor)
 	}
-	if state.Offset != 128 {
-		t.Errorf("state.Offset should be %d but got %d", 128, state.Offset)
+	if s.Offset != 128 {
+		t.Errorf("s.Offset should be %d but got %d", 128, s.Offset)
 	}
 
 	window.pageDownHalf()
-	state, _ = window.State()
-	if state.Cursor != 208 {
-		t.Errorf("state.Cursor should be %d but got %d", 208, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 208 {
+		t.Errorf("s.Cursor should be %d but got %d", 208, s.Cursor)
 	}
-	if state.Offset != 208 {
-		t.Errorf("state.Offset should be %d but got %d", 208, state.Offset)
+	if s.Offset != 208 {
+		t.Errorf("s.Offset should be %d but got %d", 208, s.Offset)
 	}
 
 	window.scrollDown(0)
-	state, _ = window.State()
-	if state.Cursor != 224 {
-		t.Errorf("state.Cursor should be %d but got %d", 224, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 224 {
+		t.Errorf("s.Cursor should be %d but got %d", 224, s.Cursor)
 	}
-	if state.Offset != 224 {
-		t.Errorf("state.Offset should be %d but got %d", 224, state.Offset)
+	if s.Offset != 224 {
+		t.Errorf("s.Offset should be %d but got %d", 224, s.Offset)
 	}
 
 	window.scrollUp(0)
-	state, _ = window.State()
-	if state.Cursor != 224 {
-		t.Errorf("state.Cursor should be %d but got %d", 224, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 224 {
+		t.Errorf("s.Cursor should be %d but got %d", 224, s.Cursor)
 	}
-	if state.Offset != 208 {
-		t.Errorf("state.Offset should be %d but got %d", 208, state.Offset)
+	if s.Offset != 208 {
+		t.Errorf("s.Offset should be %d but got %d", 208, s.Offset)
 	}
 
 	window.scrollDown(30)
-	state, _ = window.State()
-	if state.Cursor != 688 {
-		t.Errorf("state.Cursor should be %d but got %d", 688, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 688 {
+		t.Errorf("s.Cursor should be %d but got %d", 688, s.Cursor)
 	}
-	if state.Offset != 688 {
-		t.Errorf("state.Offset should be %d but got %d", 688, state.Offset)
+	if s.Offset != 688 {
+		t.Errorf("s.Offset should be %d but got %d", 688, s.Offset)
 	}
 
 	window.scrollUp(30)
-	state, _ = window.State()
-	if state.Cursor != 352 {
-		t.Errorf("state.Cursor should be %d but got %d", 352, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 352 {
+		t.Errorf("s.Cursor should be %d but got %d", 352, s.Cursor)
 	}
-	if state.Offset != 208 {
-		t.Errorf("state.Offset should be %d but got %d", 208, state.Offset)
+	if s.Offset != 208 {
+		t.Errorf("s.Offset should be %d but got %d", 208, s.Offset)
 	}
 
 	window.pageUpHalf()
-	state, _ = window.State()
-	if state.Cursor != 272 {
-		t.Errorf("state.Cursor should be %d but got %d", 272, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 272 {
+		t.Errorf("s.Cursor should be %d but got %d", 272, s.Cursor)
 	}
-	if state.Offset != 128 {
-		t.Errorf("state.Offset should be %d but got %d", 128, state.Offset)
+	if s.Offset != 128 {
+		t.Errorf("s.Offset should be %d but got %d", 128, s.Offset)
 	}
 
 	window.pageUp()
-	state, _ = window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 
 	window.pageEnd()
-	state, _ = window.State()
-	if state.Cursor != 1296 {
-		t.Errorf("state.Cursor should be %d but got %d", 1296, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 1296 {
+		t.Errorf("s.Cursor should be %d but got %d", 1296, s.Cursor)
 	}
-	if state.Offset != int64(width)*72 {
-		t.Errorf("state.Offset should be %d but got %d", width*72, state.Offset)
+	if s.Offset != int64(width)*72 {
+		t.Errorf("s.Offset should be %d but got %d", width*72, s.Offset)
 	}
 
 	window.pageTop()
-	state, _ = window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ = window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
-	if state.Offset != 0 {
-		t.Errorf("state.Offset should be %d but got %d", 0, state.Offset)
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 }
 
@@ -446,59 +446,59 @@ func TestWindowDeleteBytes(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 7)
+	window.cursorNext(mode.Normal, 7)
 	window.deleteByte(0)
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, orld!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, orld!\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, orld!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, orld!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 7 {
-		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	if s.Cursor != 7 {
+		t.Errorf("s.Cursor should be %d but got %d", 7, s.Cursor)
 	}
 
 	window.deleteByte(3)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, d!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, d!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, d!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, d!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 7 {
-		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	if s.Cursor != 7 {
+		t.Errorf("s.Cursor should be %d but got %d", 7, s.Cursor)
 	}
 
 	window.deleteByte(3)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, \x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, \x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, \x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, \x00", string(s.Bytes))
 	}
-	if state.Cursor != 6 {
-		t.Errorf("state.Cursor should be %d but got %d", 6, state.Cursor)
-	}
-
-	window.deleteByte(0)
-	window.deleteByte(0)
-	window.deleteByte(0)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hell\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hell\x00", string(state.Bytes))
-	}
-	if state.Cursor != 3 {
-		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	if s.Cursor != 6 {
+		t.Errorf("s.Cursor should be %d but got %d", 6, s.Cursor)
 	}
 
 	window.deleteByte(0)
 	window.deleteByte(0)
 	window.deleteByte(0)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hell\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hell\x00", string(s.Bytes))
+	}
+	if s.Cursor != 3 {
+		t.Errorf("s.Cursor should be %d but got %d", 3, s.Cursor)
+	}
+
 	window.deleteByte(0)
 	window.deleteByte(0)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "\x00", string(state.Bytes))
+	window.deleteByte(0)
+	window.deleteByte(0)
+	window.deleteByte(0)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "\x00", string(s.Bytes))
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
-	if state.Length != 0 {
-		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	if s.Length != 0 {
+		t.Errorf("s.Length should be %d but got %d", 0, s.Length)
 	}
 }
 
@@ -508,32 +508,32 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 5)
+	window.cursorNext(mode.Normal, 5)
 	window.deletePrevByte(0)
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hell, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, orld!\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hell, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, orld!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 4 {
-		t.Errorf("state.Cursor should be %d but got %d", 4, state.Cursor)
-	}
-
-	window.deletePrevByte(3)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "H, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "H, world!\x00", string(state.Bytes))
-	}
-	if state.Cursor != 1 {
-		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	if s.Cursor != 4 {
+		t.Errorf("s.Cursor should be %d but got %d", 4, s.Cursor)
 	}
 
 	window.deletePrevByte(3)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), ", world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", ", world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "H, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "H, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 1 {
+		t.Errorf("s.Cursor should be %d but got %d", 1, s.Cursor)
+	}
+
+	window.deletePrevByte(3)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), ", world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ", world!\x00", string(s.Bytes))
+	}
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 }
 
@@ -544,46 +544,46 @@ func TestWindowIncrementDecrement(t *testing.T) {
 	window.setSize(width, height)
 
 	window.increment(0)
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Iello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Iello, world\x00!", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Iello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Iello, world\x00!", string(s.Bytes))
 	}
 
 	window.increment(1000)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "1ello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "1ello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "1ello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "1ello, world!\x00", string(s.Bytes))
 	}
 
 	window.increment(math.MaxInt64)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "0ello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "0ello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "0ello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "0ello, world!\x00", string(s.Bytes))
 	}
 
 	window.decrement(0)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "/ello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "/ello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "/ello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "/ello, world!\x00", string(s.Bytes))
 	}
 
 	window.decrement(1000)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Gello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Gello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Gello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Gello, world!\x00", string(s.Bytes))
 	}
 
 	window.decrement(math.MaxInt64)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, world!\x00", string(s.Bytes))
 	}
 
-	window.cursorNext(ModeNormal, 7)
+	window.cursorNext(mode.Normal, 7)
 	window.increment(1000)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, _orld!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, _orld!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, _orld!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, _orld!\x00", string(s.Bytes))
 	}
 }
 
@@ -593,39 +593,39 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	state, _ := window.State()
-	if state.Size != 0 {
-		t.Errorf("state.Size should be %d but got %d", 0, state.Size)
+	s, _ := window.State()
+	if s.Size != 0 {
+		t.Errorf("s.Size should be %d but got %d", 0, s.Size)
 	}
-	if state.Length != 0 {
-		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	if s.Length != 0 {
+		t.Errorf("s.Length should be %d but got %d", 0, s.Length)
 	}
 
 	window.increment(0)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "\x01\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "\x01\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "\x01\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "\x01\x00", string(s.Bytes))
 	}
-	if state.Size != 1 {
-		t.Errorf("state.Size should be %d but got %d", 1, state.Size)
+	if s.Size != 1 {
+		t.Errorf("s.Size should be %d but got %d", 1, s.Size)
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
 
 	window, _ = newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
 	window.decrement(0)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "\xff\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "\xff\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "\xff\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "\xff\x00", string(s.Bytes))
 	}
-	if state.Size != 1 {
-		t.Errorf("state.Size should be %d but got %d", 1, state.Size)
+	if s.Size != 1 {
+		t.Errorf("s.Size should be %d but got %d", 1, s.Size)
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
 }
 
@@ -635,57 +635,57 @@ func TestWindowInsertByte(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 7)
+	window.cursorNext(mode.Normal, 7)
 	window.startInsert()
-	state, _ := window.State()
+	s, _ := window.State()
 
-	window.insertByte(ModeInsert, 0x04)
-	state, _ = window.State()
-	if state.Pending != true {
-		t.Errorf("state.Pending should be %v but got %v", true, state.Pending)
+	window.insertByte(mode.Insert, 0x04)
+	s, _ = window.State()
+	if s.Pending != true {
+		t.Errorf("s.Pending should be %v but got %v", true, s.Pending)
 	}
-	if state.PendingByte != '\x40' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x40', state.PendingByte)
+	if s.PendingByte != '\x40' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x40', s.PendingByte)
 	}
 
-	window.insertByte(ModeInsert, 0x0a)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, Jworld!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, Jworld!\x00", string(state.Bytes))
+	window.insertByte(mode.Insert, 0x0a)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, Jworld!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, Jworld!\x00", string(s.Bytes))
 	}
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
-	if state.Length != 14 {
-		t.Errorf("state.Length should be %d but got %d", 14, state.Length)
+	if s.Length != 14 {
+		t.Errorf("s.Length should be %d but got %d", 14, s.Length)
 	}
 
 	window.exitInsert()
 	window.startAppendEnd()
-	window.insertByte(ModeInsert, 0x04)
-	window.insertByte(ModeInsert, 0x0b)
-	window.insertByte(ModeInsert, 0x04)
-	window.insertByte(ModeInsert, 0x0c)
-	window.insertByte(ModeInsert, 0x04)
-	window.insertByte(ModeInsert, 0x0d)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "M\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "M\x00", string(state.Bytes))
+	window.insertByte(mode.Insert, 0x04)
+	window.insertByte(mode.Insert, 0x0b)
+	window.insertByte(mode.Insert, 0x04)
+	window.insertByte(mode.Insert, 0x0c)
+	window.insertByte(mode.Insert, 0x04)
+	window.insertByte(mode.Insert, 0x0d)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "M\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "M\x00", string(s.Bytes))
 	}
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
-	if state.Length != 18 {
-		t.Errorf("state.Length should be %d but got %d", 18, state.Length)
+	if s.Length != 18 {
+		t.Errorf("s.Length should be %d but got %d", 18, s.Length)
 	}
-	if state.Offset != 16 {
-		t.Errorf("state.Offset should be %d but got %d", 16, state.Offset)
+	if s.Offset != 16 {
+		t.Errorf("s.Offset should be %d but got %d", 16, s.Offset)
 	}
 }
 
@@ -696,32 +696,32 @@ func TestWindowInsertEmpty(t *testing.T) {
 	window.setSize(width, height)
 
 	window.startInsert()
-	window.insertByte(ModeInsert, 0x04)
-	window.insertByte(ModeInsert, 0x0a)
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "J\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "J\x00", string(state.Bytes))
+	window.insertByte(mode.Insert, 0x04)
+	window.insertByte(mode.Insert, 0x0a)
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "J\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "J\x00", string(s.Bytes))
 	}
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
-	if state.Length != 2 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 2 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
 
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "J\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "J\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "J\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "J\x00", string(s.Bytes))
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 }
 
@@ -733,28 +733,28 @@ func TestWindowInsertHead(t *testing.T) {
 
 	window.pageEnd()
 	window.startInsertHead()
-	state, _ := window.State()
-	if state.Cursor != 16 {
-		t.Errorf("state.Cursor should be %d but got %d", 16, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 16 {
+		t.Errorf("s.Cursor should be %d but got %d", 16, s.Cursor)
 	}
 
-	window.insertByte(ModeInsert, 0x03)
-	window.insertByte(ModeInsert, 0x0a)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, world!Hel:lo, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!Hel:lo, world!\x00", string(state.Bytes))
+	window.insertByte(mode.Insert, 0x03)
+	window.insertByte(mode.Insert, 0x0a)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, world!Hel:lo, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, world!Hel:lo, world!\x00", string(s.Bytes))
 	}
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
-	if state.Length != 27 {
-		t.Errorf("state.Length should be %d but got %d", 27, state.Length)
+	if s.Length != 27 {
+		t.Errorf("s.Length should be %d but got %d", 27, s.Length)
 	}
-	if state.Cursor != 17 {
-		t.Errorf("state.Cursor should be %d but got %d", 17, state.Cursor)
+	if s.Cursor != 17 {
+		t.Errorf("s.Cursor should be %d but got %d", 17, s.Cursor)
 	}
 }
 
@@ -765,32 +765,32 @@ func TestWindowInsertHeadEmpty(t *testing.T) {
 	window.setSize(width, height)
 
 	window.startInsertHead()
-	state, _ := window.State()
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	s, _ := window.State()
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
-	window.insertByte(ModeInsert, 0x04)
-	window.insertByte(ModeInsert, 0x0a)
+	window.insertByte(mode.Insert, 0x04)
+	window.insertByte(mode.Insert, 0x0a)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "J\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "J\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "J\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "J\x00", string(s.Bytes))
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 }
 
@@ -800,41 +800,41 @@ func TestWindowAppend(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 7)
+	window.cursorNext(mode.Normal, 7)
 	window.startAppend()
-	state, _ := window.State()
-	if state.Cursor != 8 {
-		t.Errorf("state.Cursor should be %d but got %d", 8, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 8 {
+		t.Errorf("s.Cursor should be %d but got %d", 8, s.Cursor)
 	}
 
-	window.insertByte(ModeInsert, 0x03)
-	window.insertByte(ModeInsert, 0x0a)
+	window.insertByte(mode.Insert, 0x03)
+	window.insertByte(mode.Insert, 0x0a)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, w:orld!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, w:orld!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, w:orld!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, w:orld!\x00", string(s.Bytes))
 	}
-	if state.Length != 14 {
-		t.Errorf("state.Length should be %d but got %d", 14, state.Length)
+	if s.Length != 14 {
+		t.Errorf("s.Length should be %d but got %d", 14, s.Length)
 	}
-	if state.Cursor != 8 {
-		t.Errorf("state.Cursor should be %d but got %d", 8, state.Cursor)
+	if s.Cursor != 8 {
+		t.Errorf("s.Cursor should be %d but got %d", 8, s.Cursor)
 	}
 
-	window.cursorNext(ModeNormal, 10)
+	window.cursorNext(mode.Normal, 10)
 	window.startAppend()
-	window.insertByte(ModeInsert, 0x03)
-	window.insertByte(ModeInsert, 0x0A)
+	window.insertByte(mode.Insert, 0x03)
+	window.insertByte(mode.Insert, 0x0A)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, w:orld!:\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, w:orld!:\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, w:orld!:\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, w:orld!:\x00", string(s.Bytes))
 	}
-	if state.Length != 15 {
-		t.Errorf("state.Length should be %d but got %d", 15, state.Length)
+	if s.Length != 15 {
+		t.Errorf("s.Length should be %d but got %d", 15, s.Length)
 	}
-	if state.Cursor != 14 {
-		t.Errorf("state.Cursor should be %d but got %d", 14, state.Cursor)
+	if s.Cursor != 14 {
+		t.Errorf("s.Cursor should be %d but got %d", 14, s.Cursor)
 	}
 }
 
@@ -846,42 +846,42 @@ func TestWindowAppendEmpty(t *testing.T) {
 
 	window.startAppend()
 	window.exitInsert()
-	state, _ := window.State()
-	if state.Length != 0 {
-		t.Errorf("state.Length should be %d but got %d", 0, state.Length)
+	s, _ := window.State()
+	if s.Length != 0 {
+		t.Errorf("s.Length should be %d but got %d", 0, s.Length)
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
 	window.startAppend()
-	window.insertByte(ModeInsert, 0x03)
-	window.insertByte(ModeInsert, 0x0a)
+	window.insertByte(mode.Insert, 0x03)
+	window.insertByte(mode.Insert, 0x0a)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), ":\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", ":\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), ":\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ":\x00", string(s.Bytes))
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
 	window.startAppendEnd()
-	window.insertByte(ModeInsert, 0x03)
-	window.insertByte(ModeInsert, 0x0b)
+	window.insertByte(mode.Insert, 0x03)
+	window.insertByte(mode.Insert, 0x0b)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), ":;\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", ":;\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), ":;\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ":;\x00", string(s.Bytes))
 	}
-	if state.Length != 2 {
-		t.Errorf("state.Length should be %d but got %d", 2, state.Length)
+	if s.Length != 2 {
+		t.Errorf("s.Length should be %d but got %d", 2, s.Length)
 	}
-	if state.Cursor != 1 {
-		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	if s.Cursor != 1 {
+		t.Errorf("s.Cursor should be %d but got %d", 1, s.Cursor)
 	}
 }
 
@@ -891,24 +891,24 @@ func TestWindowReplaceByte(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 7)
+	window.cursorNext(mode.Normal, 7)
 	window.startReplaceByte()
-	state, _ := window.State()
-	if state.Cursor != 7 {
-		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 7 {
+		t.Errorf("s.Cursor should be %d but got %d", 7, s.Cursor)
 	}
 
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0a)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, :orld!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, :orld!\x00", string(state.Bytes))
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0a)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, :orld!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, :orld!\x00", string(s.Bytes))
 	}
-	if state.Length != 13 {
-		t.Errorf("state.Length should be %d but got %d", 13, state.Length)
+	if s.Length != 13 {
+		t.Errorf("s.Length should be %d but got %d", 13, s.Length)
 	}
-	if state.Cursor != 7 {
-		t.Errorf("state.Cursor should be %d but got %d", 7, state.Cursor)
+	if s.Cursor != 7 {
+		t.Errorf("s.Cursor should be %d but got %d", 7, s.Cursor)
 	}
 }
 
@@ -919,22 +919,22 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 	window.setSize(width, height)
 
 	window.startReplaceByte()
-	state, _ := window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0a)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), ":\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", ":\x00", string(state.Bytes))
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0a)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), ":\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ":\x00", string(s.Bytes))
 	}
-	if state.Length != 1 {
-		t.Errorf("state.Length should be %d but got %d", 1, state.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 }
 
@@ -944,44 +944,44 @@ func TestWindowReplace(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 10)
+	window.cursorNext(mode.Normal, 10)
 	window.startReplace()
-	state, _ := window.State()
-	if state.Cursor != 10 {
-		t.Errorf("state.Cursor should be %d but got %d", 10, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 10 {
+		t.Errorf("s.Cursor should be %d but got %d", 10, s.Cursor)
 	}
 
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0a)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, wor:d!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, wor:d!\x00", string(state.Bytes))
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0a)
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, wor:d!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, wor:d!\x00", string(s.Bytes))
 	}
-	if state.Length != 13 {
-		t.Errorf("state.Length should be %d but got %d", 13, state.Length)
+	if s.Length != 13 {
+		t.Errorf("s.Length should be %d but got %d", 13, s.Length)
 	}
-	if state.Cursor != 11 {
-		t.Errorf("state.Cursor should be %d but got %d", 11, state.Cursor)
+	if s.Cursor != 11 {
+		t.Errorf("s.Cursor should be %d but got %d", 11, s.Cursor)
 	}
 
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0b)
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0c)
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0d)
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0e)
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0b)
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0c)
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0d)
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0e)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, wor:;<=>\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, wor:;<=>\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, wor:;<=>\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, wor:;<=>\x00", string(s.Bytes))
 	}
-	if state.Length != 15 {
-		t.Errorf("state.Length should be %d but got %d", 15, state.Length)
+	if s.Length != 15 {
+		t.Errorf("s.Length should be %d but got %d", 15, s.Length)
 	}
-	if state.Cursor != 14 {
-		t.Errorf("state.Cursor should be %d but got %d", 14, state.Cursor)
+	if s.Cursor != 14 {
+		t.Errorf("s.Cursor should be %d but got %d", 14, s.Cursor)
 	}
 }
 
@@ -992,25 +992,25 @@ func TestWindowReplaceEmpty(t *testing.T) {
 	window.setSize(width, height)
 
 	window.startReplace()
-	state, _ := window.State()
-	if state.Cursor != 0 {
-		t.Errorf("state.Cursor should be %d but got %d", 0, state.Cursor)
+	s, _ := window.State()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0a)
-	window.insertByte(ModeReplace, 0x03)
-	window.insertByte(ModeReplace, 0x0b)
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0a)
+	window.insertByte(mode.Replace, 0x03)
+	window.insertByte(mode.Replace, 0x0b)
 	window.exitInsert()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), ":;\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", ":;\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), ":;\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ":;\x00", string(s.Bytes))
 	}
-	if state.Length != 2 {
-		t.Errorf("state.Length should be %d but got %d", 2, state.Length)
+	if s.Length != 2 {
+		t.Errorf("s.Length should be %d but got %d", 2, s.Length)
 	}
-	if state.Cursor != 1 {
-		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	if s.Cursor != 1 {
+		t.Errorf("s.Cursor should be %d but got %d", 1, s.Cursor)
 	}
 }
 
@@ -1021,26 +1021,26 @@ func TestWindowInsertByte2(t *testing.T) {
 	window.setSize(width, height)
 
 	window.startInsert()
-	window.insertByte(ModeInsert, 0x00)
-	window.insertByte(ModeInsert, 0x01)
-	window.insertByte(ModeInsert, 0x02)
-	window.insertByte(ModeInsert, 0x03)
-	window.insertByte(ModeInsert, 0x04)
-	window.insertByte(ModeInsert, 0x05)
-	window.insertByte(ModeInsert, 0x06)
-	window.insertByte(ModeInsert, 0x07)
-	window.insertByte(ModeInsert, 0x08)
-	window.insertByte(ModeInsert, 0x09)
-	window.insertByte(ModeInsert, 0x0a)
-	window.insertByte(ModeInsert, 0x0b)
-	window.insertByte(ModeInsert, 0x0c)
-	window.insertByte(ModeInsert, 0x0d)
-	window.insertByte(ModeInsert, 0x0e)
-	window.insertByte(ModeInsert, 0x0f)
+	window.insertByte(mode.Insert, 0x00)
+	window.insertByte(mode.Insert, 0x01)
+	window.insertByte(mode.Insert, 0x02)
+	window.insertByte(mode.Insert, 0x03)
+	window.insertByte(mode.Insert, 0x04)
+	window.insertByte(mode.Insert, 0x05)
+	window.insertByte(mode.Insert, 0x06)
+	window.insertByte(mode.Insert, 0x07)
+	window.insertByte(mode.Insert, 0x08)
+	window.insertByte(mode.Insert, 0x09)
+	window.insertByte(mode.Insert, 0x0a)
+	window.insertByte(mode.Insert, 0x0b)
+	window.insertByte(mode.Insert, 0x0c)
+	window.insertByte(mode.Insert, 0x0d)
+	window.insertByte(mode.Insert, 0x0e)
+	window.insertByte(mode.Insert, 0x0f)
 	window.exitInsert()
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "\x01\x23\x45\x67\x89\xab\xcd\xef\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "\x01\x23\x45\x67\x89\xab\xcd\xef\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "\x01\x23\x45\x67\x89\xab\xcd\xef\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "\x01\x23\x45\x67\x89\xab\xcd\xef\x00", string(s.Bytes))
 	}
 }
 
@@ -1050,21 +1050,21 @@ func TestWindowBackspace(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 5)
+	window.cursorNext(mode.Normal, 5)
 	window.startInsert()
 	window.backspace()
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hell, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hell, world!\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hell, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hell, world!\x00", string(s.Bytes))
 	}
 	window.backspace()
 	window.backspace()
 	window.backspace()
 	window.backspace()
 	window.backspace()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), ", world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", ", world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), ", world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ", world!\x00", string(s.Bytes))
 	}
 }
 
@@ -1074,27 +1074,27 @@ func TestWindowBackspacePending(t *testing.T) {
 	window, _ := newWindow(r, "test", "test", make(chan struct{}))
 	window.setSize(width, height)
 
-	window.cursorNext(ModeNormal, 5)
+	window.cursorNext(mode.Normal, 5)
 	window.startInsert()
-	window.insertByte(ModeInsert, 0x03)
-	state, _ := window.State()
-	if state.Pending != true {
-		t.Errorf("state.Pending should be %v but got %v", true, state.Pending)
+	window.insertByte(mode.Insert, 0x03)
+	s, _ := window.State()
+	if s.Pending != true {
+		t.Errorf("s.Pending should be %v but got %v", true, s.Pending)
 	}
-	if state.PendingByte != '\x30' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x30', state.PendingByte)
+	if s.PendingByte != '\x30' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x30', s.PendingByte)
 	}
 
 	window.backspace()
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, world!\x00", string(s.Bytes))
 	}
-	if state.Pending != false {
-		t.Errorf("state.Pending should be %v but got %v", false, state.Pending)
+	if s.Pending != false {
+		t.Errorf("s.Pending should be %v but got %v", false, s.Pending)
 	}
-	if state.PendingByte != '\x00' {
-		t.Errorf("state.PendingByte should be %q but got %q", '\x00', state.PendingByte)
+	if s.PendingByte != '\x00' {
+		t.Errorf("s.PendingByte should be %q but got %q", '\x00', s.PendingByte)
 	}
 }
 
@@ -1111,16 +1111,16 @@ func TestWindowEventRune(t *testing.T) {
 	go func() {
 		window.eventCh <- event.Event{Type: event.StartInsert}
 		for _, r := range str {
-			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: ModeInsert}
+			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: mode.Insert}
 		}
 	}()
 	<-redrawCh
 	for _ = range str {
 		<-redrawCh
 	}
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "\x48\x72\x3f\xff\xab\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "\x48\x72\x3f\xff\xab\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "\x48\x72\x3f\xff\xab\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "\x48\x72\x3f\xff\xab\x00", string(s.Bytes))
 	}
 	window.Close()
 }
@@ -1139,7 +1139,7 @@ func TestWindowEventRuneText(t *testing.T) {
 		window.eventCh <- event.Event{Type: event.SwitchFocus}
 		window.eventCh <- event.Event{Type: event.StartInsert}
 		for _, r := range str {
-			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: ModeInsert}
+			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: mode.Insert}
 		}
 	}()
 	<-redrawCh
@@ -1147,9 +1147,9 @@ func TestWindowEventRuneText(t *testing.T) {
 	for _ = range str {
 		<-redrawCh
 	}
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), str+"\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", str+"\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), str+"\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", str+"\x00", string(s.Bytes))
 	}
 	window.Close()
 }
@@ -1177,26 +1177,26 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	go func() {
 		window.eventCh <- event.Event{Type: event.Undo}
 		window.eventCh <- event.Event{Type: event.SwitchFocus}
-		window.eventCh <- event.Event{Type: event.StartAppend, Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.StartAppend, Mode: mode.Insert}
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: mode.Insert}
 		window.eventCh <- event.Event{Type: event.ExitInsert}
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.StartInsert, Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.CursorLeft, Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.StartInsert, Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.CursorLeft, Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: mode.Insert}
 		window.eventCh <- event.Event{Type: event.ExitInsert}
 
 		<-waitCh
 		window.eventCh <- event.Event{Type: event.Undo, Count: 2}
-		window.eventCh <- event.Event{Type: event.StartInsert, Mode: ModeInsert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'w', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.StartInsert, Mode: mode.Insert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'w', Mode: mode.Insert}
 
 		<-waitCh
 		window.eventCh <- event.Event{Type: event.ExitInsert}
@@ -1207,61 +1207,61 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	}()
 
 	waitRedraw(3)
-	state, _ := window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hello, world!\x00", string(state.Bytes))
+	s, _ := window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hello, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 1 {
-		t.Errorf("state.Cursor should be %d but got %d", 1, state.Cursor)
+	if s.Cursor != 1 {
+		t.Errorf("s.Cursor should be %d but got %d", 1, s.Cursor)
 	}
 	waitCh <- struct{}{}
 
 	waitRedraw(4)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hxyzello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hxyzello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hxyzello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hxyzello, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 3 {
-		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	if s.Cursor != 3 {
+		t.Errorf("s.Cursor should be %d but got %d", 3, s.Cursor)
 	}
 	waitCh <- struct{}{}
 
 	waitRedraw(6)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hxyxzyzello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hxyxzyzello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hxyxzyzello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hxyxzyzello, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 5 {
-		t.Errorf("state.Cursor should be %d but got %d", 5, state.Cursor)
+	if s.Cursor != 5 {
+		t.Errorf("s.Cursor should be %d but got %d", 5, s.Cursor)
 	}
 	waitCh <- struct{}{}
 
 	waitRedraw(3)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hxywzello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hxywzello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 4 {
-		t.Errorf("state.Cursor should be %d but got %d", 4, state.Cursor)
+	if s.Cursor != 4 {
+		t.Errorf("s.Cursor should be %d but got %d", 4, s.Cursor)
 	}
 	waitCh <- struct{}{}
 
 	waitRedraw(2)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hxyzello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hxyzello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hxyzello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hxyzello, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 3 {
-		t.Errorf("state.Cursor should be %d but got %d", 3, state.Cursor)
+	if s.Cursor != 3 {
+		t.Errorf("s.Cursor should be %d but got %d", 3, s.Cursor)
 	}
 	waitCh <- struct{}{}
 
 	waitRedraw(1)
-	state, _ = window.State()
-	if !strings.HasPrefix(string(state.Bytes), "Hxywzello, world!\x00") {
-		t.Errorf("state.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(state.Bytes))
+	s, _ = window.State()
+	if !strings.HasPrefix(string(s.Bytes), "Hxywzello, world!\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", "Hxywzello, world!\x00", string(s.Bytes))
 	}
-	if state.Cursor != 4 {
-		t.Errorf("state.Cursor should be %d but got %d", 4, state.Cursor)
+	if s.Cursor != 4 {
+		t.Errorf("s.Cursor should be %d but got %d", 4, s.Cursor)
 	}
 }

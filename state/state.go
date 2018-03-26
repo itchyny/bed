@@ -1,10 +1,13 @@
-package common
+package state
 
-import "github.com/itchyny/bed/layout"
+import (
+	"github.com/itchyny/bed/layout"
+	"github.com/itchyny/bed/mode"
+)
 
 // State holds the state of the editor to display the user interface.
 type State struct {
-	Mode              Mode
+	Mode              mode.Mode
 	WindowStates      map[int]*WindowState
 	Layout            layout.Layout
 	Cmdline           []rune
@@ -25,7 +28,7 @@ type WindowState struct {
 	Bytes         []byte
 	Size          int
 	Length        int64
-	Mode          Mode
+	Mode          mode.Mode
 	Pending       bool
 	PendingByte   byte
 	EditedIndices []int64
