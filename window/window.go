@@ -10,7 +10,7 @@ import (
 	"github.com/itchyny/bed/buffer"
 	. "github.com/itchyny/bed/common"
 	"github.com/itchyny/bed/history"
-	"github.com/itchyny/bed/util"
+	"github.com/itchyny/bed/mathutil"
 )
 
 type window struct {
@@ -68,9 +68,9 @@ func (w *window) setSize(width, height int) {
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
-	w.offset = util.MinInt64(
+	w.offset = mathutil.MinInt64(
 		w.offset,
-		util.MaxInt64(w.length-1-w.height*w.width+w.width, 0)/w.width*w.width,
+		mathutil.MaxInt64(w.length-1-w.height*w.width+w.width, 0)/w.width*w.width,
 	)
 }
 
@@ -240,7 +240,7 @@ func (w *window) delete(offset int64) {
 }
 
 func (w *window) undo(count int64) {
-	for i := int64(0); i < util.MaxInt64(count, 1); i++ {
+	for i := int64(0); i < mathutil.MaxInt64(count, 1); i++ {
 		buffer, _, offset, cursor := w.history.Undo()
 		if buffer == nil {
 			return
@@ -251,7 +251,7 @@ func (w *window) undo(count int64) {
 }
 
 func (w *window) redo(count int64) {
-	for i := int64(0); i < util.MaxInt64(count, 1); i++ {
+	for i := int64(0); i < mathutil.MaxInt64(count, 1); i++ {
 		buffer, offset, cursor := w.history.Redo()
 		if buffer == nil {
 			return
@@ -262,26 +262,26 @@ func (w *window) redo(count int64) {
 }
 
 func (w *window) cursorUp(count int64) {
-	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor/w.width) * w.width
+	w.cursor -= mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor/w.width) * w.width
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
 }
 
 func (w *window) cursorDown(count int64) {
-	w.cursor += util.MinInt64(
-		util.MinInt64(
-			util.MaxInt64(count, 1),
-			(util.MaxInt64(w.length, 1)-1)/w.width-w.cursor/w.width,
+	w.cursor += mathutil.MinInt64(
+		mathutil.MinInt64(
+			mathutil.MaxInt64(count, 1),
+			(mathutil.MaxInt64(w.length, 1)-1)/w.width-w.cursor/w.width,
 		)*w.width,
-		util.MaxInt64(w.length, 1)-1-w.cursor)
+		mathutil.MaxInt64(w.length, 1)-1-w.cursor)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
 }
 
 func (w *window) cursorLeft(count int64) {
-	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width)
+	w.cursor -= mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor%w.width)
 	if w.append && w.extending && w.cursor < w.length-1 {
 		w.append = false
 		w.extending = false
@@ -293,13 +293,13 @@ func (w *window) cursorLeft(count int64) {
 
 func (w *window) cursorRight(mode Mode, count int64) {
 	if mode == ModeNormal {
-		w.cursor += util.MinInt64(
-			util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
-			util.MaxInt64(w.length, 1)-1-w.cursor,
+		w.cursor += mathutil.MinInt64(
+			mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
+			mathutil.MaxInt64(w.length, 1)-1-w.cursor,
 		)
 	} else if !w.extending {
-		w.cursor += util.MinInt64(
-			util.MinInt64(util.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
+		w.cursor += mathutil.MinInt64(
+			mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
 			w.length-w.cursor,
 		)
 		if w.cursor == w.length {
@@ -311,7 +311,7 @@ func (w *window) cursorRight(mode Mode, count int64) {
 }
 
 func (w *window) cursorPrev(count int64) {
-	w.cursor -= util.MinInt64(util.MaxInt64(count, 1), w.cursor)
+	w.cursor -= mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor)
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
@@ -326,9 +326,9 @@ func (w *window) cursorPrev(count int64) {
 
 func (w *window) cursorNext(mode Mode, count int64) {
 	if mode == ModeNormal {
-		w.cursor += util.MinInt64(util.MaxInt64(count, 1), util.MaxInt64(w.length, 1)-1-w.cursor)
+		w.cursor += mathutil.MinInt64(mathutil.MaxInt64(count, 1), mathutil.MaxInt64(w.length, 1)-1-w.cursor)
 	} else if !w.extending {
-		w.cursor += util.MinInt64(util.MaxInt64(count, 1), w.length-w.cursor)
+		w.cursor += mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.length-w.cursor)
 		if w.cursor == w.length {
 			w.append = true
 			w.extending = true
@@ -345,9 +345,9 @@ func (w *window) cursorHead(_ int64) {
 }
 
 func (w *window) cursorEnd(count int64) {
-	w.cursor = util.MinInt64(
-		(w.cursor/w.width+util.MaxInt64(count, 1))*w.width-1,
-		util.MaxInt64(w.length, 1)-1,
+	w.cursor = mathutil.MinInt64(
+		(w.cursor/w.width+mathutil.MaxInt64(count, 1))*w.width-1,
+		mathutil.MaxInt64(w.length, 1)-1,
 	)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
@@ -355,45 +355,45 @@ func (w *window) cursorEnd(count int64) {
 }
 
 func (w *window) cursorGotoAbs(count int64) {
-	w.cursor = util.MinInt64(count, util.MaxInt64(w.length, 1)-1)
+	w.cursor = mathutil.MinInt64(count, mathutil.MaxInt64(w.length, 1)-1)
 	if w.cursor < w.offset {
-		w.offset = (util.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
+		w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
 	} else if w.cursor >= w.offset+w.height*w.width {
-		h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
-		w.offset = util.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
+		h := (mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+		w.offset = mathutil.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
 	}
 }
 
 func (w *window) cursorGotoRel(count int64) {
-	w.cursor += util.MaxInt64(util.MinInt64(count, util.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
+	w.cursor += mathutil.MaxInt64(mathutil.MinInt64(count, mathutil.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
 	if w.cursor < w.offset {
-		w.offset = (util.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
+		w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
 	} else if w.cursor >= w.offset+w.height*w.width {
-		h := (util.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
-		w.offset = util.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
+		h := (mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+		w.offset = mathutil.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
 	}
 }
 
 func (w *window) scrollUp(count int64) {
-	w.offset -= util.MinInt64(util.MaxInt64(count, 1), w.offset/w.width) * w.width
+	w.offset -= mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.offset/w.width) * w.width
 	if w.cursor >= w.offset+w.height*w.width {
 		w.cursor -= ((w.cursor-w.offset-w.height*w.width)/w.width + 1) * w.width
 	}
 }
 
 func (w *window) scrollDown(count int64) {
-	h := util.MaxInt64((util.MaxInt64(w.length, 1)+w.width-1)/w.width-w.height, 0)
-	w.offset += util.MinInt64(util.MaxInt64(count, 1), h-w.offset/w.width) * w.width
+	h := mathutil.MaxInt64((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width-w.height, 0)
+	w.offset += mathutil.MinInt64(mathutil.MaxInt64(count, 1), h-w.offset/w.width) * w.width
 	if w.cursor < w.offset {
-		w.cursor += util.MinInt64(
+		w.cursor += mathutil.MinInt64(
 			(w.offset-w.cursor+w.width-1)/w.width*w.width,
-			util.MaxInt64(w.length, 1)-1-w.cursor,
+			mathutil.MaxInt64(w.length, 1)-1-w.cursor,
 		)
 	}
 }
 
 func (w *window) pageUp() {
-	w.offset = util.MaxInt64(w.offset-(w.height-2)*w.width, 0)
+	w.offset = mathutil.MaxInt64(w.offset-(w.height-2)*w.width, 0)
 	if w.offset == 0 {
 		w.cursor = 0
 	} else if w.cursor >= w.offset+w.height*w.width {
@@ -402,17 +402,17 @@ func (w *window) pageUp() {
 }
 
 func (w *window) pageDown() {
-	offset := util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
-	w.offset = util.MinInt64(w.offset+(w.height-2)*w.width, offset)
+	offset := mathutil.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
+	w.offset = mathutil.MinInt64(w.offset+(w.height-2)*w.width, offset)
 	if w.cursor < w.offset {
 		w.cursor = w.offset
 	} else if w.offset == offset {
-		w.cursor = ((util.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
+		w.cursor = ((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
 	}
 }
 
 func (w *window) pageUpHalf() {
-	w.offset = util.MaxInt64(w.offset-util.MaxInt64(w.height/2, 1)*w.width, 0)
+	w.offset = mathutil.MaxInt64(w.offset-mathutil.MaxInt64(w.height/2, 1)*w.width, 0)
 	if w.offset == 0 {
 		w.cursor = 0
 	} else if w.cursor >= w.offset+w.height*w.width {
@@ -421,12 +421,12 @@ func (w *window) pageUpHalf() {
 }
 
 func (w *window) pageDownHalf() {
-	offset := util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
-	w.offset = util.MinInt64(w.offset+util.MaxInt64(w.height/2, 1)*w.width, offset)
+	offset := mathutil.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
+	w.offset = mathutil.MinInt64(w.offset+mathutil.MaxInt64(w.height/2, 1)*w.width, offset)
 	if w.cursor < w.offset {
 		w.cursor = w.offset
 	} else if w.offset == offset {
-		w.cursor = ((util.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
+		w.cursor = ((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
 	}
 }
 
@@ -436,8 +436,8 @@ func (w *window) pageTop() {
 }
 
 func (w *window) pageEnd() {
-	w.offset = util.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
-	w.cursor = ((util.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
+	w.offset = mathutil.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
+	w.cursor = ((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
 }
 
 func isDigit(b byte) bool {
@@ -450,7 +450,7 @@ func isWhite(b byte) bool {
 
 func (w *window) jumpTo() {
 	s := 50
-	_, bytes, err := w.readBytes(util.MaxInt64(w.cursor-int64(s), 0), 2*s)
+	_, bytes, err := w.readBytes(mathutil.MaxInt64(w.cursor-int64(s), 0), 2*s)
 	if err != nil {
 		return
 	}
@@ -473,7 +473,7 @@ func (w *window) jumpTo() {
 	}
 	w.stack = append(w.stack, position{w.cursor, w.offset})
 	w.cursor = offset
-	w.offset = util.MaxInt64(offset-offset%w.width-util.MaxInt64(w.height/3, 0)*w.width, 0)
+	w.offset = mathutil.MaxInt64(offset-offset%w.width-mathutil.MaxInt64(w.height/3, 0)*w.width, 0)
 }
 
 func (w *window) jumpBack() {
@@ -489,8 +489,8 @@ func (w *window) deleteByte(count int64) {
 	if w.length == 0 {
 		return
 	}
-	cnt := int(util.MinInt64(
-		util.MinInt64(util.MaxInt64(count, 1), w.width-w.cursor%w.width),
+	cnt := int(mathutil.MinInt64(
+		mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.width-w.cursor%w.width),
 		w.length-w.cursor,
 	))
 	for i := 0; i < cnt; i++ {
@@ -503,7 +503,7 @@ func (w *window) deleteByte(count int64) {
 }
 
 func (w *window) deletePrevByte(count int64) {
-	cnt := int(util.MinInt64(util.MaxInt64(count, 1), w.cursor%w.width))
+	cnt := int(mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor%w.width))
 	for i := 0; i < cnt; i++ {
 		w.delete(w.cursor - 1)
 		w.cursor--
@@ -516,7 +516,7 @@ func (w *window) increment(count int64) {
 	if err != nil {
 		return
 	}
-	w.replace(w.cursor, bytes[0]+byte(util.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]+byte(mathutil.MaxInt64(count, 1)%256))
 	if w.length == 0 {
 		w.length++
 	}
@@ -527,7 +527,7 @@ func (w *window) decrement(count int64) {
 	if err != nil {
 		return
 	}
-	w.replace(w.cursor, bytes[0]-byte(util.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]-byte(mathutil.MaxInt64(count, 1)%256))
 	if w.length == 0 {
 		w.length++
 	}
@@ -679,7 +679,7 @@ func (w *window) search(str string, forward bool) {
 
 func (w *window) searchForward(str string) {
 	target := []byte(str)
-	base, size := w.cursor+1, util.MaxInt(int(w.height*w.width)*50, len(target)*500)
+	base, size := w.cursor+1, mathutil.MaxInt(int(w.height*w.width)*50, len(target)*500)
 	_, bs, err := w.readBytes(base, size)
 	if err != nil {
 		return
@@ -695,9 +695,9 @@ func (w *window) searchForward(str string) {
 
 func (w *window) searchBackward(str string) {
 	target := []byte(str)
-	size := util.MaxInt(int(w.height*w.width)*50, len(target)*500)
-	base := util.MaxInt64(0, w.cursor-int64(size))
-	_, bs, err := w.readBytes(base, int(util.MinInt64(int64(size), w.cursor)))
+	size := mathutil.MaxInt(int(w.height*w.width)*50, len(target)*500)
+	base := mathutil.MaxInt64(0, w.cursor-int64(size))
+	_, bs, err := w.readBytes(base, int(mathutil.MinInt64(int64(size), w.cursor)))
 	if err != nil {
 		return
 	}

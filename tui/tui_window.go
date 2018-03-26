@@ -9,7 +9,7 @@ import (
 	"github.com/gdamore/tcell"
 
 	. "github.com/itchyny/bed/common"
-	"github.com/itchyny/bed/util"
+	"github.com/itchyny/bed/mathutil"
 )
 
 type tuiWindow struct {
@@ -139,9 +139,9 @@ func (ui *tuiWindow) drawScrollBar(state *WindowState, height int, left int) {
 		stateSize++
 	}
 	total := int64((stateSize + state.Width - 1) / state.Width)
-	len := util.MaxInt64((state.Length+int64(state.Width)-1)/int64(state.Width), 1)
-	size := util.MaxInt64(total*total/len, 1)
-	pad := (total*total + len - len*size - 1) / util.MaxInt64(total-size+1, 1)
+	len := mathutil.MaxInt64((state.Length+int64(state.Width)-1)/int64(state.Width), 1)
+	size := mathutil.MaxInt64(total*total/len, 1)
+	pad := (total*total + len - len*size - 1) / mathutil.MaxInt64(total-size+1, 1)
 	top := (state.Offset / int64(state.Width) * total) / (len - pad)
 	d := ui.getTextDrawer().setLeft(left)
 	for i := 0; i < height; i++ {
@@ -164,7 +164,7 @@ func (ui *tuiWindow) drawFooter(state *WindowState, offsetStyleWidth int) {
 	line := fmt.Sprintf(" %s%s: "+offsetStyle+" / "+offsetStyle+
 		" (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
 		prettyMode(state.Mode), name, state.Cursor, state.Length,
-		float64(state.Cursor*100)/float64(util.MaxInt64(state.Length, 1)),
+		float64(state.Cursor*100)/float64(mathutil.MaxInt64(state.Length, 1)),
 		state.Bytes[j], prettyRune(state.Bytes[j]))
 	ui.getTextDrawer().setTop(ui.region.height-1).setString(line, tcell.StyleDefault.Reverse(true))
 }

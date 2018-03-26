@@ -1,6 +1,6 @@
 package common
 
-import "github.com/itchyny/bed/util"
+import "github.com/itchyny/bed/mathutil"
 
 // Layout represents the window layout.
 type Layout interface {
@@ -269,7 +269,7 @@ func (l LayoutHorizontal) SplitRight(index int) Layout {
 func (l LayoutHorizontal) Count() (int, int) {
 	w1, h1 := l.Top.Count()
 	w2, h2 := l.Bottom.Count()
-	return util.MaxInt(w1, w2), h1 + h2
+	return mathutil.MaxInt(w1, w2), h1 + h2
 }
 
 // Activate the specific window layout.
@@ -373,8 +373,8 @@ func (l LayoutVertical) Resize(left, top, width, height int) Layout {
 	return LayoutVertical{
 		Left: l.Left.Resize(left, top, leftWidth, height),
 		Right: l.Right.Resize(
-			util.MinInt(left+leftWidth+1, left+width), top,
-			util.MaxInt(width-leftWidth-1, 0), height),
+			mathutil.MinInt(left+leftWidth+1, left+width), top,
+			mathutil.MaxInt(width-leftWidth-1, 0), height),
 		left:   left,
 		top:    top,
 		width:  width,
@@ -438,7 +438,7 @@ func (l LayoutVertical) SplitRight(index int) Layout {
 func (l LayoutVertical) Count() (int, int) {
 	w1, h1 := l.Left.Count()
 	w2, h2 := l.Right.Count()
-	return w1 + w2, util.MaxInt(h1, h2)
+	return w1 + w2, mathutil.MaxInt(h1, h2)
 }
 
 // Activate the specific window layout.

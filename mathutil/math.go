@@ -1,4 +1,4 @@
-package util
+package mathutil
 
 // MaxInt returns the larger of x or y.
 func MaxInt(x, y int) int {

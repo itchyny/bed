@@ -6,7 +6,7 @@ import (
 	"math"
 	"sync"
 
-	"github.com/itchyny/bed/util"
+	"github.com/itchyny/bed/mathutil"
 )
 
 // Buffer represents a buffer.
@@ -50,7 +50,7 @@ func (b *Buffer) read(p []byte) (i int, err error) {
 		if _, err = rr.r.Seek(b.index+rr.diff, io.SeekStart); err != nil {
 			return
 		}
-		m := int(util.MinInt64(int64(len(p)-i), rr.max-b.index))
+		m := int(mathutil.MinInt64(int64(len(p)-i), rr.max-b.index))
 		var k int
 		if k, err = rr.r.Read(p[i : i+m]); err != nil {
 			return
@@ -162,7 +162,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 				b.rrs[i-1].max++
 				for ; i < len(b.rrs); i++ {
 					b.rrs[i].min++
-					b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+					b.rrs[i].max = mathutil.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 					b.rrs[i].diff--
 				}
 				return
@@ -173,10 +173,10 @@ func (b *Buffer) Insert(offset int64, c byte) {
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		b.rrs[i+2] = readerRange{b.clone(rr.r), offset + 1, util.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
+		b.rrs[i+2] = readerRange{b.clone(rr.r), offset + 1, mathutil.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
 		for i = i + 3; i < len(b.rrs); i++ {
 			b.rrs[i].min++
-			b.rrs[i].max = util.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+			b.rrs[i].max = mathutil.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 			b.rrs[i].diff--
 		}
 		b.cleanup()

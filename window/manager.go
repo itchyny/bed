@@ -15,7 +15,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	. "github.com/itchyny/bed/common"
-	"github.com/itchyny/bed/util"
+	"github.com/itchyny/bed/mathutil"
 )
 
 // Manager manages the windows and files.
@@ -404,7 +404,7 @@ func (m *Manager) State() (map[int]*WindowState, Layout, int, error) {
 	states := make(map[int]*WindowState, len(m.windows))
 	for i, window := range m.windows {
 		if l, ok := layouts[i]; ok {
-			window.setSize(hexWindowWidth(l.Width()), util.MaxInt(l.Height()-2, 1))
+			window.setSize(hexWindowWidth(l.Width()), mathutil.MaxInt(l.Height()-2, 1))
 			var err error
 			if states[i], err = window.State(); err != nil {
 				return nil, m.layout, 0, err
