@@ -8,7 +8,7 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 
-	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 )
 
 type completor struct {
@@ -32,9 +32,9 @@ func (c *completor) clear() {
 
 func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
 	switch cmd.eventType {
-	case EventEdit, EventNew, EventVnew, EventWrite:
+	case event.Edit, event.New, event.Vnew, event.Write:
 		return c.completeFilepaths(cmdline, prefix, arg, forward)
-	case EventWincmd:
+	case event.Wincmd:
 		return c.completeWincmd(cmdline, prefix, arg, forward)
 	default:
 		c.results = nil

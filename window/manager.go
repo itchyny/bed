@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/mathutil"
 )
@@ -28,7 +29,7 @@ type Manager struct {
 	windowIndex     int
 	prevWindowIndex int
 	files           []file
-	eventCh         chan<- Event
+	eventCh         chan<- event.Event
 	redrawCh        chan<- struct{}
 }
 
@@ -44,7 +45,7 @@ func NewManager() *Manager {
 }
 
 // Init initializes the Manager.
-func (m *Manager) Init(eventCh chan<- Event, redrawCh chan<- struct{}) {
+func (m *Manager) Init(eventCh chan<- event.Event, redrawCh chan<- struct{}) {
 	m.eventCh, m.redrawCh = eventCh, redrawCh
 	m.mu = new(sync.Mutex)
 }
@@ -123,95 +124,95 @@ func (m *Manager) Run() {
 }
 
 // Emit an event to the current window.
-func (m *Manager) Emit(event Event) {
-	switch event.Type {
-	case EventCursorGotoAbs:
-		if err := m.cursorGoto(event); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+func (m *Manager) Emit(e event.Event) {
+	switch e.Type {
+	case event.CursorGotoAbs:
+		if err := m.cursorGoto(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case EventCursorGotoRel:
-		if err := m.cursorGoto(event); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.CursorGotoRel:
+		if err := m.cursorGoto(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case EventEdit:
-		if err := m.edit(event); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.Edit:
+		if err := m.edit(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else {
-			m.eventCh <- Event{Type: EventRedraw}
+			m.eventCh <- event.Event{Type: event.Redraw}
 		}
-	case EventNew:
-		if err := m.newWindow(event, false); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.New:
+		if err := m.newWindow(e, false); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else {
-			m.eventCh <- Event{Type: EventRedraw}
+			m.eventCh <- event.Event{Type: event.Redraw}
 		}
-	case EventVnew:
-		if err := m.newWindow(event, true); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.Vnew:
+		if err := m.newWindow(e, true); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else {
-			m.eventCh <- Event{Type: EventRedraw}
+			m.eventCh <- event.Event{Type: event.Redraw}
 		}
-	case EventWincmd:
-		if len(event.Arg) == 0 {
-			m.eventCh <- Event{Type: EventError, Error: fmt.Errorf("an argument is required for %s", event.CmdName)}
-		} else if err := m.wincmd(event.Arg); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.Wincmd:
+		if len(e.Arg) == 0 {
+			m.eventCh <- event.Event{Type: event.Error, Error: fmt.Errorf("an argument is required for %s", e.CmdName)}
+		} else if err := m.wincmd(e.Arg); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else {
-			m.eventCh <- Event{Type: EventRedraw}
+			m.eventCh <- event.Event{Type: event.Redraw}
 		}
-	case EventFocusWindowDown:
+	case event.FocusWindowDown:
 		m.wincmd("j")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventFocusWindowUp:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.FocusWindowUp:
 		m.wincmd("k")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventFocusWindowLeft:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.FocusWindowLeft:
 		m.wincmd("h")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventFocusWindowRight:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.FocusWindowRight:
 		m.wincmd("l")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventFocusWindowTopLeft:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.FocusWindowTopLeft:
 		m.wincmd("t")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventFocusWindowBottomRight:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.FocusWindowBottomRight:
 		m.wincmd("b")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventFocusWindowPrevious:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.FocusWindowPrevious:
 		m.wincmd("p")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventMoveWindowTop:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.MoveWindowTop:
 		m.wincmd("K")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventMoveWindowBottom:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.MoveWindowBottom:
 		m.wincmd("J")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventMoveWindowLeft:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.MoveWindowLeft:
 		m.wincmd("H")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventMoveWindowRight:
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.MoveWindowRight:
 		m.wincmd("L")
-		m.eventCh <- Event{Type: EventRedraw}
-	case EventQuit:
-		if err := m.quit(event); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+		m.eventCh <- event.Event{Type: event.Redraw}
+	case event.Quit:
+		if err := m.quit(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case EventWrite:
-		if err := m.write(event); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.Write:
+		if err := m.write(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case EventWriteQuit:
-		if err := m.writeQuit(event); err != nil {
-			m.eventCh <- Event{Type: EventError, Error: err}
+	case event.WriteQuit:
+		if err := m.writeQuit(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
 	default:
-		m.windows[m.windowIndex].eventCh <- event
+		m.windows[m.windowIndex].eventCh <- e
 	}
 }
 
-func (m *Manager) cursorGoto(event Event) error {
-	event.Count = parseGotoPos(event.Arg)
-	m.windows[m.windowIndex].eventCh <- event
+func (m *Manager) cursorGoto(e event.Event) error {
+	e.Count = parseGotoPos(e.Arg)
+	m.windows[m.windowIndex].eventCh <- e
 	return nil
 }
 
@@ -238,14 +239,14 @@ func parseGotoPos(pos string) int64 {
 	return sign * count
 }
 
-func (m *Manager) edit(event Event) error {
+func (m *Manager) edit(e event.Event) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	var name string
-	if len(event.Arg) == 0 {
+	if len(e.Arg) == 0 {
 		name = m.windows[m.windowIndex].filename
 	} else {
-		name = event.Arg
+		name = e.Arg
 	}
 	window, err := m.open(name)
 	if err != nil {
@@ -258,10 +259,10 @@ func (m *Manager) edit(event Event) error {
 	return nil
 }
 
-func (m *Manager) newWindow(event Event, vertical bool) error {
+func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	window, err := m.open(event.Arg)
+	window, err := m.open(e.Arg)
 	if err != nil {
 		return err
 	}
@@ -279,7 +280,7 @@ func (m *Manager) newWindow(event Event, vertical bool) error {
 func (m *Manager) wincmd(arg string) error {
 	switch arg {
 	case "n":
-		return m.newWindow(Event{}, false)
+		return m.newWindow(event.Event{}, false)
 	case "l":
 		m.focus(func(x, y layout.Window) bool {
 			return x.LeftMargin()+x.Width()+1 == y.LeftMargin() &&
@@ -359,40 +360,40 @@ func (m *Manager) move(modifier func(layout.Window, layout.Layout) layout.Layout
 		activeWindow.Index).Resize(0, 0, m.width, m.height)
 }
 
-func (m *Manager) quit(event Event) error {
-	if len(event.Arg) > 0 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
+func (m *Manager) quit(e event.Event) error {
+	if len(e.Arg) > 0 {
+		return fmt.Errorf("too many arguments for %s", e.CmdName)
 	}
 	w, h := m.layout.Count()
 	if w == 1 && h == 1 {
-		m.eventCh <- Event{Type: EventQuitAll}
+		m.eventCh <- event.Event{Type: event.QuitAll}
 	} else {
 		m.mu.Lock()
 		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
 		m.windowIndex, m.prevWindowIndex = m.layout.ActiveWindow().Index, m.windowIndex
 		m.mu.Unlock()
-		m.eventCh <- Event{Type: EventRedraw}
+		m.eventCh <- event.Event{Type: event.Redraw}
 	}
 	return nil
 }
 
-func (m *Manager) write(event Event) error {
-	filename, n, err := m.writeFile(event.Arg)
+func (m *Manager) write(e event.Event) error {
+	filename, n, err := m.writeFile(e.Arg)
 	if err != nil {
 		return err
 	}
-	m.eventCh <- Event{Type: EventInfo, Error: fmt.Errorf("%s: %d (0x%x) bytes written", filename, n, n)}
+	m.eventCh <- event.Event{Type: event.Info, Error: fmt.Errorf("%s: %d (0x%x) bytes written", filename, n, n)}
 	return nil
 }
 
-func (m *Manager) writeQuit(event Event) error {
-	if len(event.Arg) > 0 {
-		return fmt.Errorf("too many arguments for %s", event.CmdName)
+func (m *Manager) writeQuit(e event.Event) error {
+	if len(e.Arg) > 0 {
+		return fmt.Errorf("too many arguments for %s", e.CmdName)
 	}
 	if _, _, err := m.writeFile(""); err != nil {
 		return err
 	}
-	m.eventCh <- Event{Type: EventQuit}
+	m.eventCh <- event.Event{Type: event.Quit}
 	return nil
 }
 

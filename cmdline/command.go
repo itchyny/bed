@@ -1,27 +1,27 @@
 package cmdline
 
-import . "github.com/itchyny/bed/common"
+import "github.com/itchyny/bed/event"
 
 type command struct {
 	name      string
-	eventType EventType
+	eventType event.Type
 }
 
 var commands = []command{
-	{"e[dit]", EventEdit},
-	{"new", EventNew},
-	{"vne[w]", EventVnew},
-	{"winc[md]", EventWincmd},
+	{"e[dit]", event.Edit},
+	{"new", event.New},
+	{"vne[w]", event.Vnew},
+	{"winc[md]", event.Wincmd},
 
-	{"u[ndo]", EventUndo},
-	{"red[o]", EventRedo},
+	{"u[ndo]", event.Undo},
+	{"red[o]", event.Redo},
 
-	{"exi[t]", EventQuit},
-	{"q[uit]", EventQuit},
-	{"qa[ll]", EventQuitAll},
-	{"quita[ll]", EventQuitAll},
-	{"w[rite]", EventWrite},
-	{"wq", EventWriteQuit},
-	{"x[it]", EventWriteQuit},
-	{"xa[ll]", EventWriteQuit},
+	{"exi[t]", event.Quit},
+	{"q[uit]", event.Quit},
+	{"qa[ll]", event.QuitAll},
+	{"quita[ll]", event.QuitAll},
+	{"w[rite]", event.Write},
+	{"wq", event.WriteQuit},
+	{"x[it]", event.WriteQuit},
+	{"xa[ll]", event.WriteQuit},
 }

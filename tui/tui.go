@@ -8,13 +8,14 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/layout"
 )
 
 // Tui implements UI
 type Tui struct {
-	eventCh chan<- Event
+	eventCh chan<- event.Event
 	mode    Mode
 	screen  tcell.Screen
 }
@@ -25,7 +26,7 @@ func NewTui() *Tui {
 }
 
 // Init initializes the Tui.
-func (ui *Tui) Init(eventCh chan<- Event) (err error) {
+func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 	ui.eventCh = eventCh
 	ui.mode = ModeNormal
 	if ui.screen, err = tcell.NewScreen(); err != nil {
@@ -34,7 +35,7 @@ func (ui *Tui) Init(eventCh chan<- Event) (err error) {
 	return ui.screen.Init()
 }
 
-func (ui *Tui) initForTest(eventCh chan<- Event, screen tcell.SimulationScreen) (err error) {
+func (ui *Tui) initForTest(eventCh chan<- event.Event, screen tcell.SimulationScreen) (err error) {
 	ui.eventCh = eventCh
 	ui.mode = ModeNormal
 	ui.screen = screen
@@ -47,13 +48,13 @@ func (ui *Tui) Run(kms map[Mode]*key.Manager) {
 		e := ui.screen.PollEvent()
 		switch ev := e.(type) {
 		case *tcell.EventKey:
-			if event := kms[ui.mode].Press(eventToKey(ev)); event.Type != EventNop {
-				ui.eventCh <- event
+			if e := kms[ui.mode].Press(eventToKey(ev)); e.Type != event.Nop {
+				ui.eventCh <- e
 			} else {
-				ui.eventCh <- Event{Type: EventRune, Rune: ev.Rune()}
+				ui.eventCh <- event.Event{Type: event.Rune, Rune: ev.Rune()}
 			}
 		case *tcell.EventResize:
-			ui.eventCh <- Event{Type: EventRedraw}
+			ui.eventCh <- event.Event{Type: event.Redraw}
 		case nil:
 			return
 		}

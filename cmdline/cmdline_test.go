@@ -3,7 +3,7 @@ package cmdline
 import (
 	"testing"
 
-	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 )
 
 func TestNewCmdline(t *testing.T) {
@@ -19,19 +19,19 @@ func TestNewCmdline(t *testing.T) {
 
 func TestCmdlineRun(t *testing.T) {
 	c := NewCmdline()
-	eventCh, cmdlineCh, redrawCh := make(chan Event), make(chan Event), make(chan struct{})
+	eventCh, cmdlineCh, redrawCh := make(chan event.Event), make(chan event.Event), make(chan struct{})
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	go c.Run()
-	events := []Event{
-		Event{Type: EventStartCmdlineCommand}, Event{Type: EventNop},
-		Event{Type: EventRune, Rune: 't'}, Event{Type: EventRune, Rune: 'e'},
-		Event{Type: EventCursorLeft}, Event{Type: EventCursorRight},
-		Event{Type: EventCursorHead}, Event{Type: EventCursorEnd},
-		Event{Type: EventBackspaceCmdline}, Event{Type: EventDeleteCmdline},
-		Event{Type: EventDeleteWordCmdline}, Event{Type: EventClearToHeadCmdline},
-		Event{Type: EventClearCmdline}, Event{Type: EventRune, Rune: 't'},
-		Event{Type: EventRune, Rune: 'e'}, Event{Type: EventExecuteCmdline},
-		Event{Type: EventStartCmdlineCommand}, Event{Type: EventExecuteCmdline},
+	events := []event.Event{
+		event.Event{Type: event.StartCmdlineCommand}, event.Event{Type: event.Nop},
+		event.Event{Type: event.Rune, Rune: 't'}, event.Event{Type: event.Rune, Rune: 'e'},
+		event.Event{Type: event.CursorLeft}, event.Event{Type: event.CursorRight},
+		event.Event{Type: event.CursorHead}, event.Event{Type: event.CursorEnd},
+		event.Event{Type: event.BackspaceCmdline}, event.Event{Type: event.DeleteCmdline},
+		event.Event{Type: event.DeleteWordCmdline}, event.Event{Type: event.ClearToHeadCmdline},
+		event.Event{Type: event.ClearCmdline}, event.Event{Type: event.Rune, Rune: 't'},
+		event.Event{Type: event.Rune, Rune: 'e'}, event.Event{Type: event.ExecuteCmdline},
+		event.Event{Type: event.StartCmdlineCommand}, event.Event{Type: event.ExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events {
@@ -42,8 +42,8 @@ func TestCmdlineRun(t *testing.T) {
 		<-redrawCh
 	}
 	e := <-eventCh
-	if e.Type != EventError {
-		t.Errorf("cmdline should emit EventError but got %v", e)
+	if e.Type != event.Error {
+		t.Errorf("cmdline should emit event.Error but got %v", e)
 	}
 	<-redrawCh
 	cmdline, cursor, _, _ := c.Get()
@@ -290,8 +290,8 @@ func TestCmdlineCursorInsert(t *testing.T) {
 
 func TestCmdlineQuit(t *testing.T) {
 	c := NewCmdline()
-	ch := make(chan Event, 1)
-	c.Init(ch, make(chan Event), make(chan struct{}))
+	ch := make(chan event.Event, 1)
+	c.Init(ch, make(chan event.Event), make(chan struct{}))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
@@ -308,7 +308,7 @@ func TestCmdlineQuit(t *testing.T) {
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
-		if e.Type != EventQuit {
+		if e.Type != event.Quit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 	}
@@ -316,8 +316,8 @@ func TestCmdlineQuit(t *testing.T) {
 
 func TestCmdlineExecuteQuitAll(t *testing.T) {
 	c := NewCmdline()
-	ch := make(chan Event, 1)
-	c.Init(ch, make(chan Event), make(chan struct{}))
+	ch := make(chan event.Event, 1)
+	c.Init(ch, make(chan event.Event), make(chan struct{}))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
@@ -333,7 +333,7 @@ func TestCmdlineExecuteQuitAll(t *testing.T) {
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
-		if e.Type != EventQuitAll {
+		if e.Type != event.QuitAll {
 			t.Errorf("cmdline should emit quit all event with %q", cmd.cmd)
 		}
 	}
@@ -341,8 +341,8 @@ func TestCmdlineExecuteQuitAll(t *testing.T) {
 
 func TestCmdlineExecuteWriteQuit(t *testing.T) {
 	c := NewCmdline()
-	ch := make(chan Event, 1)
-	c.Init(ch, make(chan Event), make(chan struct{}))
+	ch := make(chan event.Event, 1)
+	c.Init(ch, make(chan event.Event), make(chan struct{}))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
@@ -361,7 +361,7 @@ func TestCmdlineExecuteWriteQuit(t *testing.T) {
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
-		if e.Type != EventWriteQuit {
+		if e.Type != event.WriteQuit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 	}
@@ -369,18 +369,18 @@ func TestCmdlineExecuteWriteQuit(t *testing.T) {
 
 func TestCmdlineExecuteGoto(t *testing.T) {
 	c := NewCmdline()
-	ch := make(chan Event, 1)
-	c.Init(ch, make(chan Event), make(chan struct{}))
+	ch := make(chan event.Event, 1)
+	c.Init(ch, make(chan event.Event), make(chan struct{}))
 	for _, cmd := range []struct {
 		cmd  string
 		name string
-		typ  EventType
+		typ  event.Type
 	}{
-		{"  :  :  $  ", "$", EventCursorGotoAbs},
-		{"  :  123456789abcdef  ", "123456789abcdef", EventCursorGotoAbs},
-		{"  fedcba  ", "fedcba", EventCursorGotoAbs},
-		{"  +44ef ", "+44ef", EventCursorGotoRel},
-		{"  -ff ", "-ff", EventCursorGotoRel},
+		{"  :  :  $  ", "$", event.CursorGotoAbs},
+		{"  :  123456789abcdef  ", "123456789abcdef", event.CursorGotoAbs},
+		{"  fedcba  ", "fedcba", event.CursorGotoAbs},
+		{"  +44ef ", "+44ef", event.CursorGotoRel},
+		{"  -ff ", "-ff", event.CursorGotoRel},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
@@ -399,26 +399,26 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 func TestCmdlineComplete(t *testing.T) {
 	c := NewCmdline()
 	c.completor = newCompletor(&mockFilesystem{})
-	eventCh, cmdlineCh, redrawCh := make(chan Event), make(chan Event), make(chan struct{})
+	eventCh, cmdlineCh, redrawCh := make(chan event.Event), make(chan event.Event), make(chan struct{})
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	waitCh := make(chan struct{})
 	go c.Run()
 	go func() {
-		cmdlineCh <- Event{Type: EventStartCmdlineCommand}
-		cmdlineCh <- Event{Type: EventRune, Rune: 'e'}
-		cmdlineCh <- Event{Type: EventRune, Rune: ' '}
-		cmdlineCh <- Event{Type: EventRune, Rune: '/'}
-		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		cmdlineCh <- event.Event{Type: event.StartCmdlineCommand}
+		cmdlineCh <- event.Event{Type: event.Rune, Rune: 'e'}
+		cmdlineCh <- event.Event{Type: event.Rune, Rune: ' '}
+		cmdlineCh <- event.Event{Type: event.Rune, Rune: '/'}
+		cmdlineCh <- event.Event{Type: event.CompleteForwardCmdline}
 		<-waitCh
-		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		cmdlineCh <- event.Event{Type: event.CompleteForwardCmdline}
 		<-waitCh
-		cmdlineCh <- Event{Type: EventCompleteBackCmdline}
+		cmdlineCh <- event.Event{Type: event.CompleteBackCmdline}
 		<-waitCh
-		cmdlineCh <- Event{Type: EventCursorEnd}
-		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
-		cmdlineCh <- Event{Type: EventCompleteForwardCmdline}
+		cmdlineCh <- event.Event{Type: event.CursorEnd}
+		cmdlineCh <- event.Event{Type: event.CompleteForwardCmdline}
+		cmdlineCh <- event.Event{Type: event.CompleteForwardCmdline}
 		<-waitCh
-		cmdlineCh <- Event{Type: EventExecuteCmdline}
+		cmdlineCh <- event.Event{Type: event.ExecuteCmdline}
 	}()
 	for i := 0; i < 5; i++ {
 		<-redrawCh
@@ -469,8 +469,8 @@ func TestCmdlineComplete(t *testing.T) {
 	}
 	e := <-eventCh
 	<-redrawCh
-	if e.Type != EventEdit {
-		t.Errorf("cmdline should emit EventEdit but got %v", e)
+	if e.Type != event.Edit {
+		t.Errorf("cmdline should emit event.Edit but got %v", e)
 	}
 	if e.Arg != "/bin/echo" {
 		t.Errorf("cmdline should emit event with arg %q but got %q", "/bin/echo", e)
@@ -479,7 +479,7 @@ func TestCmdlineComplete(t *testing.T) {
 
 func TestCmdlineSearch(t *testing.T) {
 	c := NewCmdline()
-	eventCh, cmdlineCh, redrawCh := make(chan Event), make(chan Event), make(chan struct{})
+	eventCh, cmdlineCh, redrawCh := make(chan event.Event), make(chan event.Event), make(chan struct{})
 	waitCh := make(chan struct{})
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	defer func() {
@@ -488,16 +488,16 @@ func TestCmdlineSearch(t *testing.T) {
 		close(redrawCh)
 	}()
 	go c.Run()
-	events1 := []Event{
-		Event{Type: EventStartCmdlineSearchForward},
-		Event{Type: EventRune, Rune: 't'}, Event{Type: EventRune, Rune: 't'},
-		Event{Type: EventCursorLeft}, Event{Type: EventRune, Rune: 'e'},
-		Event{Type: EventRune, Rune: 's'}, Event{Type: EventExecuteCmdline},
+	events1 := []event.Event{
+		event.Event{Type: event.StartCmdlineSearchForward},
+		event.Event{Type: event.Rune, Rune: 't'}, event.Event{Type: event.Rune, Rune: 't'},
+		event.Event{Type: event.CursorLeft}, event.Event{Type: event.Rune, Rune: 'e'},
+		event.Event{Type: event.Rune, Rune: 's'}, event.Event{Type: event.ExecuteCmdline},
 	}
-	events2 := []Event{
-		Event{Type: EventStartCmdlineSearchBackward},
-		Event{Type: EventRune, Rune: 'x'}, Event{Type: EventRune, Rune: 'y'},
-		Event{Type: EventRune, Rune: 'z'}, Event{Type: EventExecuteCmdline},
+	events2 := []event.Event{
+		event.Event{Type: event.StartCmdlineSearchBackward},
+		event.Event{Type: event.Rune, Rune: 'x'}, event.Event{Type: event.Rune, Rune: 'y'},
+		event.Event{Type: event.Rune, Rune: 'z'}, event.Event{Type: event.ExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events1 {
@@ -513,8 +513,8 @@ func TestCmdlineSearch(t *testing.T) {
 	}
 	e := <-eventCh
 	<-redrawCh
-	if e.Type != EventExecuteSearch {
-		t.Errorf("cmdline should emit EventExecuteSearch but got %v", e)
+	if e.Type != event.ExecuteSearch {
+		t.Errorf("cmdline should emit event.ExecuteSearch but got %v", e)
 	}
 	if e.Arg != "test" {
 		t.Errorf("cmdline should emit search event with Arg %q but got %q", "test", e.Arg)
@@ -528,8 +528,8 @@ func TestCmdlineSearch(t *testing.T) {
 	}
 	e = <-eventCh
 	<-redrawCh
-	if e.Type != EventExecuteSearch {
-		t.Errorf("cmdline should emit EventExecuteSearch but got %v", e)
+	if e.Type != event.ExecuteSearch {
+		t.Errorf("cmdline should emit event.ExecuteSearch but got %v", e)
 	}
 	if e.Arg != "xyz" {
 		t.Errorf("cmdline should emit search event with Arg %q but got %q", "xyz", e.Arg)

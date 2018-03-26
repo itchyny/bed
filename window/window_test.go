@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 )
 
 func TestWindowState(t *testing.T) {
@@ -1108,9 +1109,9 @@ func TestWindowEventRune(t *testing.T) {
 		window.Run()
 	}()
 	go func() {
-		window.eventCh <- Event{Type: EventStartInsert}
+		window.eventCh <- event.Event{Type: event.StartInsert}
 		for _, r := range str {
-			window.eventCh <- Event{Type: EventRune, Rune: r, Mode: ModeInsert}
+			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: ModeInsert}
 		}
 	}()
 	<-redrawCh
@@ -1135,10 +1136,10 @@ func TestWindowEventRuneText(t *testing.T) {
 		window.Run()
 	}()
 	go func() {
-		window.eventCh <- Event{Type: EventSwitchFocus}
-		window.eventCh <- Event{Type: EventStartInsert}
+		window.eventCh <- event.Event{Type: event.SwitchFocus}
+		window.eventCh <- event.Event{Type: event.StartInsert}
 		for _, r := range str {
-			window.eventCh <- Event{Type: EventRune, Rune: r, Mode: ModeInsert}
+			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: ModeInsert}
 		}
 	}()
 	<-redrawCh
@@ -1174,35 +1175,35 @@ func TestWindowEventUndoRedo(t *testing.T) {
 		window.Run()
 	}()
 	go func() {
-		window.eventCh <- Event{Type: EventUndo}
-		window.eventCh <- Event{Type: EventSwitchFocus}
-		window.eventCh <- Event{Type: EventStartAppend, Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Undo}
+		window.eventCh <- event.Event{Type: event.SwitchFocus}
+		window.eventCh <- event.Event{Type: event.StartAppend, Mode: ModeInsert}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventRune, Rune: 'x', Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventRune, Rune: 'y', Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventRune, Rune: 'z', Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventExitInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.ExitInsert}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventStartInsert, Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventRune, Rune: 'x', Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventRune, Rune: 'y', Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventCursorLeft, Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventRune, Rune: 'z', Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventExitInsert}
+		window.eventCh <- event.Event{Type: event.StartInsert, Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.CursorLeft, Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.ExitInsert}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventUndo, Count: 2}
-		window.eventCh <- Event{Type: EventStartInsert, Mode: ModeInsert}
-		window.eventCh <- Event{Type: EventRune, Rune: 'w', Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Undo, Count: 2}
+		window.eventCh <- event.Event{Type: event.StartInsert, Mode: ModeInsert}
+		window.eventCh <- event.Event{Type: event.Rune, Rune: 'w', Mode: ModeInsert}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventExitInsert}
-		window.eventCh <- Event{Type: EventUndo}
+		window.eventCh <- event.Event{Type: event.ExitInsert}
+		window.eventCh <- event.Event{Type: event.Undo}
 
 		<-waitCh
-		window.eventCh <- Event{Type: EventRedo, Count: 2}
+		window.eventCh <- event.Event{Type: event.Redo, Count: 2}
 	}()
 
 	waitRedraw(3)

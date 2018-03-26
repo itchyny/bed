@@ -9,6 +9,7 @@ import (
 
 	"github.com/itchyny/bed/buffer"
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/history"
 	"github.com/itchyny/bed/mathutil"
 )
@@ -33,7 +34,7 @@ type window struct {
 	pendingByte byte
 	focusText   bool
 	redrawCh    chan<- struct{}
-	eventCh     chan Event
+	eventCh     chan event.Event
 	mu          *sync.Mutex
 }
 
@@ -62,7 +63,7 @@ func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- str
 		name:     name,
 		length:   length,
 		redrawCh: redrawCh,
-		eventCh:  make(chan Event),
+		eventCh:  make(chan event.Event),
 		mu:       new(sync.Mutex),
 	}, nil
 }
@@ -85,109 +86,109 @@ func (w *window) Run() {
 		w.mu.Lock()
 		offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
 		switch e.Type {
-		case EventCursorUp:
+		case event.CursorUp:
 			w.cursorUp(e.Count)
-		case EventCursorDown:
+		case event.CursorDown:
 			w.cursorDown(e.Count)
-		case EventCursorLeft:
+		case event.CursorLeft:
 			w.cursorLeft(e.Count)
-		case EventCursorRight:
+		case event.CursorRight:
 			w.cursorRight(e.Mode, e.Count)
-		case EventCursorPrev:
+		case event.CursorPrev:
 			w.cursorPrev(e.Count)
-		case EventCursorNext:
+		case event.CursorNext:
 			w.cursorNext(e.Mode, e.Count)
-		case EventCursorHead:
+		case event.CursorHead:
 			w.cursorHead(e.Count)
-		case EventCursorEnd:
+		case event.CursorEnd:
 			w.cursorEnd(e.Count)
-		case EventCursorGotoAbs:
+		case event.CursorGotoAbs:
 			w.cursorGotoAbs(e.Count)
-		case EventCursorGotoRel:
+		case event.CursorGotoRel:
 			w.cursorGotoRel(e.Count)
-		case EventScrollUp:
+		case event.ScrollUp:
 			w.scrollUp(e.Count)
-		case EventScrollDown:
+		case event.ScrollDown:
 			w.scrollDown(e.Count)
-		case EventPageUp:
+		case event.PageUp:
 			w.pageUp()
-		case EventPageDown:
+		case event.PageDown:
 			w.pageDown()
-		case EventPageUpHalf:
+		case event.PageUpHalf:
 			w.pageUpHalf()
-		case EventPageDownHalf:
+		case event.PageDownHalf:
 			w.pageDownHalf()
-		case EventPageTop:
+		case event.PageTop:
 			w.pageTop()
-		case EventPageEnd:
+		case event.PageEnd:
 			w.pageEnd()
-		case EventJumpTo:
+		case event.JumpTo:
 			w.jumpTo()
-		case EventJumpBack:
+		case event.JumpBack:
 			w.jumpBack()
 
-		case EventDeleteByte:
+		case event.DeleteByte:
 			w.deleteByte(e.Count)
-		case EventDeletePrevByte:
+		case event.DeletePrevByte:
 			w.deletePrevByte(e.Count)
-		case EventIncrement:
+		case event.Increment:
 			w.increment(e.Count)
-		case EventDecrement:
+		case event.Decrement:
 			w.decrement(e.Count)
 
-		case EventStartInsert:
+		case event.StartInsert:
 			w.startInsert()
-		case EventStartInsertHead:
+		case event.StartInsertHead:
 			w.startInsertHead()
-		case EventStartAppend:
+		case event.StartAppend:
 			w.startAppend()
-		case EventStartAppendEnd:
+		case event.StartAppendEnd:
 			w.startAppendEnd()
-		case EventStartReplaceByte:
+		case event.StartReplaceByte:
 			w.startReplaceByte()
-		case EventStartReplace:
+		case event.StartReplace:
 			w.startReplace()
-		case EventExitInsert:
+		case event.ExitInsert:
 			w.exitInsert()
-		case EventRune:
+		case event.Rune:
 			w.insertRune(e.Mode, e.Rune)
-		case EventBackspace:
+		case event.Backspace:
 			w.backspace()
-		case EventDelete:
+		case event.Delete:
 			w.deleteByte(1)
-		case EventSwitchFocus:
+		case event.SwitchFocus:
 			w.focusText = !w.focusText
 			if w.pending {
 				w.pending = false
 				w.pendingByte = '\x00'
 			}
 			w.changedTick++
-		case EventUndo:
+		case event.Undo:
 			if e.Mode != ModeNormal {
-				panic("EventUndo should be emitted under normal mode")
+				panic("event.Undo should be emitted under normal mode")
 			}
 			w.undo(e.Count)
-		case EventRedo:
+		case event.Redo:
 			if e.Mode != ModeNormal {
-				panic("EventUndo should be emitted under normal mode")
+				panic("event.Undo should be emitted under normal mode")
 			}
 			w.redo(e.Count)
-		case EventExecuteSearch:
+		case event.ExecuteSearch:
 			w.search(e.Arg, e.Rune == '/')
-		case EventNextSearch:
+		case event.NextSearch:
 			w.search(e.Arg, e.Rune == '/')
-		case EventPreviousSearch:
+		case event.PreviousSearch:
 			w.search(e.Arg, e.Rune != '/')
 		default:
 			w.mu.Unlock()
 			continue
 		}
 		changed := changedTick != w.changedTick
-		if e.Type != EventUndo && e.Type != EventRedo {
-			if e.Mode == ModeNormal && changed || e.Type == EventExitInsert && w.prevChanged {
+		if e.Type != event.Undo && e.Type != event.Redo {
+			if e.Mode == ModeNormal && changed || e.Type == event.ExitInsert && w.prevChanged {
 				w.history.Push(w.buffer, w.offset, w.cursor)
 			} else if e.Mode != ModeNormal && w.prevChanged && !changed &&
-				EventCursorUp <= e.Type && e.Type <= EventJumpBack {
+				event.CursorUp <= e.Type && e.Type <= event.JumpBack {
 				w.history.Push(w.buffer, offset, cursor)
 			}
 		}

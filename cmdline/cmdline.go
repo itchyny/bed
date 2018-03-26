@@ -3,7 +3,7 @@ package cmdline
 import (
 	"unicode"
 
-	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/mathutil"
 )
 
@@ -15,8 +15,8 @@ type Cmdline struct {
 	completionResults []string
 	completionIndex   int
 	typ               rune
-	eventCh           chan<- Event
-	cmdlineCh         <-chan Event
+	eventCh           chan<- event.Event
+	cmdlineCh         <-chan event.Event
 	redrawCh          chan<- struct{}
 }
 
@@ -26,7 +26,7 @@ func NewCmdline() *Cmdline {
 }
 
 // Init initializes the Cmdline.
-func (c *Cmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh chan<- struct{}) {
+func (c *Cmdline) Init(eventCh chan<- event.Event, cmdlineCh <-chan event.Event, redrawCh chan<- struct{}) {
 	c.eventCh, c.cmdlineCh, c.redrawCh = eventCh, cmdlineCh, redrawCh
 }
 
@@ -34,46 +34,46 @@ func (c *Cmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh ch
 func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
 		switch e.Type {
-		case EventStartCmdlineCommand:
+		case event.StartCmdlineCommand:
 			c.typ = ':'
 			c.clear()
-		case EventStartCmdlineSearchForward:
+		case event.StartCmdlineSearchForward:
 			c.typ = '/'
 			c.clear()
-		case EventStartCmdlineSearchBackward:
+		case event.StartCmdlineSearchBackward:
 			c.typ = '?'
 			c.clear()
-		case EventExitCmdline:
+		case event.ExitCmdline:
 			// do nothing here but redraw
-		case EventCursorLeft:
+		case event.CursorLeft:
 			c.cursorLeft()
-		case EventCursorRight:
+		case event.CursorRight:
 			c.cursorRight()
-		case EventCursorHead:
+		case event.CursorHead:
 			c.cursorHead()
-		case EventCursorEnd:
+		case event.CursorEnd:
 			c.cursorEnd()
-		case EventBackspaceCmdline:
+		case event.BackspaceCmdline:
 			c.backspace()
-		case EventDeleteCmdline:
+		case event.DeleteCmdline:
 			c.deleteRune()
-		case EventDeleteWordCmdline:
+		case event.DeleteWordCmdline:
 			c.deleteWord()
-		case EventClearToHeadCmdline:
+		case event.ClearToHeadCmdline:
 			c.clearToHead()
-		case EventClearCmdline:
+		case event.ClearCmdline:
 			c.clear()
-		case EventRune:
+		case event.Rune:
 			c.insert(e.Rune)
-		case EventCompleteForwardCmdline:
+		case event.CompleteForwardCmdline:
 			c.complete(true)
 			c.redrawCh <- struct{}{}
 			continue
-		case EventCompleteBackCmdline:
+		case event.CompleteBackCmdline:
 			c.complete(false)
 			c.redrawCh <- struct{}{}
 			continue
-		case EventExecuteCmdline:
+		case event.ExecuteCmdline:
 			c.execute()
 		default:
 			continue
@@ -166,16 +166,16 @@ func (c *Cmdline) execute() {
 	case ':':
 		cmd, _, arg, err := parse(c.cmdline)
 		if err != nil {
-			c.eventCh <- Event{Type: EventError, Error: err}
+			c.eventCh <- event.Event{Type: event.Error, Error: err}
 			return
 		}
 		if cmd.name != "" {
-			c.eventCh <- Event{Type: cmd.eventType, CmdName: cmd.name, Arg: arg}
+			c.eventCh <- event.Event{Type: cmd.eventType, CmdName: cmd.name, Arg: arg}
 		}
 	case '/':
-		c.eventCh <- Event{Type: EventExecuteSearch, Arg: string(c.cmdline), Rune: '/'}
+		c.eventCh <- event.Event{Type: event.ExecuteSearch, Arg: string(c.cmdline), Rune: '/'}
 	case '?':
-		c.eventCh <- Event{Type: EventExecuteSearch, Arg: string(c.cmdline), Rune: '?'}
+		c.eventCh <- event.Event{Type: event.ExecuteSearch, Arg: string(c.cmdline), Rune: '?'}
 	default:
 		panic("cmdline.Cmdline.execute: unreachable")
 	}

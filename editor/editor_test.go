@@ -8,15 +8,16 @@ import (
 
 	"github.com/itchyny/bed/cmdline"
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/window"
 )
 
 type testUI struct {
-	eventCh chan<- Event
+	eventCh chan<- event.Event
 }
 
-func (ui *testUI) Init(eventCh chan<- Event) error {
+func (ui *testUI) Init(eventCh chan<- event.Event) error {
 	ui.eventCh = eventCh
 	return nil
 }
@@ -31,11 +32,12 @@ func (ui *testUI) Redraw(state State) error { return nil }
 
 func (ui *testUI) Close() error { return nil }
 
-func (ui *testUI) Emit(e Event) { ui.eventCh <- e }
+func (ui *testUI) Emit(e event.Event) { ui.eventCh <- e }
 
 type testCmdline struct{}
 
-func (c *testCmdline) Init(eventCh chan<- Event, cmdlineCh <-chan Event, redrawCh chan<- struct{}) {}
+func (c *testCmdline) Init(eventCh chan<- event.Event, cmdlineCh <-chan event.Event, redrawCh chan<- struct{}) {
+}
 
 func (c *testCmdline) Run() {}
 
@@ -59,13 +61,13 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	go func() {
-		for _, t := range []EventType{EventIncrement, EventIncrement, EventDecrement} {
-			ui.Emit(Event{Type: t})
+		for _, t := range []event.Type{event.Increment, event.Increment, event.Decrement} {
+			ui.Emit(event.Event{Type: t})
 		}
 		time.Sleep(100 * time.Millisecond)
-		ui.Emit(Event{Type: EventWrite, Arg: f.Name()})
+		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
 		time.Sleep(100 * time.Millisecond)
-		ui.Emit(Event{Type: EventQuit})
+		ui.Emit(event.Event{Type: event.Quit})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -102,18 +104,18 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	defer os.Remove(f.Name())
 	go func() {
 		for _, e := range []struct {
-			typ EventType
+			typ event.Type
 			ch  rune
 		}{
-			{EventStartInsert, '-'}, {EventRune, '4'}, {EventRune, '8'}, {EventRune, '0'}, {EventRune, '0'},
-			{EventRune, 'f'}, {EventRune, 'a'}, {EventExitInsert, '-'}, {EventCursorLeft, '-'}, {EventDecrement, '-'},
-			{EventStartInsertHead, '-'}, {EventRune, '1'}, {EventRune, '2'}, {EventExitInsert, '-'},
-			{EventCursorEnd, '-'}, {EventDelete, '-'},
+			{event.StartInsert, '-'}, {event.Rune, '4'}, {event.Rune, '8'}, {event.Rune, '0'}, {event.Rune, '0'},
+			{event.Rune, 'f'}, {event.Rune, 'a'}, {event.ExitInsert, '-'}, {event.CursorLeft, '-'}, {event.Decrement, '-'},
+			{event.StartInsertHead, '-'}, {event.Rune, '1'}, {event.Rune, '2'}, {event.ExitInsert, '-'},
+			{event.CursorEnd, '-'}, {event.Delete, '-'},
 		} {
-			ui.Emit(Event{Type: e.typ, Rune: e.ch})
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
 		}
 		time.Sleep(100 * time.Millisecond)
-		ui.Emit(Event{Type: EventWriteQuit})
+		ui.Emit(event.Event{Type: event.WriteQuit})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -144,16 +146,16 @@ func TestEditorCmdlineQuit(t *testing.T) {
 	}
 	go func() {
 		for _, e := range []struct {
-			typ EventType
+			typ event.Type
 			ch  rune
 		}{
-			{EventStartCmdlineCommand, ':'}, {EventRune, 'q'}, {EventRune, 'u'}, {EventRune, 'i'},
-			{EventRune, 't'},
+			{event.StartCmdlineCommand, ':'}, {event.Rune, 'q'}, {event.Rune, 'u'}, {event.Rune, 'i'},
+			{event.Rune, 't'},
 		} {
-			ui.Emit(Event{Type: e.typ, Rune: e.ch})
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
 		}
 		time.Sleep(100 * time.Millisecond)
-		ui.Emit(Event{Type: EventExecuteCmdline})
+		ui.Emit(event.Event{Type: event.ExecuteCmdline})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)

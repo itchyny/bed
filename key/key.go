@@ -3,7 +3,7 @@ package key
 import (
 	"strconv"
 
-	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 )
 
 // Key represents one keyboard stroke.
@@ -11,7 +11,7 @@ type Key string
 
 type keyEvent struct {
 	keys  []Key
-	event EventType
+	event event.Type
 }
 
 const (
@@ -48,12 +48,12 @@ func NewManager(count bool) *Manager {
 }
 
 // Register adds a new key mapping.
-func (km *Manager) Register(eventType EventType, keys ...Key) {
+func (km *Manager) Register(eventType event.Type, keys ...Key) {
 	km.events = append(km.events, keyEvent{keys, eventType})
 }
 
 // Press checks the new key down event.
-func (km *Manager) Press(k Key) Event {
+func (km *Manager) Press(k Key) event.Event {
 	km.keys = append(km.keys, k)
 	for i := 0; i < len(km.keys); i++ {
 		keys := km.keys[i:]
@@ -73,13 +73,13 @@ func (km *Manager) Press(k Key) Event {
 		for _, ke := range km.events {
 			switch ke.cmp(keys) {
 			case keysPending:
-				return Event{Type: EventNop}
+				return event.Event{Type: event.Nop}
 			case keysEq:
 				km.keys = nil
-				return Event{Type: ke.event, Count: count}
+				return event.Event{Type: ke.event, Count: count}
 			}
 		}
 	}
 	km.keys = nil
-	return Event{Type: EventNop}
+	return event.Event{Type: event.Nop}
 }

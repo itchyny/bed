@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 )
 
 // Editor is the main struct for this command.
@@ -15,12 +16,12 @@ type Editor struct {
 	mode          Mode
 	searchTarget  string
 	searchMode    rune
-	prevEventType EventType
+	prevEventType event.Type
 	err           error
 	errtyp        int
-	eventCh       chan Event
+	eventCh       chan event.Event
 	redrawCh      chan struct{}
-	cmdlineCh     chan Event
+	cmdlineCh     chan event.Event
 }
 
 // NewEditor creates a new editor.
@@ -30,9 +31,9 @@ func NewEditor(ui UI, wm Manager, cmdline Cmdline) *Editor {
 
 // Init initializes the editor.
 func (e *Editor) Init() error {
-	e.eventCh = make(chan Event, 1)
+	e.eventCh = make(chan event.Event, 1)
 	e.redrawCh = make(chan struct{})
-	e.cmdlineCh = make(chan Event)
+	e.cmdlineCh = make(chan event.Event)
 	e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh)
 	e.wm.Init(e.eventCh, e.redrawCh)
 	return nil
@@ -45,66 +46,66 @@ func (e *Editor) listen() {
 			e.redraw()
 		}
 	}()
-	for event := range e.eventCh {
-		if event.Type != EventRedraw {
-			e.prevEventType = event.Type
+	for ev := range e.eventCh {
+		if ev.Type != event.Redraw {
+			e.prevEventType = ev.Type
 		}
-		switch event.Type {
-		case EventQuitAll:
-			if len(event.Arg) > 0 {
-				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", event.CmdName), MessageError
+		switch ev.Type {
+		case event.QuitAll:
+			if len(ev.Arg) > 0 {
+				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), MessageError
 				e.redrawCh <- struct{}{}
 			} else {
 				return
 			}
-		case EventInfo:
-			e.err, e.errtyp = event.Error, MessageInfo
+		case event.Info:
+			e.err, e.errtyp = ev.Error, MessageInfo
 			e.redrawCh <- struct{}{}
-		case EventError:
-			e.err, e.errtyp = event.Error, MessageError
+		case event.Error:
+			e.err, e.errtyp = ev.Error, MessageError
 			e.redrawCh <- struct{}{}
-		case EventRedraw:
+		case event.Redraw:
 			width, height := e.ui.Size()
 			e.wm.Resize(width, height-1)
 			e.redrawCh <- struct{}{}
 		default:
-			switch event.Type {
-			case EventStartInsert, EventStartInsertHead, EventStartAppend, EventStartAppendEnd:
+			switch ev.Type {
+			case event.StartInsert, event.StartInsertHead, event.StartAppend, event.StartAppendEnd:
 				e.mode = ModeInsert
-			case EventStartReplaceByte, EventStartReplace:
+			case event.StartReplaceByte, event.StartReplace:
 				e.mode = ModeReplace
-			case EventExitInsert:
+			case event.ExitInsert:
 				e.mode = ModeNormal
-			case EventStartCmdlineCommand:
+			case event.StartCmdlineCommand:
 				e.mode = ModeCmdline
 				e.err = nil
-			case EventStartCmdlineSearchForward:
+			case event.StartCmdlineSearchForward:
 				e.mode = ModeSearch
 				e.err = nil
 				e.searchMode = '/'
-			case EventStartCmdlineSearchBackward:
+			case event.StartCmdlineSearchBackward:
 				e.mode = ModeSearch
 				e.err = nil
 				e.searchMode = '?'
-			case EventExitCmdline:
+			case event.ExitCmdline:
 				e.mode = ModeNormal
-			case EventExecuteCmdline:
+			case event.ExecuteCmdline:
 				e.mode = ModeNormal
-			case EventExecuteSearch:
-				e.searchTarget, e.searchMode = event.Arg, event.Rune
-			case EventNextSearch:
-				event.Arg, event.Rune = e.searchTarget, e.searchMode
-			case EventPreviousSearch:
-				event.Arg, event.Rune = e.searchTarget, e.searchMode
+			case event.ExecuteSearch:
+				e.searchTarget, e.searchMode = ev.Arg, ev.Rune
+			case event.NextSearch:
+				ev.Arg, ev.Rune = e.searchTarget, e.searchMode
+			case event.PreviousSearch:
+				ev.Arg, ev.Rune = e.searchTarget, e.searchMode
 			}
 			if e.mode == ModeCmdline || e.mode == ModeSearch ||
-				event.Type == EventExitCmdline || event.Type == EventExecuteCmdline {
-				e.cmdlineCh <- event
+				ev.Type == event.ExitCmdline || ev.Type == event.ExecuteCmdline {
+				e.cmdlineCh <- ev
 			} else {
-				event.Mode = e.mode
+				ev.Mode = e.mode
 				width, height := e.ui.Size()
 				e.wm.Resize(width, height-1)
-				e.wm.Emit(event)
+				e.wm.Emit(ev)
 			}
 		}
 	}
@@ -148,11 +149,11 @@ func (e *Editor) redraw() (err error) {
 	state.WindowStates[windowIndex].Mode = e.mode
 	state.Mode, state.Error, state.ErrorType = e.mode, e.err, e.errtyp
 	state.Cmdline, state.CmdlineCursor, state.CompletionResults, state.CompletionIndex = e.cmdline.Get()
-	if e.mode == ModeSearch || e.prevEventType == EventExecuteSearch {
+	if e.mode == ModeSearch || e.prevEventType == event.ExecuteSearch {
 		state.SearchMode = e.searchMode
-	} else if e.prevEventType == EventNextSearch {
+	} else if e.prevEventType == event.NextSearch {
 		state.SearchMode, state.Cmdline = e.searchMode, []rune(e.searchTarget)
-	} else if e.prevEventType == EventPreviousSearch {
+	} else if e.prevEventType == event.PreviousSearch {
 		if e.searchMode == '/' {
 			state.SearchMode, state.Cmdline = '?', []rune(e.searchTarget)
 		} else {

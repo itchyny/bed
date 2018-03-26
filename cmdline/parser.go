@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 )
 
 func parse(cmdline []rune) (command, string, string, error) {
@@ -37,20 +37,20 @@ func parse(cmdline []rune) (command, string, string, error) {
 	}
 	if len(strings.Fields(string(cmdline[k:]))) == 0 {
 		if cmdName == "$" {
-			return command{cmdName, EventCursorGotoAbs}, string(cmdline[:k]), cmdName, nil
+			return command{cmdName, event.CursorGotoAbs}, string(cmdline[:k]), cmdName, nil
 		}
-		relative, eventType := false, EventCursorGotoAbs
+		relative, eventType := false, event.CursorGotoAbs
 		for _, c := range cmdName {
 			if !relative && (c == '-' || c == '+') {
 				relative = true
-				eventType = EventCursorGotoRel
+				eventType = event.CursorGotoRel
 			} else if !('0' <= c && c <= '9' || 'a' <= c && c <= 'f') {
-				eventType = EventNop
+				eventType = event.Nop
 				break
 			}
 		}
-		if eventType != EventNop {
-			return command{cmdName, EventType(eventType)}, string(cmdline[:k]), cmdName, nil
+		if eventType != event.Nop {
+			return command{cmdName, event.Type(eventType)}, string(cmdline[:k]), cmdName, nil
 		}
 	}
 	return command{}, "", "", fmt.Errorf("unknown command: %s", string(cmdline))

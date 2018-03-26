@@ -8,6 +8,7 @@ import (
 	"github.com/gdamore/tcell"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/layout"
 )
@@ -15,8 +16,8 @@ import (
 func mockKeyManager() map[Mode]*key.Manager {
 	kms := make(map[Mode]*key.Manager)
 	km := key.NewManager(true)
-	km.Register(EventQuit, "Z", "Q")
-	km.Register(EventCursorDown, "j")
+	km.Register(event.Quit, "Z", "Q")
+	km.Register(event.CursorDown, "j")
 	kms[ModeNormal] = km
 	return kms
 }
@@ -45,7 +46,7 @@ func shouldContain(t *testing.T, screen tcell.SimulationScreen, expected []strin
 
 func TestTuiRun(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
@@ -55,12 +56,12 @@ func TestTuiRun(t *testing.T) {
 	screen.InjectKey(tcell.KeyRune, 'Z', tcell.ModNone)
 	screen.InjectKey(tcell.KeyRune, 'Q', tcell.ModNone)
 	e := <-eventCh
-	if e.Type != EventRune {
-		t.Errorf("pressing Z should emit EventRune but got: %+v", e)
+	if e.Type != event.Rune {
+		t.Errorf("pressing Z should emit event.Rune but got: %+v", e)
 	}
 	e = <-eventCh
-	if e.Type != EventQuit {
-		t.Errorf("pressing ZQ should emit EventQuit but got: %+v", e)
+	if e.Type != event.Quit {
+		t.Errorf("pressing ZQ should emit event.Quit but got: %+v", e)
 	}
 	screen.InjectKey(tcell.KeyRune, '7', tcell.ModNone)
 	screen.InjectKey(tcell.KeyRune, '0', tcell.ModNone)
@@ -70,8 +71,8 @@ func TestTuiRun(t *testing.T) {
 	e = <-eventCh
 	e = <-eventCh
 	e = <-eventCh
-	if e.Type != EventCursorDown {
-		t.Errorf("pressing 709j should emit EventCursorDown but got: %+v", e)
+	if e.Type != event.CursorDown {
+		t.Errorf("pressing 709j should emit event.CursorDown but got: %+v", e)
 	}
 	if e.Count != 709 {
 		t.Errorf("pressing 709j should emit event with count %d but got: %+v", 709, e)
@@ -81,7 +82,7 @@ func TestTuiRun(t *testing.T) {
 
 func TestTuiEmpty(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
@@ -127,7 +128,7 @@ func TestTuiEmpty(t *testing.T) {
 
 func TestTuiScrollBar(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
@@ -173,7 +174,7 @@ func TestTuiScrollBar(t *testing.T) {
 
 func TestTuiHorizontalSplit(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
@@ -230,7 +231,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 
 func TestTuiVerticalSplit(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
@@ -285,7 +286,7 @@ func TestTuiVerticalSplit(t *testing.T) {
 
 func TestTuiCmdline(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
@@ -329,7 +330,7 @@ func TestTuiCmdline(t *testing.T) {
 
 func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 	ui := NewTui()
-	eventCh := make(chan Event)
+	eventCh := make(chan event.Event)
 	screen := tcell.NewSimulationScreen("")
 	if err := ui.initForTest(eventCh, screen); err != nil {
 		t.Fatal(err)
