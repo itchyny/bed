@@ -32,7 +32,7 @@ func (c *completor) clear() {
 
 func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
 	switch cmd.eventType {
-	case EventEdit, EventNew, EventVnew:
+	case EventEdit, EventNew, EventVnew, EventWrite:
 		return c.completeFilepaths(cmdline, prefix, arg, forward)
 	case EventWincmd:
 		return c.completeWincmd(cmdline, prefix, arg, forward)
