@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"math/rand"
 	"os"
@@ -449,8 +448,7 @@ func (m *Manager) writeFile(name string) (string, int64, error) {
 		return name, 0, err
 	}
 	defer os.Remove(tmpf.Name())
-	window.buffer.Seek(0, io.SeekStart)
-	n, err := io.Copy(tmpf, window.buffer)
+	n, err := window.writeTo(tmpf)
 	tmpf.Close()
 	if err != nil {
 		return name, 0, err

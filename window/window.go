@@ -206,6 +206,13 @@ func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
 	return n, bytes, nil
 }
 
+func (w *window) writeTo(dst io.Writer) (int64, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.buffer.Seek(0, io.SeekStart)
+	return io.Copy(dst, w.buffer)
+}
+
 // State returns the current state of the buffer.
 func (w *window) State() (*WindowState, error) {
 	w.mu.Lock()
