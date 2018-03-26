@@ -434,8 +434,9 @@ func (m *Manager) writeFile(name string) (string, int64, error) {
 		return name, 0, errors.New("no file name")
 	}
 	name, _ = homedir.Expand(name)
-	if window.filename == "" {
+	if window.filename == "" && window.name == "" {
 		window.filename = name
+		window.name = filepath.Base(name)
 	}
 	for _, f := range m.files {
 		if f.name == name {
