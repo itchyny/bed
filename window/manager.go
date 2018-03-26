@@ -433,6 +433,7 @@ func (m *Manager) writeFile(name string) (string, int64, error) {
 	if name == "" {
 		return name, 0, errors.New("no file name")
 	}
+	name, _ = homedir.Expand(name)
 	if window.filename == "" {
 		window.filename = name
 	}
