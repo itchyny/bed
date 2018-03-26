@@ -36,6 +36,18 @@ func (r *bytesReader) Seek(offset int64, whence int) (int64, error) {
 	return r.index, nil
 }
 
+// ReadAt implements the io.ReaderAt interface.
+func (r *bytesReader) ReadAt(b []byte, offset int64) (int, error) {
+	if offset >= int64(len(r.bs)) {
+		return 0, io.EOF
+	}
+	n := copy(b, r.bs[offset:])
+	if n < len(b) {
+		return n, io.EOF
+	}
+	return n, nil
+}
+
 func (r *bytesReader) appendByte(b byte) {
 	r.bs = append(r.bs, b)
 }

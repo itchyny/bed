@@ -16,15 +16,20 @@ type Buffer struct {
 	mu    *sync.Mutex
 }
 
+type readAtSeeker interface {
+	io.ReaderAt
+	io.Seeker
+}
+
 type readerRange struct {
-	r    io.ReadSeeker
+	r    readAtSeeker
 	min  int64
 	max  int64
 	diff int64
 }
 
 // NewBuffer creates a new buffer.
-func NewBuffer(r io.ReadSeeker) *Buffer {
+func NewBuffer(r readAtSeeker) *Buffer {
 	return &Buffer{
 		rrs:   []readerRange{{r: r, min: 0, max: math.MaxInt64, diff: 0}},
 		index: 0,
@@ -47,14 +52,12 @@ func (b *Buffer) read(p []byte) (i int, err error) {
 		if b.index >= rr.max {
 			continue
 		}
-		if _, err = rr.r.Seek(b.index+rr.diff, io.SeekStart); err != nil {
-			return
-		}
 		m := int(mathutil.MinInt64(int64(len(p)-i), rr.max-b.index))
 		var k int
-		if k, err = rr.r.Read(p[i : i+m]); err != nil {
+		if k, err = rr.r.ReadAt(p[i:i+m], b.index+rr.diff); err != nil && k == 0 {
 			return
 		}
+		err = nil
 		b.index += int64(m)
 		i += k
 	}
@@ -263,7 +266,7 @@ func (b *Buffer) Delete(offset int64) {
 	panic("buffer.Buffer.Delete: unreachable")
 }
 
-func (b *Buffer) clone(r io.ReadSeeker) io.ReadSeeker {
+func (b *Buffer) clone(r readAtSeeker) readAtSeeker {
 	switch br := r.(type) {
 	case *bytesReader:
 		bs := make([]byte, len(br.bs))

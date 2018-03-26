@@ -42,7 +42,12 @@ type position struct {
 	offset int64
 }
 
-func newWindow(r io.ReadSeeker, filename string, name string, redrawCh chan<- struct{}) (*window, error) {
+type readAtSeeker interface {
+	io.ReaderAt
+	io.Seeker
+}
+
+func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- struct{}) (*window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {

@@ -90,7 +90,7 @@ func TestBuffer(t *testing.T) {
 
 	n, err = b.Read(p)
 	if err != nil {
-		t.Errorf("err should be EOF but got: %v", err)
+		t.Errorf("err should be nil but got: %v", err)
 	}
 	if n != 4 {
 		t.Errorf("n should be 4 but got: %d", n)
