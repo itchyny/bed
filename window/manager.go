@@ -444,7 +444,8 @@ func (m *Manager) writeFile(name string) (string, int64, error) {
 		}
 	}
 	tmpf, err := os.OpenFile(
-		name+"-"+strconv.FormatUint(rand.Uint64(), 16), os.O_RDWR|os.O_CREATE|os.O_EXCL, perm,
+		name+"-"+strconv.FormatUint(rand.Uint64(), 16),
+		os.O_RDWR|os.O_CREATE|os.O_EXCL, perm,
 	)
 	if err != nil {
 		return name, 0, err
