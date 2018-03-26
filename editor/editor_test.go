@@ -8,6 +8,7 @@ import (
 
 	"github.com/itchyny/bed/cmdline"
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/window"
 )
 
@@ -20,7 +21,7 @@ func (ui *testUI) Init(eventCh chan<- Event) error {
 	return nil
 }
 
-func (ui *testUI) Run(km map[Mode]*KeyManager) {}
+func (ui *testUI) Run(km map[Mode]*key.Manager) {}
 
 func (ui *testUI) Height() int { return 10 }
 

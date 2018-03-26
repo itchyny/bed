@@ -1,10 +1,13 @@
 package editor
 
-import . "github.com/itchyny/bed/common"
+import (
+	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/key"
+)
 
-func defaultKeyManagers() map[Mode]*KeyManager {
-	kms := make(map[Mode]*KeyManager)
-	km := NewKeyManager(true)
+func defaultKeyManagers() map[Mode]*key.Manager {
+	kms := make(map[Mode]*key.Manager)
+	km := key.NewManager(true)
 	km.Register(EventQuit, "Z", "Q")
 	km.Register(EventQuit, "c-w", "q")
 	km.Register(EventQuit, "c-w", "c-q")
@@ -88,7 +91,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	km.Register(EventMoveWindowRight, "c-w", "L")
 	kms[ModeNormal] = km
 
-	km = NewKeyManager(false)
+	km = key.NewManager(false)
 	km.Register(EventExitInsert, "escape")
 	km.Register(EventExitInsert, "c-c")
 	km.Register(EventCursorUp, "up")
@@ -111,7 +114,7 @@ func defaultKeyManagers() map[Mode]*KeyManager {
 	kms[ModeInsert] = km
 	kms[ModeReplace] = km
 
-	km = NewKeyManager(false)
+	km = key.NewManager(false)
 	km.Register(EventCursorLeft, "left")
 	km.Register(EventCursorLeft, "c-b")
 	km.Register(EventCursorRight, "right")

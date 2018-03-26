@@ -1,9 +1,13 @@
-package common
+package key
 
-import "testing"
+import (
+	"testing"
+
+	. "github.com/itchyny/bed/common"
+)
 
 func TestKeyManagerPress(t *testing.T) {
-	km := NewKeyManager(true)
+	km := NewManager(true)
 	km.Register(EventCursorUp, "k")
 	e := km.Press("k")
 	if e.Type != EventCursorUp {
@@ -16,7 +20,7 @@ func TestKeyManagerPress(t *testing.T) {
 }
 
 func TestKeyManagerPressMulti(t *testing.T) {
-	km := NewKeyManager(true)
+	km := NewManager(true)
 	km.Register(EventCursorUp, "k", "k", "j")
 	km.Register(EventCursorDown, "k", "j", "j")
 	km.Register(EventCursorDown, "j", "k", "k")
@@ -39,7 +43,7 @@ func TestKeyManagerPressMulti(t *testing.T) {
 }
 
 func TestKeyManagerPressCount(t *testing.T) {
-	km := NewKeyManager(true)
+	km := NewManager(true)
 	km.Register(EventCursorUp, "k", "j")
 	e := km.Press("k")
 	if e.Type != EventNop {

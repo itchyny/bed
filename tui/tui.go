@@ -8,6 +8,7 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/layout"
 )
 
@@ -41,7 +42,7 @@ func (ui *Tui) initForTest(eventCh chan<- Event, screen tcell.SimulationScreen) 
 }
 
 // Run the Tui.
-func (ui *Tui) Run(kms map[Mode]*KeyManager) {
+func (ui *Tui) Run(kms map[Mode]*key.Manager) {
 	for {
 		e := ui.screen.PollEvent()
 		switch ev := e.(type) {

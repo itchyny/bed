@@ -1,6 +1,10 @@
-package common
+package key
 
-import "strconv"
+import (
+	"strconv"
+
+	. "github.com/itchyny/bed/common"
+)
 
 // Key represents one keyboard stroke.
 type Key string
@@ -31,25 +35,25 @@ func (ke keyEvent) cmp(ks []Key) int {
 	return keysEq
 }
 
-// KeyManager holds the key mappings and current key sequence.
-type KeyManager struct {
-	keys      []Key
-	keyEvents []keyEvent
-	count     bool
+// Manager holds the key mappings and current key sequence.
+type Manager struct {
+	keys   []Key
+	events []keyEvent
+	count  bool
 }
 
-// NewKeyManager creates a new KeyManager.
-func NewKeyManager(count bool) *KeyManager {
-	return &KeyManager{count: count}
+// NewManager creates a new Manager.
+func NewManager(count bool) *Manager {
+	return &Manager{count: count}
 }
 
 // Register adds a new key mapping.
-func (km *KeyManager) Register(event EventType, keys ...Key) {
-	km.keyEvents = append(km.keyEvents, keyEvent{keys, event})
+func (km *Manager) Register(eventType EventType, keys ...Key) {
+	km.events = append(km.events, keyEvent{keys, eventType})
 }
 
 // Press checks the new key down event.
-func (km *KeyManager) Press(k Key) Event {
+func (km *Manager) Press(k Key) Event {
 	km.keys = append(km.keys, k)
 	for i := 0; i < len(km.keys); i++ {
 		keys := km.keys[i:]
@@ -66,7 +70,7 @@ func (km *KeyManager) Press(k Key) Event {
 			keys = keys[len(numStr):]
 			count, _ = strconv.ParseInt(numStr, 10, 64)
 		}
-		for _, ke := range km.keyEvents {
+		for _, ke := range km.events {
 			switch ke.cmp(keys) {
 			case keysPending:
 				return Event{Type: EventNop}

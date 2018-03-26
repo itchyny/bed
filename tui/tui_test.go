@@ -8,12 +8,13 @@ import (
 	"github.com/gdamore/tcell"
 
 	. "github.com/itchyny/bed/common"
+	"github.com/itchyny/bed/key"
 	"github.com/itchyny/bed/layout"
 )
 
-func mockKeyManager() map[Mode]*KeyManager {
-	kms := make(map[Mode]*KeyManager)
-	km := NewKeyManager(true)
+func mockKeyManager() map[Mode]*key.Manager {
+	kms := make(map[Mode]*key.Manager)
+	km := key.NewManager(true)
 	km.Register(EventQuit, "Z", "Q")
 	km.Register(EventCursorDown, "j")
 	kms[ModeNormal] = km
