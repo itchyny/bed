@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	"errors"
 	"io"
 )
 
@@ -37,15 +38,18 @@ func (r *bytesReader) Seek(offset int64, whence int) (int64, error) {
 }
 
 // ReadAt implements the io.ReaderAt interface.
-func (r *bytesReader) ReadAt(b []byte, offset int64) (int, error) {
+func (r *bytesReader) ReadAt(b []byte, offset int64) (n int, err error) {
+	if offset < 0 {
+		return 0, errors.New("buffer.bytesReader.ReadAt: negative offset")
+	}
 	if offset >= int64(len(r.bs)) {
 		return 0, io.EOF
 	}
-	n := copy(b, r.bs[offset:])
+	n = copy(b, r.bs[offset:])
 	if n < len(b) {
-		return n, io.EOF
+		err = io.EOF
 	}
-	return n, nil
+	return
 }
 
 func (r *bytesReader) appendByte(b byte) {
