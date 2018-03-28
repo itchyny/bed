@@ -35,20 +35,9 @@ func (ui *testUI) Close() error { return nil }
 
 func (ui *testUI) Emit(e event.Event) { ui.eventCh <- e }
 
-type testCmdline struct{}
-
-func (c *testCmdline) Init(eventCh chan<- event.Event, cmdlineCh <-chan event.Event, redrawCh chan<- struct{}) {
-}
-
-func (c *testCmdline) Run() {}
-
-func (c *testCmdline) Get() ([]rune, int, []string, int) { return nil, 0, nil, 0 }
-
-func (c *testCmdline) Execute() {}
-
 func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	ui := &testUI{}
-	editor := NewEditor(ui, window.NewManager(), &testCmdline{})
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -90,7 +79,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 
 func TestEditorOpenWriteQuit(t *testing.T) {
 	ui := &testUI{}
-	editor := NewEditor(ui, window.NewManager(), &testCmdline{})
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
