@@ -5,7 +5,7 @@ type Mode int
 
 // Modes
 const (
-	Normal = iota
+	Normal Mode = iota
 	Insert
 	Replace
 	Cmdline

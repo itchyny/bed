@@ -18,7 +18,7 @@ type Type int
 
 // Event types
 const (
-	Nop = iota
+	Nop Type = iota
 	Redraw
 
 	CursorUp
