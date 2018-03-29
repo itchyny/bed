@@ -54,7 +54,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 				d.setOffset(3*j).setString("   ", tcell.StyleDefault)
 				d.setOffset(3*width+j+3).setString(" ", tcell.StyleDefault)
 			} else {
-				d.setOffset(3*j).setString(" ", styles[i][j]|tcell.StyleDefault)
+				d.setOffset(3*j).setString(" ", tcell.StyleDefault)
 				if i*width+j == cursorPos {
 					styles[i][j] = styles[i][j].Reverse(active && !s.FocusText).Bold(
 						!active || s.FocusText).Underline(!active || s.FocusText)
@@ -114,6 +114,11 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 				styles[i][j] = styles[i][j].Foreground(tcell.ColorDodgerBlue)
 			} else if 0 < len(eis) && eis[1] <= int64(k)+s.Offset {
 				eis = eis[2:]
+			}
+			if s.VisualStart >= 0 && s.Cursor < s.Length &&
+				(s.VisualStart <= int64(k)+s.Offset && int64(k)+s.Offset <= s.Cursor ||
+					s.Cursor <= int64(k)+s.Offset && int64(k)+s.Offset <= s.VisualStart) {
+				styles[i][j] = styles[i][j].Underline(true)
 			}
 			k++
 		}

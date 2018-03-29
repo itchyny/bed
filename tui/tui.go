@@ -196,6 +196,8 @@ func prettyMode(m mode.Mode) string {
 		return "[INSERT] "
 	case mode.Replace:
 		return "[REPLACE] "
+	case mode.Visual:
+		return "[VISUAL] "
 	default:
 		return ""
 	}
