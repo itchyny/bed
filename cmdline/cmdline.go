@@ -119,7 +119,7 @@ func (c *Cmdline) deleteWord() {
 	}
 	if i > 0 {
 		isk := isKeyword(c.cmdline[i-1])
-		for i > 0 && isKeyword(c.cmdline[i-1]) == isk {
+		for i > 0 && isKeyword(c.cmdline[i-1]) == isk && !unicode.IsSpace(c.cmdline[i-1]) {
 			i--
 		}
 	}
