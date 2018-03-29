@@ -16,6 +16,7 @@ func parse(cmdline []rune) (command, string, string, error) {
 	if i == l {
 		return command{}, "", "", nil
 	}
+	_, i = parseRange(cmdline, i)
 	j := i
 	for j < l && !unicode.IsSpace(cmdline[j]) {
 		j++
@@ -54,6 +55,49 @@ func parse(cmdline []rune) (command, string, string, error) {
 		}
 	}
 	return command{}, "", "", fmt.Errorf("unknown command: %s", string(cmdline))
+}
+
+func parseRange(cmdline []rune, i int) (*event.Range, int) {
+	l := len(cmdline)
+	from, i := parsePos(cmdline, i)
+	if from == nil {
+		return nil, i
+	}
+	if i >= l {
+		return nil, i
+	}
+	for i < l && unicode.IsSpace(cmdline[i]) {
+		i++
+	}
+	if i >= l || cmdline[i] != ',' {
+		return nil, i
+	}
+	i++
+	for i < l && unicode.IsSpace(cmdline[i]) {
+		i++
+	}
+	to, i := parsePos(cmdline, i)
+	if to == nil {
+		return nil, i
+	}
+	return &event.Range{From: from, To: to}, i
+}
+
+func parsePos(cmdline []rune, i int) (event.Position, int) {
+	l := len(cmdline)
+	if i >= l {
+		return nil, i
+	}
+	if cmdline[i] == '\'' {
+		if i+1 < l {
+			if cmdline[i+1] == '<' {
+				return event.VisualStart{}, i + 2
+			} else if cmdline[i+1] == '>' {
+				return event.VisualEnd{}, i + 2
+			}
+		}
+	}
+	return nil, i
 }
 
 func expand(name string) []string {

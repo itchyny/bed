@@ -349,6 +349,7 @@ func TestCmdlineExecuteWrite(t *testing.T) {
 	}{
 		{"w", "w[rite]"},
 		{" :   : write  sample.txt", "w[rite]"},
+		{"'<,'>write sample.txt", "w[rite]"},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
