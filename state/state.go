@@ -31,6 +31,7 @@ type WindowState struct {
 	Mode          mode.Mode
 	Pending       bool
 	PendingByte   byte
+	VisualStart   int64
 	EditedIndices []int64
 	FocusText     bool
 }

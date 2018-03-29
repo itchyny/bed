@@ -33,6 +33,7 @@ type window struct {
 	extending   bool
 	pending     bool
 	pendingByte byte
+	visualStart int64
 	focusText   bool
 	redrawCh    chan<- struct{}
 	eventCh     chan event.Event
@@ -58,14 +59,15 @@ func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- str
 	history := history.NewHistory()
 	history.Push(buffer, 0, 0)
 	return &window{
-		buffer:   buffer,
-		history:  history,
-		filename: filename,
-		name:     name,
-		length:   length,
-		redrawCh: redrawCh,
-		eventCh:  make(chan event.Event),
-		mu:       new(sync.Mutex),
+		buffer:      buffer,
+		history:     history,
+		filename:    filename,
+		name:        name,
+		length:      length,
+		visualStart: -1,
+		redrawCh:    redrawCh,
+		eventCh:     make(chan event.Event),
+		mu:          new(sync.Mutex),
 	}, nil
 }
 
@@ -157,6 +159,10 @@ func (w *window) Run() {
 			w.backspace()
 		case event.Delete:
 			w.deleteByte(1)
+		case event.StartVisual:
+			w.startVisual()
+		case event.ExitVisual:
+			w.exitVisual()
 		case event.SwitchFocus:
 			w.focusText = !w.focusText
 			if w.pending {
@@ -233,6 +239,7 @@ func (w *window) State() (*state.WindowState, error) {
 		Length:        w.length,
 		Pending:       w.pending,
 		PendingByte:   w.pendingByte,
+		VisualStart:   w.visualStart,
 		EditedIndices: w.buffer.EditedIndices(),
 		FocusText:     w.focusText,
 	}, nil
@@ -681,6 +688,14 @@ func (w *window) backspace() {
 		w.cursor--
 		w.length--
 	}
+}
+
+func (w *window) startVisual() {
+	w.visualStart = w.cursor
+}
+
+func (w *window) exitVisual() {
+	w.visualStart = -1
 }
 
 func (w *window) search(str string, forward bool) {
