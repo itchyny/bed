@@ -124,6 +124,7 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.ExitVisual, "c-c")
 	km.Register(event.SwitchVisualEnd, "o")
 	km.Register(event.SwitchVisualEnd, "O")
+	km.Register(event.StartCmdlineCommand, ":")
 
 	km.Register(event.CursorUp, "up")
 	km.Register(event.CursorDown, "down")

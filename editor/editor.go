@@ -92,6 +92,11 @@ func (e *Editor) listen() {
 			case event.ExitVisual:
 				e.mode = mode.Normal
 			case event.StartCmdlineCommand:
+				if e.mode == mode.Visual {
+					ev.Arg = "'<,'>"
+				} else if ev.Count > 0 {
+					ev.Arg = fmt.Sprintf(".,.+%d", ev.Count-1)
+				}
 				e.mode = mode.Cmdline
 				e.err = nil
 			case event.StartCmdlineSearchForward:

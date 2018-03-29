@@ -36,7 +36,7 @@ func (c *Cmdline) Run() {
 		switch e.Type {
 		case event.StartCmdlineCommand:
 			c.typ = ':'
-			c.clear()
+			c.start(e.Arg)
 		case event.StartCmdlineSearchForward:
 			c.typ = '/'
 			c.clear()
@@ -129,6 +129,11 @@ func (c *Cmdline) deleteWord() {
 
 func isKeyword(c rune) bool {
 	return unicode.IsDigit(c) || unicode.IsLetter(c) || c == '_'
+}
+
+func (c *Cmdline) start(arg string) {
+	c.cmdline = []rune(arg)
+	c.cursor = len(c.cmdline)
 }
 
 func (c *Cmdline) clear() {
