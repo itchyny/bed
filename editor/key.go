@@ -147,6 +147,8 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.PageDownHalf, "c-d")
 	km.Register(event.PageTop, "g", "g")
 	km.Register(event.PageEnd, "G")
+	km.Register(event.SwitchFocus, "tab")
+	km.Register(event.SwitchFocus, "backtab")
 	kms[mode.Visual] = km
 
 	km = key.NewManager(false)
