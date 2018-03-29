@@ -110,14 +110,15 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 				continue
 			}
 			bytes[i][j] = s.Bytes[k]
-			if 0 < len(eis) && eis[0] <= int64(k)+s.Offset && int64(k)+s.Offset < eis[1] {
+			pos := int64(k) + s.Offset
+			if 0 < len(eis) && eis[0] <= pos && pos < eis[1] {
 				styles[i][j] = styles[i][j].Foreground(tcell.ColorDodgerBlue)
-			} else if 0 < len(eis) && eis[1] <= int64(k)+s.Offset {
+			} else if 0 < len(eis) && eis[1] <= pos {
 				eis = eis[2:]
 			}
 			if s.VisualStart >= 0 && s.Cursor < s.Length &&
-				(s.VisualStart <= int64(k)+s.Offset && int64(k)+s.Offset <= s.Cursor ||
-					s.Cursor <= int64(k)+s.Offset && int64(k)+s.Offset <= s.VisualStart) {
+				(s.VisualStart <= pos && pos <= s.Cursor ||
+					s.Cursor <= pos && pos <= s.VisualStart) {
 				styles[i][j] = styles[i][j].Underline(true)
 			}
 			k++
