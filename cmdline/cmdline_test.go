@@ -43,7 +43,7 @@ func TestCmdlineRun(t *testing.T) {
 	}
 	e := <-eventCh
 	if e.Type != event.Error {
-		t.Errorf("cmdline should emit event.Error but got %v", e)
+		t.Errorf("cmdline should emit Error event but got %v", e)
 	}
 	<-redrawCh
 	cmdline, cursor, _, _ := c.Get()
@@ -334,7 +334,7 @@ func TestCmdlineExecuteQuitAll(t *testing.T) {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
 		if e.Type != event.QuitAll {
-			t.Errorf("cmdline should emit quit all event with %q", cmd.cmd)
+			t.Errorf("cmdline should emit QuitAll event with %q", cmd.cmd)
 		}
 	}
 }
@@ -387,7 +387,7 @@ func TestCmdlineExecuteWriteQuit(t *testing.T) {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
 		if e.Type != event.WriteQuit {
-			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
+			t.Errorf("cmdline should emit WriteQuit event with %q", cmd.cmd)
 		}
 	}
 }
@@ -495,7 +495,7 @@ func TestCmdlineComplete(t *testing.T) {
 	e := <-eventCh
 	<-redrawCh
 	if e.Type != event.Edit {
-		t.Errorf("cmdline should emit event.Edit but got %v", e)
+		t.Errorf("cmdline should emit Edit event but got %v", e)
 	}
 	if e.Arg != "/bin/echo" {
 		t.Errorf("cmdline should emit event with arg %q but got %q", "/bin/echo", e)
@@ -539,7 +539,7 @@ func TestCmdlineSearch(t *testing.T) {
 	e := <-eventCh
 	<-redrawCh
 	if e.Type != event.ExecuteSearch {
-		t.Errorf("cmdline should emit event.ExecuteSearch but got %v", e)
+		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
 	}
 	if e.Arg != "test" {
 		t.Errorf("cmdline should emit search event with Arg %q but got %q", "test", e.Arg)
@@ -554,7 +554,7 @@ func TestCmdlineSearch(t *testing.T) {
 	e = <-eventCh
 	<-redrawCh
 	if e.Type != event.ExecuteSearch {
-		t.Errorf("cmdline should emit event.ExecuteSearch but got %v", e)
+		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
 	}
 	if e.Arg != "xyz" {
 		t.Errorf("cmdline should emit search event with Arg %q but got %q", "xyz", e.Arg)
