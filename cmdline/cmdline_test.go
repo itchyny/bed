@@ -339,6 +339,31 @@ func TestCmdlineExecuteQuitAll(t *testing.T) {
 	}
 }
 
+func TestCmdlineExecuteWrite(t *testing.T) {
+	c := NewCmdline()
+	ch := make(chan event.Event, 1)
+	c.Init(ch, make(chan event.Event), make(chan struct{}))
+	for _, cmd := range []struct {
+		cmd  string
+		name string
+	}{
+		{"w", "w[rite]"},
+		{" :   : write  sample.txt", "w[rite]"},
+	} {
+		c.clear()
+		c.cmdline = []rune(cmd.cmd)
+		c.typ = ':'
+		c.execute()
+		e := <-ch
+		if e.CmdName != cmd.name {
+			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		}
+		if e.Type != event.Write {
+			t.Errorf("cmdline should emit Write event with %q", cmd.cmd)
+		}
+	}
+}
+
 func TestCmdlineExecuteWriteQuit(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan event.Event, 1)
