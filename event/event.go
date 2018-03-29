@@ -63,6 +63,7 @@ const (
 	Redo
 
 	StartVisual
+	SwitchVisualEnd
 	ExitVisual
 
 	SwitchFocus

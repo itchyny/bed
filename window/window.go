@@ -161,6 +161,8 @@ func (w *window) Run() {
 			w.deleteByte(1)
 		case event.StartVisual:
 			w.startVisual()
+		case event.SwitchVisualEnd:
+			w.switchVisualEnd()
 		case event.ExitVisual:
 			w.exitVisual()
 		case event.SwitchFocus:
@@ -692,6 +694,15 @@ func (w *window) backspace() {
 
 func (w *window) startVisual() {
 	w.visualStart = w.cursor
+}
+
+func (w *window) switchVisualEnd() {
+	w.cursor, w.visualStart = w.visualStart, w.cursor
+	if w.cursor < w.offset {
+		w.offset = w.cursor / w.width * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
 }
 
 func (w *window) exitVisual() {
