@@ -8,15 +8,15 @@ import (
 	"github.com/itchyny/bed/event"
 )
 
-func parse(cmdline []rune) (command, string, string, error) {
+func parse(cmdline []rune) (command, *event.Range, string, string, error) {
 	i, l := 0, len(cmdline)
 	for i < l && (unicode.IsSpace(cmdline[i]) || cmdline[i] == ':') {
 		i++
 	}
 	if i == l {
-		return command{}, "", "", nil
+		return command{}, nil, "", "", nil
 	}
-	_, i = parseRange(cmdline, i)
+	r, i := parseRange(cmdline, i)
 	j := i
 	for j < l && !unicode.IsSpace(cmdline[j]) {
 		j++
@@ -32,13 +32,13 @@ func parse(cmdline []rune) (command, string, string, error) {
 		}
 		for _, c := range expand(cmd.name) {
 			if cmdName == c {
-				return cmd, string(cmdline[:k]), strings.TrimSpace(string(cmdline[k:])), nil
+				return cmd, r, string(cmdline[:k]), strings.TrimSpace(string(cmdline[k:])), nil
 			}
 		}
 	}
 	if len(strings.Fields(string(cmdline[k:]))) == 0 {
 		if cmdName == "$" {
-			return command{cmdName, event.CursorGotoAbs}, string(cmdline[:k]), cmdName, nil
+			return command{cmdName, event.CursorGotoAbs}, r, string(cmdline[:k]), cmdName, nil
 		}
 		relative, eventType := false, event.CursorGotoAbs
 		for _, c := range cmdName {
@@ -51,10 +51,10 @@ func parse(cmdline []rune) (command, string, string, error) {
 			}
 		}
 		if eventType != event.Nop {
-			return command{cmdName, event.Type(eventType)}, string(cmdline[:k]), cmdName, nil
+			return command{cmdName, event.Type(eventType)}, r, string(cmdline[:k]), cmdName, nil
 		}
 	}
-	return command{}, "", "", fmt.Errorf("unknown command: %s", string(cmdline))
+	return command{}, nil, "", "", fmt.Errorf("unknown command: %s", string(cmdline))
 }
 
 func parseRange(cmdline []rune, i int) (*event.Range, int) {

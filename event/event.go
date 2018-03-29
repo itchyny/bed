@@ -5,6 +5,7 @@ import "github.com/itchyny/bed/mode"
 // Event represents the event emitted by UI.
 type Event struct {
 	Type    Type
+	Range   *Range
 	Count   int64
 	Rune    rune
 	CmdName string

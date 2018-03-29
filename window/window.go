@@ -2,6 +2,7 @@ package window
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"strconv"
 	"sync"
@@ -216,11 +217,42 @@ func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
 	return n, bytes, nil
 }
 
-func (w *window) writeTo(dst io.Writer) (int64, error) {
+func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	w.buffer.Seek(0, io.SeekStart)
-	return io.Copy(dst, w.buffer)
+	if r == nil {
+		w.buffer.Seek(0, io.SeekStart)
+		return io.Copy(dst, w.buffer)
+	}
+	var from, to int64
+	var err error
+	if from, err = w.positionToOffset(r.From); err != nil {
+		return 0, err
+	}
+	if to, err = w.positionToOffset(r.To); err != nil {
+		return 0, err
+	}
+	if from > to {
+		from, to = to, from
+	}
+	w.buffer.Seek(from, io.SeekStart)
+	return io.Copy(dst, io.LimitReader(w.buffer, to-from+1))
+}
+
+func (w *window) positionToOffset(p event.Position) (int64, error) {
+	if _, ok := p.(event.VisualStart); ok {
+		if w.visualStart < 0 {
+			return 0, errors.New("no visual selection found")
+		}
+		return w.visualStart, nil
+	}
+	if _, ok := p.(event.VisualEnd); ok {
+		if w.visualStart < 0 {
+			return 0, errors.New("no visual selection found")
+		}
+		return w.cursor, nil
+	}
+	return 0, errors.New("invalid range")
 }
 
 // State returns the current state of the buffer.

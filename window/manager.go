@@ -378,7 +378,10 @@ func (m *Manager) quit(e event.Event) error {
 }
 
 func (m *Manager) write(e event.Event) error {
-	filename, n, err := m.writeFile(e.Arg)
+	if e.Range != nil && e.Arg == "" {
+		return fmt.Errorf("cannot overwrite partially with %s", e.CmdName)
+	}
+	filename, n, err := m.writeFile(e.Range, e.Arg)
 	if err != nil {
 		return err
 	}
@@ -390,7 +393,10 @@ func (m *Manager) writeQuit(e event.Event) error {
 	if len(e.Arg) > 0 {
 		return fmt.Errorf("too many arguments for %s", e.CmdName)
 	}
-	if _, _, err := m.writeFile(""); err != nil {
+	if e.Range != nil {
+		return fmt.Errorf("range not allowed for %s", e.CmdName)
+	}
+	if _, _, err := m.writeFile(nil, ""); err != nil {
 		return err
 	}
 	m.eventCh <- event.Event{Type: event.Quit}
@@ -426,7 +432,7 @@ func hexWindowWidth(width int) int {
 	return 4
 }
 
-func (m *Manager) writeFile(name string) (string, int64, error) {
+func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) {
 	window := m.windows[m.windowIndex]
 	perm := os.FileMode(0644)
 	if name == "" {
@@ -453,7 +459,7 @@ func (m *Manager) writeFile(name string) (string, int64, error) {
 		return name, 0, err
 	}
 	defer os.Remove(tmpf.Name())
-	n, err := window.writeTo(tmpf)
+	n, err := window.writeTo(r, tmpf)
 	tmpf.Close()
 	if err != nil {
 		return name, 0, err
