@@ -94,6 +94,7 @@ const (
 	MoveWindowBottom
 	MoveWindowLeft
 	MoveWindowRight
+	Suspend
 	Quit
 	QuitAll
 	Write

@@ -59,6 +59,16 @@ func (e *Editor) listen() {
 			} else {
 				return
 			}
+		case event.Suspend:
+			if len(ev.Arg) > 0 {
+				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+				e.redrawCh <- struct{}{}
+			} else {
+				if err := e.suspend(); err != nil {
+					e.err, e.errtyp = err, state.MessageError
+				}
+				e.redrawCh <- struct{}{}
+			}
 		case event.Info:
 			e.err, e.errtyp = ev.Error, state.MessageInfo
 			e.redrawCh <- struct{}{}
@@ -162,6 +172,10 @@ func (e *Editor) redraw() (err error) {
 		}
 	}
 	return e.ui.Redraw(s)
+}
+
+func (e *Editor) suspend() error {
+	return suspend(e)
 }
 
 // Close terminates the editor.
