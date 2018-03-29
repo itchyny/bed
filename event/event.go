@@ -62,6 +62,9 @@ const (
 	Undo
 	Redo
 
+	StartVisual
+	ExitVisual
+
 	SwitchFocus
 	StartCmdlineCommand
 	StartCmdlineSearchForward

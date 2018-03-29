@@ -8,6 +8,7 @@ const (
 	Normal Mode = iota
 	Insert
 	Replace
+	Visual
 	Cmdline
 	Search
 )

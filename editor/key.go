@@ -59,6 +59,8 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.Undo, "u")
 	km.Register(event.Redo, "c-r")
 
+	km.Register(event.StartVisual, "v")
+
 	km.Register(event.SwitchFocus, "tab")
 	km.Register(event.SwitchFocus, "backtab")
 	km.Register(event.StartCmdlineCommand, ":")
@@ -116,6 +118,36 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.SwitchFocus, "backtab")
 	kms[mode.Insert] = km
 	kms[mode.Replace] = km
+
+	km = key.NewManager(false)
+	km.Register(event.ExitVisual, "escape")
+	km.Register(event.ExitVisual, "c-c")
+	km.Register(event.CursorUp, "up")
+	km.Register(event.CursorDown, "down")
+	km.Register(event.CursorLeft, "left")
+	km.Register(event.CursorRight, "right")
+	km.Register(event.PageUp, "pgup")
+	km.Register(event.PageDown, "pgdn")
+	km.Register(event.PageTop, "home")
+	km.Register(event.PageEnd, "end")
+	km.Register(event.CursorUp, "k")
+	km.Register(event.CursorDown, "j")
+	km.Register(event.CursorLeft, "h")
+	km.Register(event.CursorRight, "l")
+	km.Register(event.CursorPrev, "b")
+	km.Register(event.CursorNext, "w")
+	km.Register(event.CursorHead, "0")
+	km.Register(event.CursorHead, "^")
+	km.Register(event.CursorEnd, "$")
+	km.Register(event.ScrollUp, "c-y")
+	km.Register(event.ScrollDown, "c-e")
+	km.Register(event.PageUp, "c-b")
+	km.Register(event.PageDown, "c-f")
+	km.Register(event.PageUpHalf, "c-u")
+	km.Register(event.PageDownHalf, "c-d")
+	km.Register(event.PageTop, "g", "g")
+	km.Register(event.PageEnd, "G")
+	kms[mode.Visual] = km
 
 	km = key.NewManager(false)
 	km.Register(event.CursorLeft, "left")

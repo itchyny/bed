@@ -87,6 +87,10 @@ func (e *Editor) listen() {
 				e.mode = mode.Replace
 			case event.ExitInsert:
 				e.mode = mode.Normal
+			case event.StartVisual:
+				e.mode = mode.Visual
+			case event.ExitVisual:
+				e.mode = mode.Normal
 			case event.StartCmdlineCommand:
 				e.mode = mode.Cmdline
 				e.err = nil
