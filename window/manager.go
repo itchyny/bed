@@ -434,7 +434,6 @@ func hexWindowWidth(width int) int {
 
 func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) {
 	window := m.windows[m.windowIndex]
-	perm := os.FileMode(0644)
 	if name == "" {
 		name = window.filename
 	}
@@ -446,14 +445,9 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		window.filename = name
 		window.name = filepath.Base(name)
 	}
-	for _, f := range m.files {
-		if f.name == name {
-			perm = f.perm
-		}
-	}
 	tmpf, err := os.OpenFile(
 		name+"-"+strconv.FormatUint(rand.Uint64(), 16),
-		os.O_RDWR|os.O_CREATE|os.O_EXCL, perm,
+		os.O_RDWR|os.O_CREATE|os.O_EXCL, m.filePerm(name),
 	)
 	if err != nil {
 		return name, 0, err
@@ -465,6 +459,15 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		return name, 0, err
 	}
 	return name, n, os.Rename(tmpf.Name(), name)
+}
+
+func (m *Manager) filePerm(name string) os.FileMode {
+	for _, f := range m.files {
+		if f.name == name {
+			return f.perm // keep the permission of the original file
+		}
+	}
+	return os.FileMode(0644)
 }
 
 // Close the Manager.
