@@ -321,6 +321,13 @@ func (w *window) cursorUp(count int64) {
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
 	}
+	if w.append && w.extending && w.cursor < w.length-1 {
+		w.append = false
+		w.extending = false
+		if w.length > 0 {
+			w.length--
+		}
+	}
 }
 
 func (w *window) cursorDown(count int64) {
