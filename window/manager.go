@@ -440,7 +440,10 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	if name == "" {
 		return name, 0, errors.New("no file name")
 	}
-	name, _ = homedir.Expand(name)
+	var err error
+	if name, err = homedir.Expand(name); err != nil {
+		return name, 0, err
+	}
 	if window.filename == "" && window.name == "" {
 		window.filename = name
 		window.name = filepath.Base(name)
