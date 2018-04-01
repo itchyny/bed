@@ -3,6 +3,7 @@ package editor
 import (
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -16,9 +17,16 @@ import (
 
 type testUI struct {
 	eventCh chan<- event.Event
+	mu      *sync.Mutex
+}
+
+func newTestUI() *testUI {
+	return &testUI{mu: new(sync.Mutex)}
 }
 
 func (ui *testUI) Init(eventCh chan<- event.Event) error {
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
 	ui.eventCh = eventCh
 	return nil
 }
@@ -33,10 +41,14 @@ func (ui *testUI) Redraw(_ state.State) error { return nil }
 
 func (ui *testUI) Close() error { return nil }
 
-func (ui *testUI) Emit(e event.Event) { ui.eventCh <- e }
+func (ui *testUI) Emit(e event.Event) {
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
+	ui.eventCh <- e
+}
 
 func TestEditorOpenEmptyWriteQuit(t *testing.T) {
-	ui := &testUI{}
+	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -78,7 +90,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 }
 
 func TestEditorOpenWriteQuit(t *testing.T) {
-	ui := &testUI{}
+	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -126,7 +138,7 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 }
 
 func TestEditorCmdlineQuit(t *testing.T) {
-	ui := &testUI{}
+	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
