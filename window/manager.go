@@ -59,6 +59,7 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
+	go window.Run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
@@ -117,11 +118,6 @@ func (m *Manager) Resize(width, height int) {
 		m.width, m.height = width, height
 		m.layout = m.layout.Resize(0, 0, width, height)
 	}
-}
-
-// Run the Manager.
-func (m *Manager) Run() {
-	m.windows[m.windowIndex].Run()
 }
 
 // Emit an event to the current window.
@@ -265,10 +261,10 @@ func (m *Manager) edit(e event.Event) error {
 	if err != nil {
 		return err
 	}
+	go window.Run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
-	go m.Run()
 	return nil
 }
 
@@ -279,6 +275,7 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	if err != nil {
 		return err
 	}
+	go window.Run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	if vertical {
@@ -286,7 +283,6 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	} else {
 		m.layout = m.layout.SplitTop(m.windowIndex).Resize(0, 0, m.width, m.height)
 	}
-	go m.Run()
 	return nil
 }
 

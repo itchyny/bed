@@ -12,7 +12,6 @@ type Manager interface {
 	Open(string) error
 	SetSize(int, int)
 	Resize(int, int)
-	Run()
 	Emit(event.Event)
 	State() (map[int]*state.WindowState, layout.Layout, int, error)
 	Close()

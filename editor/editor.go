@@ -165,7 +165,6 @@ func (e *Editor) Run() error {
 	}
 	go e.ui.Run(defaultKeyManagers())
 	go e.cmdline.Run()
-	go e.wm.Run()
 	e.listen()
 	return nil
 }
