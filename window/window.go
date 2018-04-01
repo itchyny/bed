@@ -73,6 +73,8 @@ func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- str
 }
 
 func (w *window) setSize(width, height int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	w.width, w.height = int64(width), int64(height)
 	w.offset = w.offset / w.width * w.width
 	if w.cursor >= w.offset+w.height*w.width {
