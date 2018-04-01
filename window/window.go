@@ -738,6 +738,9 @@ func (w *window) startVisual() {
 }
 
 func (w *window) switchVisualEnd() {
+	if w.visualStart < 0 {
+		panic("window#switchVisualEnd should be called in visual mode")
+	}
 	w.cursor, w.visualStart = w.visualStart, w.cursor
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
