@@ -165,7 +165,4 @@ func TestEditorCmdlineQuit(t *testing.T) {
 	if err := editor.err; err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.Close(); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
 }
