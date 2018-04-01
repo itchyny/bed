@@ -403,10 +403,13 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		typ  event.Type
 	}{
 		{"  :  :  $  ", "$", event.CursorGotoAbs},
-		{"  :  123456789abcdef  ", "123456789abcdef", event.CursorGotoAbs},
-		{"  fedcba  ", "fedcba", event.CursorGotoAbs},
-		{"  +44ef ", "+44ef", event.CursorGotoRel},
-		{"  -ff ", "-ff", event.CursorGotoRel},
+		{"  :123456789  ", "123456789", event.CursorGotoAbs},
+		{"  +16777216 ", "+16777216", event.CursorGotoRel},
+		{"  -256 ", "-256", event.CursorGotoRel},
+		{"  :  0x123456789abcdef  ", "0x123456789abcdef", event.CursorGotoAbs},
+		{"  0xfedcba  ", "0xfedcba", event.CursorGotoAbs},
+		{"  +0x44ef ", "+0x44ef", event.CursorGotoRel},
+		{"  -0xff ", "-0xff", event.CursorGotoRel},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
@@ -417,7 +420,7 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
 		if e.Type != cmd.typ {
-			t.Errorf("cmdline should emit %q but got %q with %q", cmd.typ, e.Type, cmd.cmd)
+			t.Errorf("cmdline should emit %d but got %d with %q", cmd.typ, e.Type, cmd.cmd)
 		}
 	}
 }

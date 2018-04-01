@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/mitchellh/go-homedir"
@@ -225,15 +226,27 @@ func parseGotoPos(pos string) int64 {
 	case "-":
 		return -1
 	}
-	count, sign := int64(0), int64(1)
+	count, sign, hex := int64(0), int64(1), false
+	for strings.HasPrefix(pos, "+") || strings.HasPrefix(pos, "-") {
+		if pos[0] == '-' {
+			sign = -sign
+		}
+		pos = pos[1:]
+	}
+	if strings.HasPrefix(pos, "0x") {
+		pos = pos[2:]
+		hex = true
+	}
 	for _, c := range pos {
-		count *= 0x10
+		if hex {
+			count *= 0x10
+		} else {
+			count *= 10
+		}
 		if '0' <= c && c <= '9' {
 			count += int64(c - '0')
-		} else if 'a' <= c && c <= 'f' {
+		} else if hex && 'a' <= c && c <= 'f' {
 			count += int64(c - 'a' + 0x0a)
-		} else if c == '-' {
-			sign = -1
 		}
 	}
 	return sign * count

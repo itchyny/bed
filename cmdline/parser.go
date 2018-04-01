@@ -40,12 +40,16 @@ func parse(cmdline []rune) (command, *event.Range, string, string, error) {
 		if cmdName == "$" {
 			return command{cmdName, event.CursorGotoAbs}, r, string(cmdline[:k]), cmdName, nil
 		}
-		relative, eventType := false, event.CursorGotoAbs
+		relative, hexState, eventType := false, 0, event.CursorGotoAbs
 		for _, c := range cmdName {
-			if !relative && (c == '-' || c == '+') {
+			if !relative && hexState == 0 && (c == '-' || c == '+') {
 				relative = true
 				eventType = event.CursorGotoRel
-			} else if !('0' <= c && c <= '9' || 'a' <= c && c <= 'f') {
+			} else if hexState == 0 && c == '0' {
+				hexState = 1
+			} else if hexState == 1 && c == 'x' {
+				hexState = 2
+			} else if !('0' <= c && c <= '9' || hexState == 2 && 'a' <= c && c <= 'f') {
 				eventType = event.Nop
 				break
 			}
