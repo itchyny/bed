@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"sync"
 	"unicode"
 
 	"github.com/itchyny/bed/event"
@@ -18,11 +19,15 @@ type Cmdline struct {
 	eventCh           chan<- event.Event
 	cmdlineCh         <-chan event.Event
 	redrawCh          chan<- struct{}
+	mu                *sync.Mutex
 }
 
 // NewCmdline creates a new Cmdline.
 func NewCmdline() *Cmdline {
-	return &Cmdline{completor: newCompletor(&filesystem{})}
+	return &Cmdline{
+		completor: newCompletor(&filesystem{}),
+		mu:        new(sync.Mutex),
+	}
 }
 
 // Init initializes the Cmdline.
@@ -33,6 +38,7 @@ func (c *Cmdline) Init(eventCh chan<- event.Event, cmdlineCh <-chan event.Event,
 // Run the cmdline.
 func (c *Cmdline) Run() {
 	for e := range c.cmdlineCh {
+		c.mu.Lock()
 		switch e.Type {
 		case event.StartCmdlineCommand:
 			c.typ = ':'
@@ -68,17 +74,21 @@ func (c *Cmdline) Run() {
 		case event.CompleteForwardCmdline:
 			c.complete(true)
 			c.redrawCh <- struct{}{}
+			c.mu.Unlock()
 			continue
 		case event.CompleteBackCmdline:
 			c.complete(false)
 			c.redrawCh <- struct{}{}
+			c.mu.Unlock()
 			continue
 		case event.ExecuteCmdline:
 			c.execute()
 		default:
+			c.mu.Unlock()
 			continue
 		}
 		c.completor.clear()
+		c.mu.Unlock()
 		c.redrawCh <- struct{}{}
 	}
 }
@@ -188,5 +198,7 @@ func (c *Cmdline) execute() {
 
 // Get returns the current state of cmdline.
 func (c *Cmdline) Get() ([]rune, int, []string, int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.cmdline, c.cursor, c.completor.results, c.completor.index
 }
