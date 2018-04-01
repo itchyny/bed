@@ -1,6 +1,7 @@
 package window
 
 import (
+	"bytes"
 	"math"
 	"reflect"
 	"strings"
@@ -1263,5 +1264,30 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	}
 	if s.Cursor != 4 {
 		t.Errorf("s.Cursor should be %d but got %d", 4, s.Cursor)
+	}
+}
+
+func TestWindowWriteTo(t *testing.T) {
+	r := strings.NewReader("Hello, world!")
+	window, err := newWindow(r, "test", "test", make(chan struct{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	window.setSize(20, 10)
+	window.cursorNext(mode.Normal, 3)
+	window.startVisual()
+	window.cursorNext(mode.Normal, 7)
+	for _, testCase := range []struct {
+		r        *event.Range
+		expected string
+	}{
+		{nil, "Hello, world!"},
+		{&event.Range{From: event.VisualStart{}, To: event.VisualEnd{}}, "lo, worl"},
+	} {
+		b := new(bytes.Buffer)
+		window.writeTo(testCase.r, b)
+		if b.String() != testCase.expected {
+			t.Errorf("window should write %q with range %+v but got %q", testCase.expected, testCase.r, b.String())
+		}
 	}
 }
