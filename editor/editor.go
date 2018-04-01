@@ -3,6 +3,7 @@ package editor
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/mode"
@@ -23,6 +24,7 @@ type Editor struct {
 	eventCh       chan event.Event
 	redrawCh      chan struct{}
 	cmdlineCh     chan event.Event
+	mu            *sync.Mutex
 }
 
 // NewEditor creates a new editor.
@@ -37,6 +39,7 @@ func (e *Editor) Init() error {
 	e.cmdlineCh = make(chan event.Event)
 	e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh)
 	e.wm.Init(e.eventCh, e.redrawCh)
+	e.mu = new(sync.Mutex)
 	return nil
 }
 
@@ -48,87 +51,98 @@ func (e *Editor) listen() {
 		}
 	}()
 	for ev := range e.eventCh {
-		if ev.Type != event.Redraw {
-			e.prevEventType = ev.Type
-		}
-		switch ev.Type {
-		case event.QuitAll:
-			if len(ev.Arg) > 0 {
-				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
-				e.redrawCh <- struct{}{}
-			} else {
-				return
-			}
-		case event.Suspend:
-			if len(ev.Arg) > 0 {
-				e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
-				e.redrawCh <- struct{}{}
-			} else {
-				if err := e.suspend(); err != nil {
-					e.err, e.errtyp = err, state.MessageError
-				}
-				e.redrawCh <- struct{}{}
-			}
-		case event.Info:
-			e.err, e.errtyp = ev.Error, state.MessageInfo
+		if redraw, finish := e.emit(ev); redraw {
 			e.redrawCh <- struct{}{}
-		case event.Error:
-			e.err, e.errtyp = ev.Error, state.MessageError
-			e.redrawCh <- struct{}{}
-		case event.Redraw:
-			width, height := e.ui.Size()
-			e.wm.Resize(width, height-1)
-			e.redrawCh <- struct{}{}
-		default:
-			switch ev.Type {
-			case event.StartInsert, event.StartInsertHead, event.StartAppend, event.StartAppendEnd:
-				e.mode = mode.Insert
-			case event.StartReplaceByte, event.StartReplace:
-				e.mode = mode.Replace
-			case event.ExitInsert:
-				e.mode = mode.Normal
-			case event.StartVisual:
-				e.mode = mode.Visual
-			case event.ExitVisual:
-				e.mode = mode.Normal
-			case event.StartCmdlineCommand:
-				if e.mode == mode.Visual {
-					ev.Arg = "'<,'>"
-				} else if ev.Count > 0 {
-					ev.Arg = fmt.Sprintf(".,.+%d", ev.Count-1)
-				}
-				e.mode = mode.Cmdline
-				e.err = nil
-			case event.StartCmdlineSearchForward:
-				e.mode = mode.Search
-				e.err = nil
-				e.searchMode = '/'
-			case event.StartCmdlineSearchBackward:
-				e.mode = mode.Search
-				e.err = nil
-				e.searchMode = '?'
-			case event.ExitCmdline:
-				e.mode = mode.Normal
-			case event.ExecuteCmdline:
-				e.mode = mode.Normal
-			case event.ExecuteSearch:
-				e.searchTarget, e.searchMode = ev.Arg, ev.Rune
-			case event.NextSearch:
-				ev.Arg, ev.Rune = e.searchTarget, e.searchMode
-			case event.PreviousSearch:
-				ev.Arg, ev.Rune = e.searchTarget, e.searchMode
-			}
-			if e.mode == mode.Cmdline || e.mode == mode.Search ||
-				ev.Type == event.ExitCmdline || ev.Type == event.ExecuteCmdline {
-				e.cmdlineCh <- ev
-			} else {
-				ev.Mode = e.mode
-				width, height := e.ui.Size()
-				e.wm.Resize(width, height-1)
-				e.wm.Emit(ev)
-			}
+		} else if finish {
+			break
 		}
 	}
+}
+
+func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
+	e.mu.Lock()
+	if ev.Type != event.Redraw {
+		e.prevEventType = ev.Type
+	}
+	switch ev.Type {
+	case event.QuitAll:
+		if len(ev.Arg) > 0 {
+			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+			redraw = true
+		} else {
+			finish = true
+		}
+	case event.Suspend:
+		if len(ev.Arg) > 0 {
+			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+		} else if err := e.suspend(); err != nil {
+			e.err, e.errtyp = err, state.MessageError
+		}
+		redraw = true
+	case event.Info:
+		e.err, e.errtyp = ev.Error, state.MessageInfo
+		redraw = true
+	case event.Error:
+		e.err, e.errtyp = ev.Error, state.MessageError
+		redraw = true
+	case event.Redraw:
+		width, height := e.ui.Size()
+		e.wm.Resize(width, height-1)
+		redraw = true
+	default:
+		switch ev.Type {
+		case event.StartInsert, event.StartInsertHead, event.StartAppend, event.StartAppendEnd:
+			e.mode = mode.Insert
+		case event.StartReplaceByte, event.StartReplace:
+			e.mode = mode.Replace
+		case event.ExitInsert:
+			e.mode = mode.Normal
+		case event.StartVisual:
+			e.mode = mode.Visual
+		case event.ExitVisual:
+			e.mode = mode.Normal
+		case event.StartCmdlineCommand:
+			if e.mode == mode.Visual {
+				ev.Arg = "'<,'>"
+			} else if ev.Count > 0 {
+				ev.Arg = fmt.Sprintf(".,.+%d", ev.Count-1)
+			}
+			e.mode = mode.Cmdline
+			e.err = nil
+		case event.StartCmdlineSearchForward:
+			e.mode = mode.Search
+			e.err = nil
+			e.searchMode = '/'
+		case event.StartCmdlineSearchBackward:
+			e.mode = mode.Search
+			e.err = nil
+			e.searchMode = '?'
+		case event.ExitCmdline:
+			e.mode = mode.Normal
+		case event.ExecuteCmdline:
+			e.mode = mode.Normal
+		case event.ExecuteSearch:
+			e.searchTarget, e.searchMode = ev.Arg, ev.Rune
+		case event.NextSearch:
+			ev.Arg, ev.Rune = e.searchTarget, e.searchMode
+		case event.PreviousSearch:
+			ev.Arg, ev.Rune = e.searchTarget, e.searchMode
+		}
+		if e.mode == mode.Cmdline || e.mode == mode.Search ||
+			ev.Type == event.ExitCmdline || ev.Type == event.ExecuteCmdline {
+			e.mu.Unlock()
+			e.cmdlineCh <- ev
+		} else {
+			ev.Mode = e.mode
+			width, height := e.ui.Size()
+			e.wm.Resize(width, height-1)
+			e.mu.Unlock()
+			e.wm.Emit(ev)
+		}
+		return
+	}
+	e.mu.Unlock()
+	return
 }
 
 // Open opens a new file.
@@ -157,6 +171,8 @@ func (e *Editor) Run() error {
 }
 
 func (e *Editor) redraw() (err error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	var s state.State
 	var windowIndex int
 	s.WindowStates, s.Layout, windowIndex, err = e.wm.State()
