@@ -19,6 +19,7 @@ type Tui struct {
 	eventCh chan<- event.Event
 	mode    mode.Mode
 	screen  tcell.Screen
+	waitCh  chan struct{}
 }
 
 // NewTui creates a new Tui.
@@ -33,6 +34,7 @@ func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 	if ui.screen, err = tcell.NewScreen(); err != nil {
 		return
 	}
+	ui.waitCh = make(chan struct{})
 	return ui.screen.Init()
 }
 
@@ -40,6 +42,7 @@ func (ui *Tui) initForTest(eventCh chan<- event.Event, screen tcell.SimulationSc
 	ui.eventCh = eventCh
 	ui.mode = mode.Normal
 	ui.screen = screen
+	ui.waitCh = make(chan struct{})
 	return ui.screen.Init()
 }
 
@@ -57,6 +60,7 @@ func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 		case *tcell.EventResize:
 			ui.eventCh <- event.Event{Type: event.Redraw}
 		case nil:
+			close(ui.waitCh)
 			return
 		}
 	}
@@ -206,5 +210,6 @@ func prettyMode(m mode.Mode) string {
 // Close terminates the Tui.
 func (ui *Tui) Close() error {
 	ui.screen.Fini()
+	<-ui.waitCh
 	return nil
 }
