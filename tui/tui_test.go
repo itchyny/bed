@@ -54,6 +54,7 @@ func TestTuiRun(t *testing.T) {
 	}
 	screen.SetSize(90, 20)
 	go ui.Run(mockKeyManager())
+
 	screen.InjectKey(tcell.KeyRune, 'Z', tcell.ModNone)
 	screen.InjectKey(tcell.KeyRune, 'Q', tcell.ModNone)
 	e := <-eventCh
@@ -90,6 +91,7 @@ func TestTuiEmpty(t *testing.T) {
 	}
 	screen.SetSize(90, 20)
 	width, height := screen.Size()
+	go ui.Run(mockKeyManager())
 
 	s := state.State{
 		WindowStates: map[int]*state.WindowState{
@@ -136,6 +138,7 @@ func TestTuiScrollBar(t *testing.T) {
 	}
 	screen.SetSize(90, 20)
 	width, height := screen.Size()
+	go ui.Run(mockKeyManager())
 
 	s := state.State{
 		WindowStates: map[int]*state.WindowState{
@@ -182,6 +185,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	}
 	screen.SetSize(110, 20)
 	width, height := screen.Size()
+	go ui.Run(mockKeyManager())
 
 	s := state.State{
 		WindowStates: map[int]*state.WindowState{
@@ -239,6 +243,7 @@ func TestTuiVerticalSplit(t *testing.T) {
 	}
 	screen.SetSize(110, 20)
 	width, height := screen.Size()
+	go ui.Run(mockKeyManager())
 
 	s := state.State{
 		WindowStates: map[int]*state.WindowState{
@@ -301,6 +306,7 @@ func TestTuiCmdline(t *testing.T) {
 		}
 		return string(runes)
 	}
+	go ui.Run(mockKeyManager())
 
 	s := state.State{
 		Mode:          mode.Cmdline,
@@ -337,6 +343,7 @@ func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 		t.Fatal(err)
 	}
 	screen.SetSize(20, 15)
+	go ui.Run(mockKeyManager())
 
 	s := state.State{
 		Mode:              mode.Cmdline,
