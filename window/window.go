@@ -243,20 +243,36 @@ func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
 	return io.Copy(dst, io.LimitReader(w.buffer, to-from+1))
 }
 
-func (w *window) positionToOffset(p event.Position) (int64, error) {
-	if _, ok := p.(event.VisualStart); ok {
+func (w *window) positionToOffset(pos event.Position) (int64, error) {
+	switch pos := pos.(type) {
+	case event.Absolute:
+		return mathutil.MaxInt64(
+			mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1),
+			0,
+		), nil
+	case event.Relative:
+		return w.cursor + mathutil.MaxInt64(
+			mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1-w.cursor),
+			-w.cursor,
+		), nil
+	case event.End:
+		return mathutil.MaxInt64(w.length, 1) - 1 + mathutil.MaxInt64(
+			mathutil.MinInt64(pos.Offset, 0),
+			-(mathutil.MaxInt64(w.length, 1)-1),
+		), nil
+	case event.VisualStart:
 		if w.visualStart < 0 {
 			return 0, errors.New("no visual selection found")
 		}
 		return w.visualStart, nil
-	}
-	if _, ok := p.(event.VisualEnd); ok {
+	case event.VisualEnd:
 		if w.visualStart < 0 {
 			return 0, errors.New("no visual selection found")
 		}
 		return w.cursor, nil
+	default:
+		return 0, errors.New("invalid range")
 	}
-	return 0, errors.New("invalid range")
 }
 
 // State returns the current state of the buffer.
@@ -431,24 +447,7 @@ func (w *window) cursorGoto(e event.Event) {
 }
 
 func (w *window) cursorGotoPos(pos event.Position) {
-	offset := int64(-1)
-	switch pos := pos.(type) {
-	case event.Absolute:
-		offset = pos.Offset
-	case event.Relative:
-		offset = w.cursor + mathutil.MaxInt64(mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
-	case event.End:
-		offset = mathutil.MaxInt64(w.length, 1) - 1 + pos.Offset
-	case event.VisualStart:
-		if w.visualStart >= 0 {
-			offset = w.visualStart // TODO
-		}
-	case event.VisualEnd:
-		if w.visualStart >= 0 {
-			offset = w.visualStart // TODO
-		}
-	}
-	if offset >= 0 {
+	if offset, err := w.positionToOffset(pos); err == nil {
 		w.cursor = mathutil.MaxInt64(mathutil.MinInt64(offset, mathutil.MaxInt64(w.length, 1)-1), 0)
 		if w.cursor < w.offset {
 			w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
