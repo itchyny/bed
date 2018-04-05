@@ -16,6 +16,7 @@ func TestParseRange(t *testing.T) {
 		{"32", &Range{Absolute{32}, nil}, 2},
 		{"1024,4096", &Range{Absolute{1024}, Absolute{4096}}, 9},
 		{"1+2+3+4+5+6+7+8+9,0xa+0xb+0xc+0xd+0xe+0xf", &Range{Absolute{45}, Absolute{75}}, 41},
+		{".-100,.+100", &Range{Relative{-100}, Relative{100}}, 11},
 		{"'<", &Range{VisualStart{}, nil}, 2},
 		{"'>", &Range{VisualEnd{}, nil}, 2},
 		{" '<  ,  '>  write", &Range{VisualStart{}, VisualEnd{}}, 12},
@@ -24,7 +25,7 @@ func TestParseRange(t *testing.T) {
 	for _, testCase := range testCases {
 		got, gotIndex := ParseRange([]rune(testCase.target), 0)
 		if !reflect.DeepEqual(got, testCase.expected) {
-			t.Errorf("ParseRange(%q) should return %+v but got %+v", testCase.target, testCase.expected, got)
+			t.Errorf("ParseRange(%q) should return %#v but got %#v", testCase.target, testCase.expected, got)
 		}
 		if gotIndex != testCase.index {
 			t.Errorf("ParseRange(%q) should return index %d but got %d", testCase.target, testCase.index, gotIndex)
@@ -47,6 +48,8 @@ func TestParsePos(t *testing.T) {
 		{"+16777216", Relative{16777216}, 9},
 		{"-0xabcdef", Relative{-0xabcdef}, 9},
 		{"+10+20+30-40", Relative{20}, 12},
+		{" . ", Relative{0}, 3},
+		{" . +0xff ", Relative{255}, 9},
 		{"'<", VisualStart{}, 2},
 		{"'>", VisualEnd{}, 2},
 		{" '<  ,  '> ", VisualStart{}, 5},
