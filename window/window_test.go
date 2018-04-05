@@ -1295,7 +1295,13 @@ func TestWindowWriteTo(t *testing.T) {
 		{&event.Range{From: event.VisualStart{}, To: event.VisualEnd{}}, "lo, worl"},
 	} {
 		b := new(bytes.Buffer)
-		window.writeTo(testCase.r, b)
+		n, err := window.writeTo(testCase.r, b)
+		if n != int64(len(testCase.expected)) {
+			t.Errorf("writeTo should return %d but got: %d", int64(len(testCase.expected)), n)
+		}
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 		if b.String() != testCase.expected {
 			t.Errorf("window should write %q with range %+v but got %q", testCase.expected, testCase.r, b.String())
 		}
