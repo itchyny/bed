@@ -343,8 +343,9 @@ func (m *Manager) wincmd(arg string) error {
 		m.move(func(x layout.Window, y layout.Layout) layout.Layout {
 			return layout.Vertical{Left: y, Right: x}
 		})
+	default:
+		return fmt.Errorf("Invalid argument for wincmd: %s", arg)
 	}
-	// TODO: return error
 	return nil
 }
 
