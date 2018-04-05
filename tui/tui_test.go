@@ -79,7 +79,9 @@ func TestTuiRun(t *testing.T) {
 	if e.Count != 709 {
 		t.Errorf("pressing 709j should emit event with count %d but got: %+v", 709, e)
 	}
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
 
 func TestTuiEmpty(t *testing.T) {
@@ -108,7 +110,9 @@ func TestTuiEmpty(t *testing.T) {
 		},
 		Layout: layout.NewLayout(0).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                   ",
@@ -126,7 +130,9 @@ func TestTuiEmpty(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
 
 func TestTuiScrollBar(t *testing.T) {
@@ -155,7 +161,9 @@ func TestTuiScrollBar(t *testing.T) {
 		},
 		Layout: layout.NewLayout(0).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |                    ",
@@ -173,7 +181,9 @@ func TestTuiScrollBar(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
 
 func TestTuiHorizontalSplit(t *testing.T) {
@@ -212,7 +222,9 @@ func TestTuiHorizontalSplit(t *testing.T) {
 		},
 		Layout: layout.NewLayout(0).SplitBottom(1).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	shouldContain(t, screen, []string{
 		" 000000 | 54 65 73 74 20 77 69 6e 64 6f 77 20 30 2e 00 00 | Test window 0... #",
@@ -231,7 +243,9 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
 
 func TestTuiVerticalSplit(t *testing.T) {
@@ -270,7 +284,9 @@ func TestTuiVerticalSplit(t *testing.T) {
 		},
 		Layout: layout.NewLayout(0).SplitRight(1).Resize(0, 0, width, height-1),
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	shouldContain(t, screen, []string{
 		"        |  0  1  2  3  4  5  6  7 |                    |        |  0  1  2  3  4  5  6  7 |",
@@ -287,7 +303,9 @@ func TestTuiVerticalSplit(t *testing.T) {
 	if visible != true {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
 
 func TestTuiCmdline(t *testing.T) {
@@ -313,7 +331,9 @@ func TestTuiCmdline(t *testing.T) {
 		Cmdline:       []rune("vnew test"),
 		CmdlineCursor: 9,
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	got, expected := getCmdline(), ":vnew test "
 	if !strings.HasPrefix(got, expected) {
@@ -326,13 +346,17 @@ func TestTuiCmdline(t *testing.T) {
 		Cmdline:       []rune("vnew test"),
 		CmdlineCursor: 9,
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	got, expected = getCmdline(), "error "
 	if !strings.HasPrefix(got, expected) {
 		t.Errorf("cmdline should start with %q but got %q", expected, got)
 	}
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
 
 func TestTuiCmdlineCompletionCandidates(t *testing.T) {
@@ -352,7 +376,9 @@ func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 		CompletionResults: []string{"test1", "test2", "test3", "test9/", "/bin/ls"},
 		CompletionIndex:   1,
 	}
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	shouldContain(t, screen, []string{
 		" test1  test2  test3",
@@ -361,11 +387,15 @@ func TestTuiCmdlineCompletionCandidates(t *testing.T) {
 
 	s.CompletionIndex += 2
 	s.Cmdline = []rune("new test9/")
-	ui.Redraw(s)
+	if err := ui.Redraw(s); err != nil {
+		t.Errorf("ui.Redraw should return nil but got: %v", err)
+	}
 
 	shouldContain(t, screen, []string{
 		" test3  test9/  /bin",
 		":new test9/",
 	})
-	ui.Close()
+	if err := ui.Close(); err != nil {
+		t.Errorf("ui.Close should return nil but got %v", err)
+	}
 }
