@@ -42,13 +42,10 @@ func ParsePos(xs []rune, i int) (Position, int) {
 			offset, i = parseNum(xs, i)
 			if position == nil {
 				position = Absolute{offset}
-				return position, i
-			} else {
-				// TODO
 			}
 			continue
 		}
-		if state == 0 && xs[i] == '+' || xs[i] == '-' {
+		if state <= 1 && xs[i] == '+' || xs[i] == '-' {
 			var offset int64
 			sign := int64(1)
 			if xs[i] == '-' {
@@ -58,9 +55,8 @@ func ParsePos(xs []rune, i int) (Position, int) {
 			offset *= sign
 			if position == nil {
 				position = Relative{offset}
-				return position, i
 			} else {
-				// TODO
+				position = position.addOffset(offset)
 			}
 			continue
 		}
@@ -100,8 +96,8 @@ func parseNum(xs []rune, i int) (int64, int) {
 				offset += int64(c - 'a' + 0x0a)
 			}
 		} else {
-			return offset, i
+			return offset, i - 1
 		}
 	}
-	return offset, i
+	return offset, i - 1
 }
