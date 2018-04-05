@@ -223,7 +223,9 @@ func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if r == nil {
-		w.buffer.Seek(0, io.SeekStart)
+		if _, err := w.buffer.Seek(0, io.SeekStart); err != nil {
+			return 0, err
+		}
 		return io.Copy(dst, w.buffer)
 	}
 	var from, to int64
@@ -237,7 +239,9 @@ func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
 	if from > to {
 		from, to = to, from
 	}
-	w.buffer.Seek(from, io.SeekStart)
+	if _, err := w.buffer.Seek(from, io.SeekStart); err != nil {
+		return 0, err
+	}
 	return io.Copy(dst, io.LimitReader(w.buffer, to-from+1))
 }
 
