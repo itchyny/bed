@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/itchyny/bed/event"
@@ -398,26 +399,29 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 	ch := make(chan event.Event, 1)
 	c.Init(ch, make(chan event.Event), make(chan struct{}))
 	for _, cmd := range []struct {
-		cmd  string
-		name string
-		typ  event.Type
+		cmd string
+		pos event.Position
+		typ event.Type
 	}{
-		{"  :  :  $  ", "goto", event.CursorGoto},
-		{"  :123456789  ", "123456789", event.CursorGotoAbs},
-		{"  +16777216 ", "+16777216", event.CursorGotoRel},
-		{"  -256 ", "-256", event.CursorGotoRel},
-		{"  :  0x123456789abcdef  ", "0x123456789abcdef", event.CursorGotoAbs},
-		{"  0xfedcba  ", "0xfedcba", event.CursorGotoAbs},
-		{"  +0x44ef ", "+0x44ef", event.CursorGotoRel},
-		{"  -0xff ", "-0xff", event.CursorGotoRel},
+		{"  :  :  $  ", event.End{}, event.CursorGoto},
+		{"  :123456789  ", event.Absolute{123456789}, event.CursorGoto},
+		{"  +16777216 ", event.Relative{16777216}, event.CursorGoto},
+		{"  -256 ", event.Relative{-256}, event.CursorGoto},
+		{"  :  0x123456789abcdef  ", event.Absolute{0x123456789abcdef}, event.CursorGoto},
+		{"  0xfedcba  ", event.Absolute{0xfedcba}, event.CursorGoto},
+		{"  +0x44ef ", event.Relative{0x44ef}, event.CursorGoto},
+		{"  -0xff ", event.Relative{-0xff}, event.CursorGoto},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
 		c.typ = ':'
 		c.execute()
 		e := <-ch
-		if e.CmdName != cmd.name {
-			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		if e.CmdName != "goto" {
+			t.Errorf("cmdline should report command name %q but got %q", "goto", e.CmdName)
+		}
+		if !reflect.DeepEqual(e.Range.From, cmd.pos) {
+			t.Errorf("cmdline should report command with position %#v but got %#v", cmd.pos, e.Range.From)
 		}
 		if e.Type != cmd.typ {
 			t.Errorf("cmdline should emit %d but got %d with %q", cmd.typ, e.Type, cmd.cmd)

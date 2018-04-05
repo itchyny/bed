@@ -438,7 +438,11 @@ func (w *window) cursorGoto(e event.Event) {
 
 func (w *window) cursorGotoPos(pos event.Position) {
 	offset := int64(-1)
-	switch pos.(type) {
+	switch pos := pos.(type) {
+	case event.Absolute:
+		offset = pos.Offset
+	case event.Relative:
+		offset = w.cursor + pos.Offset
 	case event.End:
 		offset = math.MaxInt64
 	case event.VisualStart:

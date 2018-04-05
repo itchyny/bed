@@ -37,6 +37,33 @@ func ParsePos(xs []rune, i int) (Position, int) {
 		if state <= 1 && unicode.IsSpace(xs[i]) {
 			continue
 		}
+		if state == 0 && '0' <= xs[i] && xs[i] <= '9' {
+			var offset int64
+			offset, i = parseNum(xs, i)
+			if position == nil {
+				position = Absolute{offset}
+				return position, i
+			} else {
+				// TODO
+			}
+			continue
+		}
+		if state == 0 && xs[i] == '+' || xs[i] == '-' {
+			var offset int64
+			sign := int64(1)
+			if xs[i] == '-' {
+				sign = -1
+			}
+			offset, i = parseNum(xs, i+1)
+			offset *= sign
+			if position == nil {
+				position = Relative{offset}
+				return position, i
+			} else {
+				// TODO
+			}
+			continue
+		}
 		if s, ok := states[state]; ok {
 			if next, ok := s[xs[i]]; ok {
 				state = next.state
@@ -49,4 +76,32 @@ func ParsePos(xs []rune, i int) (Position, int) {
 		}
 	}
 	return position, i
+}
+
+func parseNum(xs []rune, i int) (int64, int) {
+	var offset int64
+	var hex int
+	for ; i < len(xs); i++ {
+		c := xs[i]
+		if hex == 0 && c == '0' {
+			hex = 1
+		} else if hex == 1 && c == 'x' {
+			hex = 2
+		} else if '0' <= c && c <= '9' || hex == 2 && 'a' <= c && c <= 'f' {
+			if hex == 2 {
+				offset *= 0x10
+			} else {
+				hex = 3
+				offset *= 10
+			}
+			if '0' <= c && c <= '9' {
+				offset += int64(c - '0')
+			} else {
+				offset += int64(c - 'a' + 0x0a)
+			}
+		} else {
+			return offset, i
+		}
+	}
+	return offset, i
 }
