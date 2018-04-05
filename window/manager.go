@@ -158,38 +158,71 @@ func (m *Manager) Emit(e event.Event) {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
 	case event.FocusWindowDown:
-		m.wincmd("j")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("j"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.FocusWindowUp:
-		m.wincmd("k")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("k"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.FocusWindowLeft:
-		m.wincmd("h")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("h"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.FocusWindowRight:
-		m.wincmd("l")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("l"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.FocusWindowTopLeft:
-		m.wincmd("t")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("t"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.FocusWindowBottomRight:
-		m.wincmd("b")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("b"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.FocusWindowPrevious:
-		m.wincmd("p")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("p"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.MoveWindowTop:
-		m.wincmd("K")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("K"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.MoveWindowBottom:
-		m.wincmd("J")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("J"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.MoveWindowLeft:
-		m.wincmd("H")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("H"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.MoveWindowRight:
-		m.wincmd("L")
-		m.eventCh <- event.Event{Type: event.Redraw}
+		if err := m.wincmd("L"); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.Quit:
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
