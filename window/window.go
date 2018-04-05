@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"math"
 	"strconv"
 	"sync"
 	"unicode/utf8"
@@ -439,7 +438,7 @@ func (w *window) cursorGotoPos(pos event.Position) {
 	case event.Relative:
 		offset = w.cursor + mathutil.MaxInt64(mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
 	case event.End:
-		offset = math.MaxInt64
+		offset = mathutil.MaxInt64(w.length, 1) - 1 + pos.Offset
 	case event.VisualStart:
 		if w.visualStart >= 0 {
 			offset = w.visualStart // TODO
@@ -450,7 +449,7 @@ func (w *window) cursorGotoPos(pos event.Position) {
 		}
 	}
 	if offset >= 0 {
-		w.cursor = mathutil.MinInt64(offset, mathutil.MaxInt64(w.length, 1)-1)
+		w.cursor = mathutil.MaxInt64(mathutil.MinInt64(offset, mathutil.MaxInt64(w.length, 1)-1), 0)
 		if w.cursor < w.offset {
 			w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
 		} else if w.cursor >= w.offset+w.height*w.width {
