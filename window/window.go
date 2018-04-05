@@ -264,12 +264,19 @@ func (w *window) positionToOffset(pos event.Position) (int64, error) {
 		if w.visualStart < 0 {
 			return 0, errors.New("no visual selection found")
 		}
-		return w.visualStart, nil
+		// TODO: save visualStart after exitting visual mode
+		return w.visualStart + mathutil.MaxInt64(
+			mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1-w.visualStart),
+			-w.visualStart,
+		), nil
 	case event.VisualEnd:
 		if w.visualStart < 0 {
 			return 0, errors.New("no visual selection found")
 		}
-		return w.cursor, nil
+		return w.cursor + mathutil.MaxInt64(
+			mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1-w.cursor),
+			-w.cursor,
+		), nil
 	default:
 		return 0, errors.New("invalid range")
 	}
