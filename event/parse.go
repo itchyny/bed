@@ -2,6 +2,19 @@ package event
 
 import "unicode"
 
+// ParseRange parses a Range.
+func ParseRange(xs []rune, i int) (*Range, int) {
+	from, i := ParsePos(xs, i)
+	if from == nil {
+		return nil, i
+	}
+	if i >= len(xs) || xs[i] != ',' {
+		return &Range{From: from}, i
+	}
+	to, i := ParsePos(xs, i+1)
+	return &Range{From: from, To: to}, i
+}
+
 var states = map[int]map[rune]struct {
 	position Position
 	state    int
