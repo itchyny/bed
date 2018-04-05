@@ -11,6 +11,7 @@ func TestParseRange(t *testing.T) {
 		expected *Range
 		index    int
 	}{
+		{" $ ", &Range{End{}, nil}, 3},
 		{"'<", &Range{VisualStart{}, nil}, 2},
 		{"'>", &Range{VisualEnd{}, nil}, 2},
 		{" '<  ,  '>  write", &Range{VisualStart{}, VisualEnd{}}, 12},
@@ -32,6 +33,7 @@ func TestParsePos(t *testing.T) {
 		expected Position
 		index    int
 	}{
+		{" $ ", End{}, 3},
 		{"'<", VisualStart{}, 2},
 		{"'>", VisualEnd{}, 2},
 		{" '<  ,  '> ", VisualStart{}, 5},

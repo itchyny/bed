@@ -30,6 +30,7 @@ const (
 	CursorNext
 	CursorHead
 	CursorEnd
+	CursorGoto
 	CursorGotoAbs
 	CursorGotoRel
 	ScrollUp

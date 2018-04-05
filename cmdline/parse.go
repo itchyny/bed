@@ -37,8 +37,8 @@ func parse(cmdline []rune) (command, *event.Range, string, string, error) {
 		}
 	}
 	if len(strings.Fields(string(cmdline[k:]))) == 0 {
-		if cmdName == "$" {
-			return command{cmdName, event.CursorGotoAbs}, r, string(cmdline[:k]), cmdName, nil
+		if r != nil {
+			return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), "$", nil
 		}
 		relative, hexState, eventType := false, 0, event.CursorGotoAbs
 		for _, c := range cmdName {

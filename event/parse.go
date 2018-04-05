@@ -20,6 +20,7 @@ var states = map[int]map[rune]struct {
 	state    int
 }{
 	0: {
+		'$':  {position: End{}, state: 1},
 		'\'': {position: nil, state: 2},
 	},
 	2: {

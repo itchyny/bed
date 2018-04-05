@@ -11,6 +11,11 @@ type Position interface {
 	isPosition()
 }
 
+// End is the end of the buffer.
+type End struct{}
+
+func (v End) isPosition() {}
+
 // VisualStart is the start position of visual selection.
 type VisualStart struct{}
 

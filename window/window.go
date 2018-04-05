@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"strconv"
 	"sync"
 	"unicode/utf8"
@@ -108,6 +109,8 @@ func (w *window) Run() {
 			w.cursorHead(e.Count)
 		case event.CursorEnd:
 			w.cursorEnd(e.Count)
+		case event.CursorGoto:
+			w.cursorGoto(e)
 		case event.CursorGotoAbs:
 			w.cursorGotoAbs(e.Count)
 		case event.CursorGotoRel:
@@ -419,6 +422,36 @@ func (w *window) cursorEnd(count int64) {
 	)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+}
+
+func (w *window) cursorGoto(e event.Event) {
+	if e.Range == nil {
+		return
+	}
+	if e.Range.To != nil {
+		w.cursorGotoPos(e.Range.To)
+	} else if e.Range.From != nil {
+		w.cursorGotoPos(e.Range.From)
+	}
+}
+
+func (w *window) cursorGotoPos(pos event.Position) {
+	offset := int64(-1)
+	switch pos.(type) {
+	case event.End:
+		offset = math.MaxInt64
+	case event.VisualStart:
+		if w.visualStart >= 0 {
+			offset = w.visualStart // TODO
+		}
+	case event.VisualEnd:
+		if w.visualStart >= 0 {
+			offset = w.visualStart // TODO
+		}
+	}
+	if offset >= 0 {
+		w.cursorGotoAbs(offset)
 	}
 }
 

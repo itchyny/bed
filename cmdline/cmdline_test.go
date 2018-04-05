@@ -402,7 +402,7 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		name string
 		typ  event.Type
 	}{
-		{"  :  :  $  ", "$", event.CursorGotoAbs},
+		{"  :  :  $  ", "goto", event.CursorGoto},
 		{"  :123456789  ", "123456789", event.CursorGotoAbs},
 		{"  +16777216 ", "+16777216", event.CursorGotoRel},
 		{"  -256 ", "-256", event.CursorGotoRel},
