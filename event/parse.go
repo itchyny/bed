@@ -44,6 +44,7 @@ func ParsePos(xs []rune, i int) (Position, int) {
 			if position == nil {
 				position = Absolute{offset}
 			}
+			state = 1
 			continue
 		}
 		if state <= 1 && xs[i] == '+' || xs[i] == '-' {
@@ -59,6 +60,7 @@ func ParsePos(xs []rune, i int) (Position, int) {
 			} else {
 				position = position.addOffset(offset)
 			}
+			state = 1
 			continue
 		}
 		if s, ok := states[state]; ok {
