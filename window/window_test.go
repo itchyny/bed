@@ -311,41 +311,6 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 }
 
-func TestParseGotoPos(t *testing.T) {
-	for _, p := range []struct {
-		pos   string
-		count int64
-	}{
-		{"0", 0},
-		{"10", 10},
-		{"8000000000", 8000000000},
-		{"123456789123456789", 123456789123456789},
-		{"-0", 0},
-		{"-", -1},
-		{"+", 1},
-		{"+10", 10},
-		{"-10", -10},
-		{"+8000000000", 8000000000},
-		{"-8000000000", -8000000000},
-		{"-123456789123456789", -123456789123456789},
-		{"0x0", 0},
-		{"0x10", 16},
-		{"0x8000000000", 549755813888},
-		{"0x123456789abcdefe", 1311768467463790334},
-		{"-0x0", 0},
-		{"+0x10", 16},
-		{"-0x10", -16},
-		{"+0x8000000000", 549755813888},
-		{"-0x8000000000", -549755813888},
-		{"-0x123456789abcdefe", -1311768467463790334},
-		{"$", math.MaxInt64},
-	} {
-		if c := parseGotoPos(p.pos); c != p.count {
-			t.Errorf("count should be %v but got: %v (pos: %q)", p.count, c, p.pos)
-		}
-	}
-}
-
 func TestWindowScreenMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
 	width, height := 16, 10

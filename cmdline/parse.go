@@ -36,27 +36,8 @@ func parse(cmdline []rune) (command, *event.Range, string, string, error) {
 			}
 		}
 	}
-	if len(strings.Fields(string(cmdline[k:]))) == 0 {
-		if r != nil {
-			return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), "$", nil
-		}
-		relative, hexState, eventType := false, 0, event.CursorGotoAbs
-		for _, c := range cmdName {
-			if !relative && hexState == 0 && (c == '-' || c == '+') {
-				relative = true
-				eventType = event.CursorGotoRel
-			} else if hexState == 0 && c == '0' {
-				hexState = 1
-			} else if hexState == 1 && c == 'x' {
-				hexState = 2
-			} else if !('0' <= c && c <= '9' || hexState == 2 && 'a' <= c && c <= 'f') {
-				eventType = event.Nop
-				break
-			}
-		}
-		if eventType != event.Nop {
-			return command{cmdName, event.Type(eventType)}, r, string(cmdline[:k]), cmdName, nil
-		}
+	if len(strings.Fields(string(cmdline[k:]))) == 0 && r != nil {
+		return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), "$", nil
 	}
 	return command{}, nil, "", "", fmt.Errorf("unknown command: %s", string(cmdline))
 }

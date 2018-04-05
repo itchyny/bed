@@ -31,8 +31,6 @@ const (
 	CursorHead
 	CursorEnd
 	CursorGoto
-	CursorGotoAbs
-	CursorGotoRel
 	ScrollUp
 	ScrollDown
 	PageUp

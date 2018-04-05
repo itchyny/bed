@@ -111,10 +111,6 @@ func (w *window) Run() {
 			w.cursorEnd(e.Count)
 		case event.CursorGoto:
 			w.cursorGoto(e)
-		case event.CursorGotoAbs:
-			w.cursorGotoAbs(e.Count)
-		case event.CursorGotoRel:
-			w.cursorGotoRel(e.Count)
 		case event.ScrollUp:
 			w.scrollUp(e.Count)
 		case event.ScrollDown:
@@ -426,13 +422,12 @@ func (w *window) cursorEnd(count int64) {
 }
 
 func (w *window) cursorGoto(e event.Event) {
-	if e.Range == nil {
-		return
-	}
-	if e.Range.To != nil {
-		w.cursorGotoPos(e.Range.To)
-	} else if e.Range.From != nil {
-		w.cursorGotoPos(e.Range.From)
+	if e.Range != nil {
+		if e.Range.To != nil {
+			w.cursorGotoPos(e.Range.To)
+		} else if e.Range.From != nil {
+			w.cursorGotoPos(e.Range.From)
+		}
 	}
 }
 
@@ -442,7 +437,7 @@ func (w *window) cursorGotoPos(pos event.Position) {
 	case event.Absolute:
 		offset = pos.Offset
 	case event.Relative:
-		offset = w.cursor + pos.Offset
+		offset = w.cursor + mathutil.MaxInt64(mathutil.MinInt64(pos.Offset, mathutil.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
 	case event.End:
 		offset = math.MaxInt64
 	case event.VisualStart:
@@ -455,27 +450,13 @@ func (w *window) cursorGotoPos(pos event.Position) {
 		}
 	}
 	if offset >= 0 {
-		w.cursorGotoAbs(offset)
-	}
-}
-
-func (w *window) cursorGotoAbs(count int64) {
-	w.cursor = mathutil.MinInt64(count, mathutil.MaxInt64(w.length, 1)-1)
-	if w.cursor < w.offset {
-		w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
-	} else if w.cursor >= w.offset+w.height*w.width {
-		h := (mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
-		w.offset = mathutil.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
-	}
-}
-
-func (w *window) cursorGotoRel(count int64) {
-	w.cursor += mathutil.MaxInt64(mathutil.MinInt64(count, mathutil.MaxInt64(w.length, 1)-1-w.cursor), -w.cursor)
-	if w.cursor < w.offset {
-		w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
-	} else if w.cursor >= w.offset+w.height*w.width {
-		h := (mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
-		w.offset = mathutil.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
+		w.cursor = mathutil.MinInt64(offset, mathutil.MaxInt64(w.length, 1)-1)
+		if w.cursor < w.offset {
+			w.offset = (mathutil.MaxInt64(w.cursor/w.width, w.height/2) - w.height/2) * w.width
+		} else if w.cursor >= w.offset+w.height*w.width {
+			h := (mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - w.height
+			w.offset = mathutil.MinInt64((w.cursor-w.height*w.width+w.width)/w.width+w.height/2, h) * w.width
+		}
 	}
 }
 

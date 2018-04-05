@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/mitchellh/go-homedir"
@@ -123,14 +121,6 @@ func (m *Manager) Resize(width, height int) {
 // Emit an event to the current window.
 func (m *Manager) Emit(e event.Event) {
 	switch e.Type {
-	case event.CursorGotoAbs:
-		if err := m.cursorGoto(e); err != nil {
-			m.eventCh <- event.Event{Type: event.Error, Error: err}
-		}
-	case event.CursorGotoRel:
-		if err := m.cursorGoto(e); err != nil {
-			m.eventCh <- event.Event{Type: event.Error, Error: err}
-		}
 	case event.Edit:
 		if err := m.edit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -238,47 +228,6 @@ func (m *Manager) Emit(e event.Event) {
 	default:
 		m.windows[m.windowIndex].eventCh <- e
 	}
-}
-
-func (m *Manager) cursorGoto(e event.Event) error {
-	e.Count = parseGotoPos(e.Arg)
-	m.windows[m.windowIndex].eventCh <- e
-	return nil
-}
-
-func parseGotoPos(pos string) int64 {
-	switch pos {
-	case "$":
-		return math.MaxInt64
-	case "+":
-		return 1
-	case "-":
-		return -1
-	}
-	count, sign, hex := int64(0), int64(1), false
-	for strings.HasPrefix(pos, "+") || strings.HasPrefix(pos, "-") {
-		if pos[0] == '-' {
-			sign = -sign
-		}
-		pos = pos[1:]
-	}
-	if strings.HasPrefix(pos, "0x") {
-		pos = pos[2:]
-		hex = true
-	}
-	for _, c := range pos {
-		if hex {
-			count *= 0x10
-		} else {
-			count *= 10
-		}
-		if '0' <= c && c <= '9' {
-			count += int64(c - '0')
-		} else if hex && 'a' <= c && c <= 'f' {
-			count += int64(c - 'a' + 0x0a)
-		}
-	}
-	return sign * count
 }
 
 func (m *Manager) edit(e event.Event) error {
