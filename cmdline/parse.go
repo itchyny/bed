@@ -37,7 +37,7 @@ func parse(cmdline []rune) (command, *event.Range, string, string, error) {
 		}
 	}
 	if len(strings.Fields(string(cmdline[k:]))) == 0 && r != nil {
-		return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), "$", nil
+		return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), "", nil
 	}
 	return command{}, nil, "", "", fmt.Errorf("unknown command: %s", string(cmdline))
 }
