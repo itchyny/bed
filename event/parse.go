@@ -47,7 +47,7 @@ func ParsePos(xs []rune, i int) (Position, int) {
 			state = 1
 			continue
 		}
-		if state <= 1 && xs[i] == '+' || xs[i] == '-' {
+		if state <= 1 && (xs[i] == '+' || xs[i] == '-') {
 			var offset int64
 			sign := int64(1)
 			if xs[i] == '-' {
