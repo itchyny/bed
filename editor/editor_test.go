@@ -1,8 +1,11 @@
 package editor
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -134,6 +137,71 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	}
 	if string(bs) != "\x12\x48\xff" {
 		t.Errorf("file contents should be %q but got %q", "\x12\x48\xff", string(bs))
+	}
+}
+
+func TestEditorWritePartial(t *testing.T) {
+	f, err := ioutil.TempFile("", "bed-test-editor-write-partial")
+	defer os.Remove(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	str := "Hello, world! こんにちは、世界！"
+	n, err := f.WriteString(str)
+	if n != 41 {
+		t.Errorf("WriteString should return %d but got %d", 41, n)
+	}
+	if err != nil {
+		t.Errorf("err should be nil but got %v", err)
+	}
+	f.Close()
+	for i, testCase := range []struct {
+		cmdRange string
+		count    int
+		expected string
+	}{
+		{"", 41, str},
+		{"-10,$+10", 41, str},
+		{"10,25", 16, str[10:26]},
+		{".+3+3+3+5+5 , .+0xa-0x6", 16, str[4:20]},
+		{"$-20,.+28", 9, str[20:29]},
+	} {
+		ui := newTestUI()
+		editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+		if err := editor.Init(); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if err := editor.Open(f.Name()); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		name := "editor-partial-test-" + strconv.Itoa(i)
+		defer os.Remove(name)
+		go func(name string) {
+			ui.Emit(event.Event{Type: event.StartCmdlineCommand})
+			for _, c := range testCase.cmdRange + "w " + name {
+				ui.Emit(event.Event{Type: event.Rune, Rune: c})
+			}
+			ui.Emit(event.Event{Type: event.ExecuteCmdline})
+			time.Sleep(100 * time.Millisecond)
+			ui.Emit(event.Event{Type: event.WriteQuit})
+		}(name)
+		if err := editor.Run(); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		expectedErr := fmt.Sprintf("%d (0x%x) bytes written", testCase.count, testCase.count)
+		if editor.err == nil || !strings.Contains(editor.err.Error(), expectedErr) {
+			t.Errorf("err should be contain %q but got: %v", expectedErr, editor.err)
+		}
+		if err := editor.Close(); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		bs, err := ioutil.ReadFile(name)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if string(bs) != testCase.expected {
+			t.Errorf("file contents should be %q but got %q", testCase.expected, string(bs))
+		}
 	}
 }
 
