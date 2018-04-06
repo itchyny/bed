@@ -60,7 +60,9 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
 	defer os.Remove(f.Name())
 	if err := editor.OpenEmpty(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -102,7 +104,9 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
 	if err := editor.Open(f.Name()); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -154,7 +158,9 @@ func TestEditorWritePartial(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got %v", err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
 	for i, testCase := range []struct {
 		cmdRange string
 		count    int
