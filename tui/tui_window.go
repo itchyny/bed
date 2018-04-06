@@ -28,11 +28,11 @@ func (ui *tuiWindow) setCursor(line int, offset int) {
 
 func (ui *tuiWindow) offsetStyleWidth(s *state.WindowState) int {
 	threshold := int64(0xfffff)
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		if s.Length <= threshold {
-			return 6 + i*2
+			return 6 + i
 		}
-		threshold = (threshold << 8) | 0xff
+		threshold = (threshold << 4) | 0x0f
 	}
 	return 16
 }
