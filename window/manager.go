@@ -416,8 +416,12 @@ func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error
 func hexWindowWidth(width int) int {
 	if width > 146 {
 		return 32
+	} else if width > 114 {
+		return 24
 	} else if width > 82 {
 		return 16
+	} else if width > 64 {
+		return 12
 	} else if width > 50 {
 		return 8
 	}
