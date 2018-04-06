@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gdamore/tcell"
@@ -155,55 +154,6 @@ func (ui *Tui) drawCompletionResults(s state.State, width int, height int) {
 			ui.setLine(height-2, pos, " "+s.CompletionResults[s.CompletionIndex]+" ",
 				tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
 		}
-	}
-}
-
-func prettyByte(b byte) byte {
-	switch {
-	case 0x20 <= b && b < 0x7f:
-		return b
-	default:
-		return 0x2e
-	}
-}
-
-func prettyRune(b byte) string {
-	switch {
-	case b == 0x07:
-		return "\\a"
-	case b == 0x08:
-		return "\\b"
-	case b == 0x09:
-		return "\\t"
-	case b == 0x0a:
-		return "\\n"
-	case b == 0x0b:
-		return "\\v"
-	case b == 0x0c:
-		return "\\f"
-	case b == 0x0d:
-		return "\\r"
-	case b < 0x20:
-		return fmt.Sprintf("\\x%02x", b)
-	case b == 0x27:
-		return "\\'"
-	case b < 0x7f:
-		return string(rune(b))
-	default:
-		return fmt.Sprintf("\\u%04x", b)
-	}
-}
-
-func prettyMode(m mode.Mode) string {
-	switch m {
-	case mode.Insert:
-		return "[INSERT] "
-	case mode.Replace:
-		return "[REPLACE] "
-	case mode.Visual:
-		return "[VISUAL] "
-	default:
-		return ""
 	}
 }
 
