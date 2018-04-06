@@ -31,6 +31,12 @@ var states = map[int]map[rune]struct {
 }
 
 // ParsePos parses a Position.
+//    +---- num.. ----+
+//    +-- [-+]num.. --+   +---------------+
+//    +------ $ ------+   |               |
+// ---+------ . ------+---+-- [-+]num.. --+---
+//    +-- ' -+- < -+--+
+//           +- > -+
 func ParsePos(xs []rune, i int) (Position, int) {
 	var state int
 	var position Position
