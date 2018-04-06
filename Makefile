@@ -16,7 +16,6 @@ deps:
 test: build
 	@! git grep termbox -- ':!tui/' ':!Gopkg.lock' ':!Makefile'
 	go test -v ./...
-	go test -race ./...
 
 lint: lintdeps build
 	golint -set_exit_status $$(go list ./... | grep -v /vendor/)
