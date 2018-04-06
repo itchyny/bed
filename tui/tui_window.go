@@ -162,17 +162,20 @@ func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
 }
 
 func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
-	offsetStyle := "%0" + strconv.Itoa(offsetStyleWidth) + "x"
+	offsetStyle := "0x%0" + strconv.Itoa(offsetStyleWidth) + "x"
 	j := int(s.Cursor - s.Offset)
 	name := s.Name
 	if name == "" {
 		name = "[No name]"
 	}
-	line := fmt.Sprintf(" %s%s: "+offsetStyle+" / "+offsetStyle+
-		" (%.2f%%) [0x%02x '%s']"+strings.Repeat(" ", ui.region.width),
-		prettyMode(s.Mode), name, s.Cursor, s.Length,
-		float64(s.Cursor*100)/float64(mathutil.MaxInt64(s.Length, 1)),
-		s.Bytes[j], prettyRune(s.Bytes[j]))
+	left := fmt.Sprintf(" %s%s : 0x%02x : '%s'",
+		prettyMode(s.Mode), name, s.Bytes[j], prettyRune(s.Bytes[j]))
+	right := fmt.Sprintf("%d/%d : "+offsetStyle+"/"+offsetStyle+" : %.2f%% ",
+		s.Cursor, s.Length, s.Cursor, s.Length,
+		float64(s.Cursor*100)/float64(mathutil.MaxInt64(s.Length, 1)))
+	line := left + strings.Repeat(
+		" ", mathutil.MaxInt(2, ui.region.width-len(left)-len(right)),
+	) + right
 	ui.getTextDrawer().setTop(ui.region.height-1).setString(line, tcell.StyleDefault.Reverse(true))
 }
 
