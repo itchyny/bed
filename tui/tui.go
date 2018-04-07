@@ -122,10 +122,12 @@ func (ui *Tui) drawCmdline(s state.State) {
 			style = style.Foreground(tcell.ColorYellow)
 		}
 		ui.setLine(height-1, 0, s.Error.Error(), style)
-	} else if s.Mode == mode.Cmdline {
-		ui.drawCompletionResults(s, width, height)
+	} else if s.Mode == mode.Cmdline || s.PrevMode == mode.Cmdline && len(s.Cmdline) > 0 {
 		ui.setLine(height-1, 0, ":"+string(s.Cmdline), tcell.StyleDefault)
-		ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
+		if s.Mode == mode.Cmdline {
+			ui.drawCompletionResults(s, width, height)
+			ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
+		}
 	} else if s.SearchMode != '\x00' {
 		ui.setLine(height-1, 0, string(s.SearchMode)+string(s.Cmdline), tcell.StyleDefault)
 		if s.Mode == mode.Search {
