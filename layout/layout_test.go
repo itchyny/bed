@@ -29,7 +29,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
-		t.Errorf("layout should be %+v but got %+v", expected, layout)
+		t.Errorf("layout should be %#v but got %#v", expected, layout)
 	}
 
 	w, h := layout.Count()
@@ -73,7 +73,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
-		t.Errorf("layout should be %+v but got %+v", expected, layout)
+		t.Errorf("layout should be %#v but got %#v", expected, layout)
 	}
 
 	expectedWindow := Window{Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10}
@@ -164,7 +164,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
-		t.Errorf("layout should be %+v but got %+v", expected, layout)
+		t.Errorf("layout should be %#v but got %#v", expected, layout)
 	}
 
 	if layout.LeftMargin() != 0 {
@@ -225,7 +225,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
-		t.Errorf("layout should be %+v but got %+v", expected, layout)
+		t.Errorf("layout should be %#v but got %#v", expected, layout)
 	}
 
 	layout = layout.Activate(1)
@@ -254,7 +254,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
-		t.Errorf("layout should be %+v but got %+v", expected, layout)
+		t.Errorf("layout should be %#v but got %#v", expected, layout)
 	}
 
 	layout = Vertical{
@@ -289,7 +289,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(layout, expected) {
-		t.Errorf("layout should be %+v but got %+v", expected, layout)
+		t.Errorf("layout should be %#v but got %#v", expected, layout)
 	}
 
 	if layout.LeftMargin() != 0 {
