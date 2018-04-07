@@ -50,7 +50,7 @@ func (c *Cmdline) Run() {
 			c.typ = '?'
 			c.clear()
 		case event.ExitCmdline:
-			// do nothing here but redraw
+			c.clear()
 		case event.CursorLeft:
 			c.cursorLeft()
 		case event.CursorRight:
