@@ -197,6 +197,11 @@ func (e *Editor) redraw() (err error) {
 	}
 	s.WindowStates[windowIndex].Mode = e.mode
 	s.Mode, s.PrevMode, s.Error, s.ErrorType = e.mode, e.prevMode, e.err, e.errtyp
+	if s.Mode != mode.Visual && s.PrevMode != mode.Visual {
+		for _, ws := range s.WindowStates {
+			ws.VisualStart = -1
+		}
+	}
 	s.Cmdline, s.CmdlineCursor, s.CompletionResults, s.CompletionIndex = e.cmdline.Get()
 	if e.mode == mode.Search || e.prevEventType == event.ExecuteSearch {
 		s.SearchMode = e.searchMode
