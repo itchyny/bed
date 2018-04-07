@@ -8,6 +8,7 @@ import (
 // State holds the state of the editor to display the user interface.
 type State struct {
 	Mode              mode.Mode
+	PrevMode          mode.Mode
 	WindowStates      map[int]*WindowState
 	Layout            layout.Layout
 	Cmdline           []rune

@@ -16,6 +16,7 @@ type Editor struct {
 	wm            Manager
 	cmdline       Cmdline
 	mode          mode.Mode
+	prevMode      mode.Mode
 	searchTarget  string
 	searchMode    rune
 	prevEventType event.Type
@@ -29,7 +30,13 @@ type Editor struct {
 
 // NewEditor creates a new editor.
 func NewEditor(ui UI, wm Manager, cmdline Cmdline) *Editor {
-	return &Editor{ui: ui, wm: wm, cmdline: cmdline, mode: mode.Normal}
+	return &Editor{
+		ui:       ui,
+		wm:       wm,
+		cmdline:  cmdline,
+		mode:     mode.Normal,
+		prevMode: mode.Normal,
+	}
 }
 
 // Init initializes the editor.
@@ -99,35 +106,35 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 	default:
 		switch ev.Type {
 		case event.StartInsert, event.StartInsertHead, event.StartAppend, event.StartAppendEnd:
-			e.mode = mode.Insert
+			e.mode, e.prevMode = mode.Insert, e.mode
 		case event.StartReplaceByte, event.StartReplace:
-			e.mode = mode.Replace
+			e.mode, e.prevMode = mode.Replace, e.mode
 		case event.ExitInsert:
-			e.mode = mode.Normal
+			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.StartVisual:
-			e.mode = mode.Visual
+			e.mode, e.prevMode = mode.Visual, e.mode
 		case event.ExitVisual:
-			e.mode = mode.Normal
+			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.StartCmdlineCommand:
 			if e.mode == mode.Visual {
 				ev.Arg = "'<,'>"
 			} else if ev.Count > 0 {
 				ev.Arg = fmt.Sprintf(".,.+%d", ev.Count-1)
 			}
-			e.mode = mode.Cmdline
+			e.mode, e.prevMode = mode.Cmdline, e.mode
 			e.err = nil
 		case event.StartCmdlineSearchForward:
-			e.mode = mode.Search
+			e.mode, e.prevMode = mode.Search, e.mode
 			e.err = nil
 			e.searchMode = '/'
 		case event.StartCmdlineSearchBackward:
-			e.mode = mode.Search
+			e.mode, e.prevMode = mode.Search, e.mode
 			e.err = nil
 			e.searchMode = '?'
 		case event.ExitCmdline:
-			e.mode = mode.Normal
+			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.ExecuteCmdline:
-			e.mode = mode.Normal
+			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.ExecuteSearch:
 			e.searchTarget, e.searchMode = ev.Arg, ev.Rune
 		case event.NextSearch:
@@ -189,7 +196,7 @@ func (e *Editor) redraw() (err error) {
 		return errors.New("index out of windows")
 	}
 	s.WindowStates[windowIndex].Mode = e.mode
-	s.Mode, s.Error, s.ErrorType = e.mode, e.err, e.errtyp
+	s.Mode, s.PrevMode, s.Error, s.ErrorType = e.mode, e.prevMode, e.err, e.errtyp
 	s.Cmdline, s.CmdlineCursor, s.CompletionResults, s.CompletionIndex = e.cmdline.Get()
 	if e.mode == mode.Search || e.prevEventType == event.ExecuteSearch {
 		s.SearchMode = e.searchMode
