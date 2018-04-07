@@ -4,10 +4,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/itchyny/bed/event"
+	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/mode"
 )
 
@@ -154,5 +156,51 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if string(bs) != str {
 		t.Errorf("file contents should be %q but got %q", str, string(bs))
 	}
+	wm.Close()
+}
+
+func TestManagerWincmd(t *testing.T) {
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	go func() {
+		for {
+			select {
+			case <-eventCh:
+			case <-redrawCh:
+			}
+		}
+	}()
+	wm.SetSize(110, 20)
+	if err := wm.Open(""); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	wm.Emit(event.Event{Type: event.Wincmd, Arg: "n"})
+	wm.Emit(event.Event{Type: event.Wincmd, Arg: "n"})
+	wm.Emit(event.Event{Type: event.Wincmd, Arg: "n"})
+	wm.Emit(event.Event{Type: event.MoveWindowLeft})
+	wm.Emit(event.Event{Type: event.FocusWindowRight})
+	wm.Emit(event.Event{Type: event.FocusWindowBottomRight})
+	wm.Emit(event.Event{Type: event.MoveWindowRight})
+	wm.Emit(event.Event{Type: event.FocusWindowLeft})
+	wm.Emit(event.Event{Type: event.MoveWindowTop})
+	wm.Resize(110, 20)
+
+	_, got, _, _ := wm.State()
+	expected := layout.NewLayout(2).SplitBottom(0).SplitLeft(1).
+		SplitLeft(3).Activate(2).Resize(0, 0, 110, 20)
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("layout should be %#v but got %#v", expected, got)
+	}
+
+	wm.Emit(event.Event{Type: event.FocusWindowDown})
+	wm.Emit(event.Event{Type: event.FocusWindowRight})
+	wm.Emit(event.Event{Type: event.Quit})
+	_, got, _, _ = wm.State()
+	expected = layout.NewLayout(2).SplitBottom(0).SplitLeft(3).Resize(0, 0, 110, 20)
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("layout should be %#v but got %#v", expected, got)
+	}
+
 	wm.Close()
 }
