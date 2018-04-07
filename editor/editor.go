@@ -147,6 +147,9 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 			e.mu.Unlock()
 			e.cmdlineCh <- ev
 		} else {
+			if event.ScrollUp <= ev.Type && ev.Type <= event.SwitchFocus {
+				e.prevMode, e.err = e.mode, nil
+			}
 			ev.Mode = e.mode
 			width, height := e.ui.Size()
 			e.wm.Resize(width, height-1)

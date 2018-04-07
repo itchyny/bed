@@ -46,6 +46,7 @@ const (
 	DeletePrevByte
 	Increment
 	Decrement
+	SwitchFocus
 
 	StartInsert
 	StartInsertHead
@@ -66,7 +67,6 @@ const (
 	SwitchVisualEnd
 	ExitVisual
 
-	SwitchFocus
 	StartCmdlineCommand
 	StartCmdlineSearchForward
 	StartCmdlineSearchBackward
