@@ -42,6 +42,7 @@ func TestManagerOpenEmpty(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
+	wm.Close()
 }
 
 func TestManagerOpenStates(t *testing.T) {
@@ -91,6 +92,7 @@ func TestManagerOpenStates(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
+	wm.Close()
 }
 
 func TestManagerOpenNonExistsWrite(t *testing.T) {
@@ -152,4 +154,5 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if string(bs) != str {
 		t.Errorf("file contents should be %q but got %q", str, string(bs))
 	}
+	wm.Close()
 }
