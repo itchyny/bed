@@ -493,6 +493,8 @@ func TestCmdlineComplete(t *testing.T) {
 		t.Errorf("cursor should be 11 but got %v", cursor)
 	}
 	waitCh <- struct{}{}
+	go func() { <-redrawCh }()
+	e := <-eventCh
 	cmdline, cursor, _, _ = c.Get()
 	if string(cmdline) != "e /bin/echo" {
 		t.Errorf("cmdline should be %q got %q", "e /bin/echo", string(cmdline))
@@ -500,8 +502,6 @@ func TestCmdlineComplete(t *testing.T) {
 	if cursor != 11 {
 		t.Errorf("cursor should be 11 but got %v", cursor)
 	}
-	e := <-eventCh
-	<-redrawCh
 	if e.Type != event.Edit {
 		t.Errorf("cmdline should emit Edit event but got %v", e)
 	}
