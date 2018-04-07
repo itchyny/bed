@@ -86,8 +86,7 @@ func (w *window) setSize(width, height int) {
 	)
 }
 
-// Run the window.
-func (w *window) Run() {
+func (w *window) run() {
 	for e := range w.eventCh {
 		w.mu.Lock()
 		offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
@@ -282,8 +281,7 @@ func (w *window) positionToOffset(pos event.Position) (int64, error) {
 	}
 }
 
-// State returns the current state of the buffer.
-func (w *window) State() (*state.WindowState, error) {
+func (w *window) state() (*state.WindowState, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
@@ -821,7 +819,6 @@ func (w *window) searchBackward(str string) {
 	}
 }
 
-// Close the Window.
-func (w *window) Close() {
+func (w *window) close() {
 	close(w.eventCh)
 }

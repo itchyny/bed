@@ -57,7 +57,7 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
-	go window.Run()
+	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
@@ -243,7 +243,7 @@ func (m *Manager) edit(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	go window.Run()
+	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
@@ -257,7 +257,7 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	if err != nil {
 		return err
 	}
-	go window.Run()
+	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	if vertical {
@@ -405,7 +405,7 @@ func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error
 		if l, ok := layouts[i]; ok {
 			window.setSize(hexWindowWidth(l.Width()), mathutil.MaxInt(l.Height()-2, 1))
 			var err error
-			if states[i], err = window.State(); err != nil {
+			if states[i], err = window.state(); err != nil {
 				return nil, m.layout, 0, err
 			}
 		}
@@ -475,6 +475,6 @@ func (m *Manager) Close() {
 		f.file.Close()
 	}
 	for _, w := range m.windows {
-		w.Close()
+		w.close()
 	}
 }
