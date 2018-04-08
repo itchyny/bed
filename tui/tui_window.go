@@ -94,6 +94,7 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 	eis := s.EditedIndices
 	bytes := make([][]byte, height)
 	styles := make([][]tcell.Style, height)
+	color := tcell.ColorLightSeaGreen
 	for i := 0; i < height; i++ {
 		bytes[i] = make([]byte, width)
 		styles[i] = make([]tcell.Style, width)
@@ -103,7 +104,7 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 			}
 			if s.Pending && i*width+j == int(s.Cursor-s.Offset) {
 				bytes[i][j] = s.PendingByte
-				styles[i][j] = styles[i][j].Foreground(tcell.ColorDodgerBlue)
+				styles[i][j] = styles[i][j].Foreground(color)
 				if s.Mode == mode.Replace {
 					k++
 				}
@@ -112,7 +113,7 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 			bytes[i][j] = s.Bytes[k]
 			pos := int64(k) + s.Offset
 			if 0 < len(eis) && eis[0] <= pos && pos < eis[1] {
-				styles[i][j] = styles[i][j].Foreground(tcell.ColorDodgerBlue)
+				styles[i][j] = styles[i][j].Foreground(color)
 			} else if 0 < len(eis) && eis[1] <= pos {
 				eis = eis[2:]
 			}
