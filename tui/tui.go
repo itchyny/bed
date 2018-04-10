@@ -161,6 +161,7 @@ func (ui *Tui) drawCompletionResults(s state.State, width int, height int) {
 
 // Close terminates the Tui.
 func (ui *Tui) Close() error {
+	ui.eventCh = nil
 	ui.screen.Fini()
 	<-ui.waitCh
 	return nil
