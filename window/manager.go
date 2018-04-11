@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"sync"
 
@@ -435,6 +436,9 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	}
 	if name == "" {
 		return name, 0, errors.New("no file name")
+	}
+	if runtime.GOOS == "windows" && name == window.filename {
+		return name, 0, errors.New("cannot overwrite the original file on Windows")
 	}
 	var err error
 	if name, err = homedir.Expand(name); err != nil {
