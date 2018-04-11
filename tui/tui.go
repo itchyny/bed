@@ -57,7 +57,9 @@ func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 				ui.eventCh <- event.Event{Type: event.Rune, Rune: ev.Rune()}
 			}
 		case *tcell.EventResize:
-			ui.eventCh <- event.Event{Type: event.Redraw}
+			if ui.eventCh != nil {
+				ui.eventCh <- event.Event{Type: event.Redraw}
+			}
 		case nil:
 			close(ui.waitCh)
 			return
