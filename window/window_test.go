@@ -1091,7 +1091,7 @@ func TestWindowEventRune(t *testing.T) {
 		}
 	}()
 	<-redrawCh
-	for _ = range str {
+	for range str {
 		<-redrawCh
 	}
 	s, _ := window.state()
@@ -1120,7 +1120,7 @@ func TestWindowEventRuneText(t *testing.T) {
 	}()
 	<-redrawCh
 	<-redrawCh
-	for _ = range str {
+	for range str {
 		<-redrawCh
 	}
 	s, _ := window.state()
