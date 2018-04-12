@@ -14,7 +14,7 @@ deps:
 	go get -u github.com/gdamore/tcell
 
 test: build
-	@! git grep termbox -- ':!tui/' ':!Gopkg.lock' ':!Makefile'
+	@! git grep tcell -- ':!tui/' ':!Gopkg.lock' ':!Gopkg.toml' ':!Makefile'
 	go test -v ./...
 
 lint: lintdeps build
