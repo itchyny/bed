@@ -28,4 +28,4 @@ clean:
 	rm -rf build
 	go clean
 
-.PHONY: build install deps test
+.PHONY: build install deps test lint lintdeps clean
