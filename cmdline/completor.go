@@ -114,19 +114,19 @@ func (c *completor) listFileNames(arg string) (string, []string) {
 		if err != nil {
 			return arg, nil
 		}
-		if len(arg) > 1 && strings.HasSuffix(arg, separator) ||
-			arg[0] == '~' && strings.HasSuffix(arg, "/.") {
+		if strings.HasSuffix(arg, separator) ||
+			arg[0] == '~' && strings.HasSuffix(arg, separator+".") {
 			path += separator
 		}
-		if !strings.HasSuffix(arg, "/") && !strings.HasSuffix(arg, ".") {
+		if !strings.HasSuffix(arg, separator) && !strings.HasSuffix(arg, ".") {
 			stat, err := c.fs.Stat(path)
 			if err == nil && stat.IsDir() {
-				return "", []string{arg + "/"}
+				return "", []string{arg + separator}
 			}
 		}
 		dir, base := filepath.Dir(path), filepath.Base(path)
 		if strings.HasSuffix(path, separator) {
-			if strings.HasSuffix(arg, "/.") {
+			if strings.HasSuffix(arg, separator+".") {
 				base = "."
 			} else {
 				base = ""
@@ -160,12 +160,12 @@ func (c *completor) listFileNames(arg string) (string, []string) {
 			}
 			targets = append(targets, name)
 		}
-		if !strings.HasSuffix(dir, "/") {
+		if !strings.HasSuffix(dir, separator) {
 			dir += separator
 		}
 		if arg[0] == '~' {
 			arg = filepath.Join("~", strings.TrimPrefix(dir, homeDir))
-			if !strings.HasSuffix(arg, "/") {
+			if !strings.HasSuffix(arg, separator) {
 				arg += separator
 			}
 		} else if arg[0] != '.' && dir[0] == '.' {
