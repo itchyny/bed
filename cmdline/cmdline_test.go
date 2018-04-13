@@ -2,6 +2,7 @@ package cmdline
 
 import (
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/itchyny/bed/event"
@@ -430,6 +431,9 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 }
 
 func TestCmdlineComplete(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip on Windows")
+	}
 	c := NewCmdline()
 	c.completor = newCompletor(&mockFilesystem{})
 	eventCh, cmdlineCh, redrawCh := make(chan event.Event), make(chan event.Event), make(chan struct{})
