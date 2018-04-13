@@ -119,7 +119,7 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	kms[mode.Insert] = km
 	kms[mode.Replace] = km
 
-	km = key.NewManager(false)
+	km = key.NewManager(true)
 	km.Register(event.ExitVisual, "escape")
 	km.Register(event.ExitVisual, "c-c")
 	km.Register(event.SwitchVisualEnd, "o")
