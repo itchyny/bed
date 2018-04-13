@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -95,6 +96,9 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 }
 
 func TestEditorOpenWriteQuit(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip on Windows")
+	}
 	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
