@@ -189,7 +189,7 @@ func TestEditorWritePartial(t *testing.T) {
 			}
 			ui.Emit(event.Event{Type: event.ExecuteCmdline})
 			time.Sleep(100 * time.Millisecond)
-			ui.Emit(event.Event{Type: event.WriteQuit})
+			ui.Emit(event.Event{Type: event.Quit})
 		}(name)
 		if err := editor.Run(); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
