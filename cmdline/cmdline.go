@@ -113,6 +113,10 @@ func (c *Cmdline) backspace() {
 	if c.cursor > 0 {
 		c.cmdline = append(c.cmdline[:c.cursor-1], c.cmdline[c.cursor:]...)
 		c.cursor--
+		return
+	}
+	if len(c.cmdline) == 0 {
+		c.eventCh <- event.Event{Type: event.ExitCmdline}
 	}
 }
 
