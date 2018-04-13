@@ -211,6 +211,69 @@ func TestEditorWritePartial(t *testing.T) {
 	}
 }
 
+func TestEditorWriteVisualSelection(t *testing.T) {
+	f, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection")
+	defer os.Remove(f.Name())
+	defer os.Remove(f.Name() + "_")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	str := "Hello, world!"
+	n, err := f.WriteString(str)
+	if n != 13 {
+		t.Errorf("WriteString should return %d but got %d", 13, n)
+	}
+	if err != nil {
+		t.Errorf("err should be nil but got %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ   event.Type
+			ch    rune
+			count int64
+		}{
+			{event.CursorNext, 'w', 4}, {event.StartVisual, 'v', 0},
+			{event.CursorNext, 'w', 5}, {event.StartCmdlineCommand, ':', 0},
+			{event.Rune, 'w', 0}, {event.Rune, ' ', 0},
+		} {
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
+		}
+		for _, ch := range f.Name() + "-" {
+			ui.Emit(event.Event{Type: event.Rune, Rune: ch})
+		}
+		ui.Emit(event.Event{Type: event.ExecuteCmdline})
+		time.Sleep(100 * time.Millisecond)
+		ui.Emit(event.Event{Type: event.Quit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; !strings.HasSuffix(err.Error(), "6 (0x6) bytes written") {
+		t.Errorf("err should be ends with %q but got: %v", "6 (0x6) bytes written", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := ioutil.ReadFile(f.Name() + "-")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if string(bs) != "o, wor" {
+		t.Errorf("file contents should be %q but got %q", "o, wor", string(bs))
+	}
+}
+
 func TestEditorCmdlineQuit(t *testing.T) {
 	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
