@@ -437,7 +437,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	if name == "" {
 		return name, 0, errors.New("no file name")
 	}
-	if runtime.GOOS == "windows" && name == window.filename {
+	if runtime.GOOS == "windows" && m.opened(name) {
 		return name, 0, errors.New("cannot overwrite the original file on Windows")
 	}
 	var err error
@@ -471,6 +471,15 @@ func (m *Manager) filePerm(name string) os.FileMode {
 		}
 	}
 	return os.FileMode(0644)
+}
+
+func (m *Manager) opened(name string) bool {
+	for _, f := range m.files {
+		if f.name == name {
+			return true
+		}
+	}
+	return false
 }
 
 // Close the Manager.
