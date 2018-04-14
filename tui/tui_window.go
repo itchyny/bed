@@ -92,6 +92,9 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 		return nil, nil
 	}
 	eis := s.EditedIndices
+	for 0 < len(eis) && eis[1] <= s.Offset {
+		eis = eis[2:]
+	}
 	bytes := make([][]byte, height)
 	styles := make([][]tcell.Style, height)
 	color := tcell.ColorLightSeaGreen
