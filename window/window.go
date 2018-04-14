@@ -125,6 +125,12 @@ func (w *window) run() {
 			w.pageTop()
 		case event.PageEnd:
 			w.pageEnd()
+		case event.WindowTop:
+			w.windowTop(e.Count)
+		case event.WindowMiddle:
+			w.windowMiddle()
+		case event.WindowBottom:
+			w.windowBottom(e.Count)
 		case event.JumpTo:
 			w.jumpTo()
 		case event.JumpBack:
@@ -527,6 +533,23 @@ func (w *window) pageTop() {
 func (w *window) pageEnd() {
 	w.offset = mathutil.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
 	w.cursor = ((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
+}
+
+func (w *window) windowTop(count int64) {
+	w.cursor = (w.offset/w.width + mathutil.MinInt64(
+		mathutil.MinInt64(mathutil.MaxInt64(count, 1)-1, (w.length-w.offset)/w.width),
+		mathutil.MaxInt64(w.height, 1)-1,
+	)) * w.width
+}
+
+func (w *window) windowMiddle() {
+	h := mathutil.MinInt64((w.length-w.offset)/w.width, mathutil.MaxInt64(w.height, 1)-1)
+	w.cursor = (w.offset/w.width + h/2) * w.width
+}
+
+func (w *window) windowBottom(count int64) {
+	h := mathutil.MinInt64((w.length-w.offset)/w.width, mathutil.MaxInt64(w.height, 1)-1)
+	w.cursor = (w.offset/w.width + h - mathutil.MinInt64(h, mathutil.MaxInt64(count, 1)-1)) * w.width
 }
 
 func isDigit(b byte) bool {
