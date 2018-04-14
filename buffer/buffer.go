@@ -150,6 +150,38 @@ func (b *Buffer) Clone() *Buffer {
 	return newBuf
 }
 
+// Copy a part of the buffer.
+func (b *Buffer) Copy(start, end int64) *Buffer {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	newBuf := new(Buffer)
+	newBuf.rrs = make([]readerRange, 0, len(b.rrs)+1)
+	index := start
+	for _, rr := range b.rrs {
+		if index < rr.min || index >= end {
+			break
+		}
+		if index >= rr.max {
+			continue
+		}
+		max := mathutil.MinInt64(end-index, rr.max-index)
+		switch br := rr.r.(type) {
+		case *bytesReader:
+			bs := make([]byte, max)
+			copy(bs, br.bs[index+rr.diff:])
+			newBuf.rrs = append(newBuf.rrs, readerRange{newBytesReader(bs), index - start, index - start + max, -index + start})
+		default:
+			newBuf.rrs = append(newBuf.rrs, readerRange{br, index - start, index - start + max, rr.diff + start})
+		}
+		index += max
+	}
+	newBuf.rrs = append(newBuf.rrs, readerRange{newBytesReader(nil), index - start, math.MaxInt64, -index + start})
+	newBuf.cleanup()
+	newBuf.index = 0
+	newBuf.mu = new(sync.Mutex)
+	return newBuf
+}
+
 // Insert inserts a byte at the specific position.
 func (b *Buffer) Insert(offset int64, c byte) {
 	b.mu.Lock()
