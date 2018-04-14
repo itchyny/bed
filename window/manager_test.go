@@ -204,3 +204,50 @@ func TestManagerWincmd(t *testing.T) {
 
 	wm.Close()
 }
+
+func TestManagerCopy(t *testing.T) {
+	wm := NewManager()
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	f, err := ioutil.TempFile("", "bed-test-manager-copy")
+	str := "Hello, world!"
+	_, err = f.WriteString(str)
+	if err != nil {
+		t.Errorf("err should be nil but got %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	defer os.Remove(f.Name())
+	wm.SetSize(110, 20)
+	if err := wm.Open(f.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	_, _, _, _ = wm.State()
+	go func() {
+		<-redrawCh
+		<-redrawCh
+		<-redrawCh
+		waitCh <- struct{}{}
+		ev := <-eventCh
+		if ev.Type != event.Copied {
+			t.Errorf("event type should be %d but got: %d", event.Copied, ev.Type)
+		}
+		if ev.Buffer == nil {
+			t.Errorf("Buffer should not be nil but got: %#v", ev)
+		}
+		p := make([]byte, 20)
+		_, _ = ev.Buffer.ReadAt(p, 0)
+		if !strings.HasPrefix(string(p), "lo, worl") {
+			t.Errorf("buffer string should be %q but got: %q", "", string(p))
+		}
+		close(waitCh)
+	}()
+	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Normal, Count: 3})
+	wm.Emit(event.Event{Type: event.StartVisual})
+	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Visual, Count: 7})
+	<-waitCh
+	wm.Emit(event.Event{Type: event.Copy})
+	<-waitCh
+	wm.Close()
+}
