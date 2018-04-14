@@ -2,6 +2,7 @@ package buffer
 
 import (
 	"io"
+	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -185,6 +186,156 @@ func TestBufferClone(t *testing.T) {
 	b2.Replace(5, 0x40)
 	if bufferEqual(b2, b1) {
 		t.Errorf("Buffer should not be equal: %+v, %+v", b1, b2)
+	}
+}
+
+func TestBufferCopy(t *testing.T) {
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
+	b.Replace(3, 0x41)
+	b.Replace(4, 0x42)
+	b.Replace(5, 0x43)
+	b.Replace(9, 0x43)
+	b.Replace(10, 0x44)
+	b.Replace(11, 0x45)
+	b.Replace(12, 0x46)
+	b.Replace(14, 0x47)
+	testCases := []struct {
+		start, end int64
+		expected   string
+	}{
+		{0, 16, "012ABC678CDEFdGf"},
+		{0, 15, "012ABC678CDEFdG"},
+		{1, 12, "12ABC678CDE"},
+		{4, 14, "BC678CDEFd"},
+		{2, 10, "2ABC678C"},
+		{4, 10, "BC678C"},
+		{2, 7, "2ABC6"},
+		{5, 10, "C678C"},
+		{7, 11, "78CD"},
+		{8, 10, "8C"},
+		{14, 20, "Gf"},
+		{9, 9, ""},
+		{10, 8, ""},
+	}
+	for _, testCase := range testCases {
+		got := b.Copy(testCase.start, testCase.end)
+		p := make([]byte, 17)
+		_, _ = got.Read(p)
+		if !strings.HasPrefix(string(p), testCase.expected+"\x00") {
+			t.Errorf("Copy(%d, %d) should clone %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+		}
+		for _, rr := range got.rrs {
+			switch br := rr.r.(type) {
+			case *bytesReader:
+				if rr.max != math.MaxInt64 && int64(len(br.bs)) != rr.max-rr.min || rr.min+rr.diff != 0 {
+					t.Errorf("invalid bytesReader after Copy(%d, %d): %#v %#v", testCase.start, testCase.end, br, rr)
+				}
+			}
+		}
+		got.Insert(0, 0x48)
+		got.Insert(int64(len(testCase.expected)+1), 0x49)
+		p = make([]byte, 19)
+		_, err := got.Seek(0, io.SeekStart)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		_, _ = got.Read(p)
+		if !strings.HasPrefix(string(p), "H"+testCase.expected+"I\x00") {
+			t.Errorf("Copy(%d, %d) should clone %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+		}
+	}
+}
+
+func TestBufferCut(t *testing.T) {
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
+	b.Replace(3, 0x41)
+	b.Replace(4, 0x42)
+	b.Replace(5, 0x43)
+	b.Replace(9, 0x43)
+	b.Replace(10, 0x44)
+	b.Replace(11, 0x45)
+	b.Replace(12, 0x46)
+	b.Replace(14, 0x47)
+	testCases := []struct {
+		start, end int64
+		expected   string
+	}{
+		{0, 0, "012ABC678CDEFdGf"},
+		{0, 4, "BC678CDEFdGf"},
+		{0, 7, "78CDEFdGf"},
+		{0, 10, "DEFdGf"},
+		{0, 16, ""},
+		{0, 20, ""},
+		{3, 4, "012BC678CDEFdGf"},
+		{3, 6, "012678CDEFdGf"},
+		{3, 11, "012EFdGf"},
+		{6, 10, "012ABCDEFdGf"},
+		{6, 14, "012ABCGf"},
+		{6, 15, "012ABCf"},
+		{6, 17, "012ABC"},
+		{8, 10, "012ABC67DEFdGf"},
+		{8, 10, "012ABC67DEFdGf"},
+		{10, 8, "012ABC678CDEFdGf"},
+	}
+	for _, testCase := range testCases {
+		got := b.Clone()
+		got.Cut(testCase.start, testCase.end)
+		p := make([]byte, 17)
+		_, _ = got.Read(p)
+		if !strings.HasPrefix(string(p), testCase.expected+"\x00") {
+			t.Errorf("Cut(%d, %d) should result into %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+		}
+		for _, rr := range got.rrs {
+			switch br := rr.r.(type) {
+			case *bytesReader:
+				if rr.max != math.MaxInt64 && int64(len(br.bs)) != rr.max-rr.min || rr.min+rr.diff != 0 {
+					t.Errorf("invalid bytesReader after Cut(%d, %d): %#v %#v", testCase.start, testCase.end, br, rr)
+				}
+			}
+		}
+		got.Insert(0, 0x48)
+		got.Insert(int64(len(testCase.expected)+1), 0x49)
+		p = make([]byte, 19)
+		_, err := got.Seek(0, io.SeekStart)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		_, _ = got.Read(p)
+		if !strings.HasPrefix(string(p), "H"+testCase.expected+"I\x00") {
+			t.Errorf("Cut(%d, %d) should result into %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+		}
+	}
+}
+
+func TestBufferPaste(t *testing.T) {
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
+	c := b.Copy(3, 13)
+	b.Paste(5, c)
+	p := make([]byte, 100)
+	_, _ = b.Seek(0, io.SeekStart)
+	_, _ = b.Read(p)
+	expected := "012343456789abc56789abcdef"
+	if !strings.HasPrefix(string(p), expected+"\x00") {
+		t.Errorf("p should be %q but got: %q", expected, string(p))
+	}
+	c.Replace(5, 0x41)
+	c.Insert(6, 0x42)
+	b.Paste(10, c)
+	p = make([]byte, 100)
+	_, _ = b.Seek(0, io.SeekStart)
+	_, _ = b.Read(p)
+	expected = "012343456734567AB9abc89abc56789abcdef"
+	if !strings.HasPrefix(string(p), expected+"\x00") {
+		t.Errorf("p should be %q but got: %q", expected, string(p))
+	}
+	b.Cut(11, 14)
+	b.Cut(13, 20)
+	p = make([]byte, 100)
+	_, _ = b.Seek(0, io.SeekStart)
+	_, _ = b.Read(p)
+	expected = "012343456737Aabc56789abcdef"
+	if !strings.HasPrefix(string(p), expected+"\x00") {
+		t.Errorf("p should be %q but got: %q", expected, string(p))
 	}
 }
 
