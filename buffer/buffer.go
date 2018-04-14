@@ -182,6 +182,45 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 	return newBuf
 }
 
+// Paste a buffer into a buffer.
+func (b *Buffer) Paste(offset int64, c *Buffer) {
+	b.mu.Lock()
+	c.mu.Lock()
+	defer b.mu.Unlock()
+	defer c.mu.Unlock()
+	rrs := make([]readerRange, 0, len(b.rrs)+len(c.rrs)+1)
+	var index, max int64
+	for _, rr := range b.rrs {
+		if offset >= rr.max {
+			rrs = append(rrs, rr)
+			continue
+		}
+		if offset < rr.min {
+			max = mathutil.MinInt64(rr.max, math.MaxInt64-index+rr.min) + index - rr.min
+			rrs = append(rrs, readerRange{b.clone(rr.r), index, max, rr.diff - index + rr.min})
+			index = max
+			continue
+		}
+		rrs = append(rrs, readerRange{b.clone(rr.r), rr.min, offset, rr.diff})
+		index = offset
+		for _, rr := range c.rrs {
+			if rr.max == math.MaxInt64 {
+				l, _ := rr.r.Seek(0, io.SeekEnd)
+				max = l + index
+			} else {
+				max = rr.max - rr.min + index
+			}
+			rrs = append(rrs, readerRange{b.clone(rr.r), index, max, rr.diff - index + rr.min})
+			index = max
+		}
+		max = mathutil.MinInt64(rr.max, math.MaxInt64-index+offset) + index - offset
+		rrs = append(rrs, readerRange{b.clone(rr.r), index, max, rr.diff - index + offset})
+		index = max
+	}
+	b.rrs = rrs
+	b.cleanup()
+}
+
 // Insert inserts a byte at the specific position.
 func (b *Buffer) Insert(offset int64, c byte) {
 	b.mu.Lock()
