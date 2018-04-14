@@ -126,7 +126,7 @@ func (w *window) run() {
 		case event.PageEnd:
 			w.pageEnd()
 		case event.WindowTop:
-			w.windowTop()
+			w.windowTop(e.Count)
 		case event.WindowMiddle:
 			w.windowMiddle()
 		case event.WindowBottom:
@@ -535,17 +535,20 @@ func (w *window) pageEnd() {
 	w.cursor = ((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
 }
 
-func (w *window) windowTop() {
-	w.cursor = w.offset / w.width * w.width
+func (w *window) windowTop(count int64) {
+	w.cursor = (w.offset/w.width + mathutil.MinInt64(
+		mathutil.MinInt64(mathutil.MaxInt64(count, 1)-1, (w.length-w.offset)/w.width),
+		mathutil.MaxInt64(w.height, 1)-1,
+	)) * w.width
 }
 
 func (w *window) windowMiddle() {
-	w.windowTop()
+	w.windowTop(0)
 	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) / 2 * w.width
 }
 
 func (w *window) windowBottom() {
-	w.windowTop()
+	w.windowTop(0)
 	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) * w.width
 }
 
