@@ -1,6 +1,9 @@
 package event
 
-import "github.com/itchyny/bed/mode"
+import (
+	"github.com/itchyny/bed/buffer"
+	"github.com/itchyny/bed/mode"
+)
 
 // Event represents the event emitted by UI.
 type Event struct {
@@ -12,6 +15,7 @@ type Event struct {
 	Arg     string
 	Error   error
 	Mode    mode.Mode
+	Buffer  *buffer.Buffer
 }
 
 // Type ...
@@ -69,6 +73,9 @@ const (
 	StartVisual
 	SwitchVisualEnd
 	ExitVisual
+
+	Copy
+	Copied
 
 	StartCmdlineCommand
 	StartCmdlineSearchForward

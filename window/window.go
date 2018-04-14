@@ -801,6 +801,26 @@ func (w *window) exitVisual() {
 	w.visualStart = -1
 }
 
+func (w *window) copy() *buffer.Buffer {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.visualStart < 0 {
+		panic("window#copy should be called in visual mode")
+	}
+	start, end := w.visualStart, w.cursor
+	if start > end {
+		start, end = end, start
+	}
+	w.cursor = w.visualStart
+	w.visualStart = -1
+	if w.cursor < w.offset {
+		w.offset = w.cursor / w.width * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+	return w.buffer.Copy(start, end+1)
+}
+
 func (w *window) search(str string, forward bool) {
 	if forward {
 		w.searchForward(str)
