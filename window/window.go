@@ -130,7 +130,7 @@ func (w *window) run() {
 		case event.WindowMiddle:
 			w.windowMiddle()
 		case event.WindowBottom:
-			w.windowBottom()
+			w.windowBottom(e.Count)
 		case event.JumpTo:
 			w.jumpTo()
 		case event.JumpBack:
@@ -547,9 +547,9 @@ func (w *window) windowMiddle() {
 	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) / 2 * w.width
 }
 
-func (w *window) windowBottom() {
-	w.windowTop(0)
-	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) * w.width
+func (w *window) windowBottom(count int64) {
+	h := mathutil.MinInt64((w.length-w.offset)/w.width, mathutil.MaxInt64(w.height, 1)-1)
+	w.cursor = (w.offset/w.width + h - mathutil.MinInt64(h, mathutil.MaxInt64(count, 1)-1)) * w.width
 }
 
 func isDigit(b byte) bool {

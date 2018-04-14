@@ -346,10 +346,28 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 
-	window.windowBottom()
+	window.windowBottom(0)
 	s, _ = window.state()
 	if s.Cursor != 144 {
 		t.Errorf("s.Cursor should be %d but got %d", 144, s.Cursor)
+	}
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
+	}
+
+	window.windowBottom(7)
+	s, _ = window.state()
+	if s.Cursor != 48 {
+		t.Errorf("s.Cursor should be %d but got %d", 48, s.Cursor)
+	}
+	if s.Offset != 0 {
+		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
+	}
+
+	window.windowBottom(20)
+	s, _ = window.state()
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 	if s.Offset != 0 {
 		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
