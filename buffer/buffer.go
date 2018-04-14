@@ -182,6 +182,63 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 	return newBuf
 }
 
+// Cut a part of the buffer.
+func (b *Buffer) Cut(start, end int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	rrs := make([]readerRange, 0, len(b.rrs)+1)
+	var index, max int64
+	for _, rr := range b.rrs {
+		if start >= rr.max {
+			rrs = append(rrs, rr)
+			index = rr.max
+			continue
+		}
+		if end <= rr.min {
+			max = rr.max - rr.min + index
+			if rr.max == math.MaxInt64 {
+				max = math.MaxInt64
+			}
+			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + rr.min})
+			index = max
+			continue
+		}
+		if start >= rr.min {
+			max = start - index
+			switch br := rr.r.(type) {
+			case *bytesReader:
+				bs := make([]byte, max)
+				copy(bs, br.bs[index+rr.diff:])
+				rrs = append(rrs, readerRange{newBytesReader(bs), index, index + max, -index})
+			default:
+				rrs = append(rrs, readerRange{br, index, index + max, rr.diff})
+			}
+			index += max
+		}
+		if end < rr.max {
+			max = rr.max - end
+			switch br := rr.r.(type) {
+			case *bytesReader:
+				bs := make([]byte, max)
+				copy(bs, br.bs[end+rr.diff:])
+				rrs = append(rrs, readerRange{newBytesReader(bs), index, index + max, -index})
+			default:
+				if rr.max == math.MaxInt64 {
+					max = math.MaxInt64 - index
+				}
+				rrs = append(rrs, readerRange{br, index, index + max, rr.diff + end - index})
+			}
+			index += max
+		}
+	}
+	if index != math.MaxInt64 {
+		rrs = append(rrs, readerRange{newBytesReader(nil), index, math.MaxInt64, -index})
+	}
+	b.rrs = rrs
+	b.index = 0
+	b.cleanup()
+}
+
 // Paste a buffer into a buffer.
 func (b *Buffer) Paste(offset int64, c *Buffer) {
 	b.mu.Lock()
