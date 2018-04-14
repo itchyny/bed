@@ -246,6 +246,29 @@ func TestBufferCopy(t *testing.T) {
 	}
 }
 
+func TestBufferPaste(t *testing.T) {
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
+	c := b.Copy(3, 13)
+	b.Paste(5, c)
+	p := make([]byte, 100)
+	_, _ = b.Seek(0, io.SeekStart)
+	_, _ = b.Read(p)
+	expected := "012343456789abc56789abcdef"
+	if !strings.HasPrefix(string(p), expected+"\x00") {
+		t.Errorf("p should be %q but got: %q", expected, string(p))
+	}
+	c.Replace(5, 0x41)
+	c.Insert(6, 0x42)
+	b.Paste(10, c)
+	p = make([]byte, 100)
+	_, _ = b.Seek(0, io.SeekStart)
+	_, _ = b.Read(p)
+	expected = "012343456734567AB9abc89abc56789abcdef"
+	if !strings.HasPrefix(string(p), expected+"\x00") {
+		t.Errorf("p should be %q but got: %q", expected, string(p))
+	}
+}
+
 func TestBufferInsert(t *testing.T) {
 	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 
