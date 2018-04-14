@@ -543,8 +543,8 @@ func (w *window) windowTop(count int64) {
 }
 
 func (w *window) windowMiddle() {
-	w.windowTop(0)
-	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) / 2 * w.width
+	h := mathutil.MinInt64((w.length-w.offset)/w.width, mathutil.MaxInt64(w.height, 1)-1)
+	w.cursor = (w.offset/w.width + h/2) * w.width
 }
 
 func (w *window) windowBottom(count int64) {
