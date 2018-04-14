@@ -222,6 +222,10 @@ func (m *Manager) Emit(e event.Event) {
 		m.mu.Lock()
 		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].copy()}
 		m.mu.Unlock()
+	case event.Cut:
+		m.mu.Lock()
+		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].cut()}
+		m.mu.Unlock()
 	case event.Write:
 		if err := m.write(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}

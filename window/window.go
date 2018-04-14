@@ -821,6 +821,29 @@ func (w *window) copy() *buffer.Buffer {
 	return w.buffer.Copy(start, end+1)
 }
 
+func (w *window) cut() *buffer.Buffer {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.visualStart < 0 {
+		panic("window#cut should be called in visual mode")
+	}
+	start, end := w.visualStart, w.cursor
+	if start > end {
+		start, end = end, start
+	}
+	w.visualStart = -1
+	b := w.buffer.Copy(start, end+1)
+	w.buffer.Cut(start, end+1)
+	w.length, _ = w.buffer.Len()
+	w.cursor = mathutil.MinInt64(start, mathutil.MaxInt64(w.length, 1)-1)
+	if w.cursor < w.offset {
+		w.offset = w.cursor / w.width * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+	return b
+}
+
 func (w *window) search(str string, forward bool) {
 	if forward {
 		w.searchForward(str)

@@ -75,6 +75,7 @@ const (
 	ExitVisual
 
 	Copy
+	Cut
 	Copied
 
 	StartCmdlineCommand
