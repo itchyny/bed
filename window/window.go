@@ -125,6 +125,12 @@ func (w *window) run() {
 			w.pageTop()
 		case event.PageEnd:
 			w.pageEnd()
+		case event.WindowTop:
+			w.windowTop()
+		case event.WindowMiddle:
+			w.windowMiddle()
+		case event.WindowBottom:
+			w.windowBottom()
 		case event.JumpTo:
 			w.jumpTo()
 		case event.JumpBack:
@@ -527,6 +533,20 @@ func (w *window) pageTop() {
 func (w *window) pageEnd() {
 	w.offset = mathutil.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
 	w.cursor = ((mathutil.MaxInt64(w.length, 1)+w.width-1)/w.width - 1) * w.width
+}
+
+func (w *window) windowTop() {
+	w.cursor = w.offset / w.width * w.width
+}
+
+func (w *window) windowMiddle() {
+	w.windowTop()
+	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) / 2 * w.width
+}
+
+func (w *window) windowBottom() {
+	w.windowTop()
+	w.cursor += mathutil.MinInt64((w.length-w.offset)/w.width, w.height-1) * w.width
 }
 
 func isDigit(b byte) bool {

@@ -39,6 +39,9 @@ const (
 	PageDownHalf
 	PageTop
 	PageEnd
+	WindowTop
+	WindowMiddle
+	WindowBottom
 	JumpTo
 	JumpBack
 
