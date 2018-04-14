@@ -146,6 +146,12 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 			ev.Arg, ev.Rune = e.searchTarget, e.searchMode
 		case event.PreviousSearch:
 			ev.Arg, ev.Rune = e.searchTarget, e.searchMode
+		case event.Paste, event.PastePrev:
+			if e.buffer == nil {
+				e.mu.Unlock()
+				return
+			}
+			ev.Buffer = e.buffer
 		}
 		if e.mode == mode.Cmdline || e.mode == mode.Search ||
 			ev.Type == event.ExitCmdline || ev.Type == event.ExecuteCmdline {
