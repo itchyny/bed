@@ -385,7 +385,7 @@ func (w *window) cursorLeft(count int64) {
 }
 
 func (w *window) cursorRight(m mode.Mode, count int64) {
-	if m == mode.Normal {
+	if m != mode.Insert {
 		w.cursor += mathutil.MinInt64(
 			mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.width-1-w.cursor%w.width),
 			mathutil.MaxInt64(w.length, 1)-1-w.cursor,
@@ -418,7 +418,7 @@ func (w *window) cursorPrev(count int64) {
 }
 
 func (w *window) cursorNext(m mode.Mode, count int64) {
-	if m == mode.Normal {
+	if m != mode.Insert {
 		w.cursor += mathutil.MinInt64(mathutil.MaxInt64(count, 1), mathutil.MaxInt64(w.length, 1)-1-w.cursor)
 	} else if !w.extending {
 		w.cursor += mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.length-w.cursor)
