@@ -205,11 +205,11 @@ func TestManagerWincmd(t *testing.T) {
 	wm.Close()
 }
 
-func TestManagerCopy(t *testing.T) {
+func TestManagerCopyCut(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
-	f, err := ioutil.TempFile("", "bed-test-manager-copy")
+	f, err := ioutil.TempFile("", "bed-test-manager-copy-cut")
 	str := "Hello, world!"
 	_, err = f.WriteString(str)
 	if err != nil {
@@ -241,6 +241,30 @@ func TestManagerCopy(t *testing.T) {
 		if !strings.HasPrefix(string(p), "lo, worl") {
 			t.Errorf("buffer string should be %q but got: %q", "", string(p))
 		}
+		waitCh <- struct{}{}
+		<-redrawCh
+		<-redrawCh
+		waitCh <- struct{}{}
+		ev = <-eventCh
+		if ev.Type != event.Copied {
+			t.Errorf("event type should be %d but got: %d", event.Copied, ev.Type)
+		}
+		if ev.Buffer == nil {
+			t.Errorf("Buffer should not be nil but got: %#v", ev)
+		}
+		p = make([]byte, 20)
+		_, _ = ev.Buffer.ReadAt(p, 0)
+		if !strings.HasPrefix(string(p), "lo, wo") {
+			t.Errorf("buffer string should be %q but got: %q", "", string(p))
+		}
+		windowStates, _, _, _ := wm.State()
+		ws := windowStates[0]
+		if ws.Length != int64(7) {
+			t.Errorf("Length should be %d but got %d", int64(7), ws.Length)
+		}
+		if !strings.HasPrefix(string(ws.Bytes), "Helrld!") {
+			t.Errorf("Bytes should starts with %q but got %q", "Helrld!", string(ws.Bytes))
+		}
 		close(waitCh)
 	}()
 	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Normal, Count: 3})
@@ -248,6 +272,11 @@ func TestManagerCopy(t *testing.T) {
 	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Visual, Count: 7})
 	<-waitCh
 	wm.Emit(event.Event{Type: event.Copy})
+	<-waitCh
+	wm.Emit(event.Event{Type: event.StartVisual})
+	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Visual, Count: 5})
+	<-waitCh
+	wm.Emit(event.Event{Type: event.Cut})
 	<-waitCh
 	wm.Close()
 }
