@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/itchyny/bed/buffer"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/mode"
 	"github.com/itchyny/bed/state"
@@ -20,6 +21,7 @@ type Editor struct {
 	searchTarget  string
 	searchMode    rune
 	prevEventType event.Type
+	buffer        *buffer.Buffer
 	err           error
 	errtyp        int
 	eventCh       chan event.Event
@@ -102,6 +104,9 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 	case event.Redraw:
 		width, height := e.ui.Size()
 		e.wm.Resize(width, height-1)
+		redraw = true
+	case event.Copied:
+		e.buffer, e.mode, e.prevMode = ev.Buffer, mode.Normal, e.mode
 		redraw = true
 	default:
 		switch ev.Type {
