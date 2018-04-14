@@ -72,9 +72,8 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 		for _, t := range []event.Type{event.Increment, event.Increment, event.Decrement} {
 			ui.Emit(event.Event{Type: t})
 		}
-		time.Sleep(100 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit})
 	}()
 	if err := editor.Run(); err != nil {
@@ -192,7 +191,7 @@ func TestEditorWritePartial(t *testing.T) {
 				ui.Emit(event.Event{Type: event.Rune, Rune: c})
 			}
 			ui.Emit(event.Event{Type: event.ExecuteCmdline})
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 			ui.Emit(event.Event{Type: event.Quit})
 		}(name)
 		if err := editor.Run(); err != nil {
@@ -257,7 +256,7 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 			ui.Emit(event.Event{Type: event.Rune, Rune: ch})
 		}
 		ui.Emit(event.Event{Type: event.ExecuteCmdline})
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit})
 	}()
 	if err := editor.Run(); err != nil {
