@@ -54,9 +54,9 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 			if style == math.MaxInt16 {
 				continue
 			}
-			if active && style == math.MaxInt16-1 {
-				d.setOffset(3*j+1).setString(" ", style.Underline(s.FocusText))
-				d.setOffset(3*width+j+3).setString(" ", style.Underline(!s.FocusText))
+			if style == math.MaxInt16-1 {
+				d.setOffset(3*j+1).setString(" ", style.Underline(!active || s.FocusText))
+				d.setOffset(3*width+j+3).setString(" ", style.Underline(!active || !s.FocusText))
 				continue
 			}
 			style1, style2 := style, style
