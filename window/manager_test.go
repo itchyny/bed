@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/itchyny/bed/buffer"
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/mode"
@@ -205,11 +206,11 @@ func TestManagerWincmd(t *testing.T) {
 	wm.Close()
 }
 
-func TestManagerCopyCut(t *testing.T) {
+func TestManagerCopyCutPaste(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
-	f, err := ioutil.TempFile("", "bed-test-manager-copy-cut")
+	f, err := ioutil.TempFile("", "bed-test-manager-copy-cut-paste")
 	str := "Hello, world!"
 	_, err = f.WriteString(str)
 	if err != nil {
@@ -268,8 +269,28 @@ func TestManagerCopyCut(t *testing.T) {
 		if ws.Length != int64(7) {
 			t.Errorf("Length should be %d but got %d", int64(7), ws.Length)
 		}
-		if !strings.HasPrefix(string(ws.Bytes), "Helrld!") {
-			t.Errorf("Bytes should starts with %q but got %q", "Helrld!", string(ws.Bytes))
+		expected := "Helrld!"
+		if !strings.HasPrefix(string(ws.Bytes), expected) {
+			t.Errorf("Bytes should start with %q but got %q", expected, string(ws.Bytes))
+		}
+		waitCh <- struct{}{}
+		<-redrawCh
+		waitCh <- struct{}{}
+		ev = <-eventCh
+		if ev.Type != event.Pasted {
+			t.Errorf("event type should be %d but got: %d", event.Pasted, ev.Type)
+		}
+		if ev.Count != 18 {
+			t.Errorf("Count should be %d but got: %d", 18, ev.Count)
+		}
+		windowStates, _, _, _ = wm.State()
+		ws = windowStates[0]
+		if ws.Length != int64(25) {
+			t.Errorf("Length should be %d but got %d", int64(25), ws.Length)
+		}
+		expected = "Hefoobarfoobarfoobarlrld!"
+		if !strings.HasPrefix(string(ws.Bytes), expected) {
+			t.Errorf("Bytes should start with %q but got %q", expected, string(ws.Bytes))
 		}
 		close(waitCh)
 	}()
@@ -283,6 +304,10 @@ func TestManagerCopyCut(t *testing.T) {
 	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Visual, Count: 5})
 	<-waitCh
 	wm.Emit(event.Event{Type: event.Cut})
+	<-waitCh
+	wm.Emit(event.Event{Type: event.CursorPrev, Mode: mode.Normal, Count: 2})
+	<-waitCh
+	wm.Emit(event.Event{Type: event.Paste, Buffer: buffer.NewBuffer(strings.NewReader("foobar")), Count: 3})
 	<-waitCh
 	wm.Close()
 }
