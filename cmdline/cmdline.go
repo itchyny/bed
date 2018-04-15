@@ -10,16 +10,14 @@ import (
 
 // Cmdline implements editor.Cmdline
 type Cmdline struct {
-	cmdline           []rune
-	cursor            int
-	completor         *completor
-	completionResults []string
-	completionIndex   int
-	typ               rune
-	eventCh           chan<- event.Event
-	cmdlineCh         <-chan event.Event
-	redrawCh          chan<- struct{}
-	mu                *sync.Mutex
+	cmdline   []rune
+	cursor    int
+	completor *completor
+	typ       rune
+	eventCh   chan<- event.Event
+	cmdlineCh <-chan event.Event
+	redrawCh  chan<- struct{}
+	mu        *sync.Mutex
 }
 
 // NewCmdline creates a new Cmdline.
