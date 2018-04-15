@@ -801,6 +801,70 @@ func (w *window) exitVisual() {
 	w.visualStart = -1
 }
 
+func (w *window) copy() *buffer.Buffer {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.visualStart < 0 {
+		panic("window#copy should be called in visual mode")
+	}
+	start, end := w.visualStart, w.cursor
+	if start > end {
+		start, end = end, start
+	}
+	w.cursor = w.visualStart
+	w.visualStart = -1
+	if w.cursor < w.offset {
+		w.offset = w.cursor / w.width * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+	return w.buffer.Copy(start, end+1)
+}
+
+func (w *window) cut() *buffer.Buffer {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.visualStart < 0 {
+		panic("window#cut should be called in visual mode")
+	}
+	start, end := w.visualStart, w.cursor
+	if start > end {
+		start, end = end, start
+	}
+	w.visualStart = -1
+	b := w.buffer.Copy(start, end+1)
+	w.buffer.Cut(start, end+1)
+	w.length, _ = w.buffer.Len()
+	w.cursor = mathutil.MinInt64(start, mathutil.MaxInt64(w.length, 1)-1)
+	if w.cursor < w.offset {
+		w.offset = w.cursor / w.width * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+	return b
+}
+
+func (w *window) paste(e event.Event) int64 {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	count := mathutil.MaxInt64(e.Count, 1)
+	pos := w.cursor
+	if e.Type != event.PastePrev {
+		pos = mathutil.MinInt64(w.cursor+1, w.length)
+	}
+	for i := int64(0); i < count; i++ {
+		w.buffer.Paste(pos, e.Buffer)
+	}
+	l, _ := e.Buffer.Len()
+	w.length, _ = w.buffer.Len()
+	w.cursor = pos + mathutil.MinInt64(l*count-1, mathutil.MaxInt64(w.length, 1)-1-pos)
+	if w.cursor >= w.offset+w.height*w.width {
+		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
+	}
+	w.changedTick++
+	return l * count
+}
+
 func (w *window) search(str string, forward bool) {
 	if forward {
 		w.searchForward(str)

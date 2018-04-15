@@ -52,6 +52,9 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.Decrement, "c-x")
 	km.Register(event.Decrement, "-")
 
+	km.Register(event.Paste, "p")
+	km.Register(event.PastePrev, "P")
+
 	km.Register(event.StartInsert, "i")
 	km.Register(event.StartInsertHead, "I")
 	km.Register(event.StartAppend, "a")
@@ -157,6 +160,8 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.PageEnd, "G")
 	km.Register(event.SwitchFocus, "tab")
 	km.Register(event.SwitchFocus, "backtab")
+	km.Register(event.Copy, "y")
+	km.Register(event.Cut, "d")
 	kms[mode.Visual] = km
 
 	km = key.NewManager(false)

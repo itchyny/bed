@@ -310,3 +310,57 @@ func TestEditorCmdlineQuit(t *testing.T) {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 }
+
+func TestEditorCopyCutPaste(t *testing.T) {
+	f1, _ := ioutil.TempFile("", "bed-test-editor-copy-cut-paste1")
+	f2, _ := ioutil.TempFile("", "bed-test-editor-copy-cut-paste2")
+	defer os.Remove(f1.Name())
+	defer os.Remove(f2.Name())
+	str := "Hello, world!"
+	_, _ = f1.WriteString(str)
+	_ = f1.Close()
+	_ = f2.Close()
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f1.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ   event.Type
+			ch    rune
+			count int64
+			arg   string
+		}{
+			{event.CursorNext, 'w', 2, ""}, {event.StartVisual, 'v', 0, ""},
+			{event.CursorNext, 'w', 5, ""}, {event.Copy, 'y', 0, ""},
+			{event.CursorNext, 'w', 3, ""}, {event.Paste, 'p', 0, ""},
+			{event.CursorPrev, 'b', 2, ""}, {event.StartVisual, 'v', 0, ""},
+			{event.CursorPrev, 'b', 5, ""}, {event.Cut, 'd', 0, ""},
+			{event.CursorNext, 'w', 5, ""}, {event.PastePrev, 'P', 0, ""},
+			{event.Write, 'w', 0, f2.Name()},
+		} {
+			time.Sleep(50 * time.Millisecond)
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
+		}
+		time.Sleep(500 * time.Millisecond)
+		ui.Emit(event.Event{Type: event.Quit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; !strings.HasSuffix(err.Error(), "19 (0x13) bytes written") {
+		t.Errorf("err should be ends with %q but got: %v", "19 (0x13) bytes written", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, _ := ioutil.ReadFile(f2.Name())
+	expected := "Hell w woo,llo,rld!"
+	if string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+}
