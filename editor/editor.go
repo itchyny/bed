@@ -107,6 +107,11 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 		redraw = true
 	case event.Copied:
 		e.buffer, e.mode, e.prevMode = ev.Buffer, mode.Normal, e.mode
+		if l, err := e.buffer.Len(); err != nil {
+			e.err, e.errtyp = err, state.MessageError
+		} else {
+			e.err, e.errtyp = fmt.Errorf("%d (0x%x) bytes %s", l, l, ev.Arg), state.MessageInfo
+		}
 		redraw = true
 	default:
 		switch ev.Type {

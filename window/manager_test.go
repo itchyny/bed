@@ -236,6 +236,9 @@ func TestManagerCopyCut(t *testing.T) {
 		if ev.Buffer == nil {
 			t.Errorf("Buffer should not be nil but got: %#v", ev)
 		}
+		if ev.Arg != "yanked" {
+			t.Errorf("Arg should be %q but got: %q", "yanked", ev.Arg)
+		}
 		p := make([]byte, 20)
 		_, _ = ev.Buffer.ReadAt(p, 0)
 		if !strings.HasPrefix(string(p), "lo, worl") {
@@ -251,6 +254,9 @@ func TestManagerCopyCut(t *testing.T) {
 		}
 		if ev.Buffer == nil {
 			t.Errorf("Buffer should not be nil but got: %#v", ev)
+		}
+		if ev.Arg != "deleted" {
+			t.Errorf("Arg should be %q but got: %q", "deleted", ev.Arg)
 		}
 		p = make([]byte, 20)
 		_, _ = ev.Buffer.ReadAt(p, 0)

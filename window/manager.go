@@ -220,11 +220,11 @@ func (m *Manager) Emit(e event.Event) {
 		}
 	case event.Copy:
 		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].copy()}
+		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].copy(), Arg: "yanked"}
 		m.mu.Unlock()
 	case event.Cut:
 		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].cut()}
+		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].cut(), Arg: "deleted"}
 		m.mu.Unlock()
 	case event.Write:
 		if err := m.write(e); err != nil {
