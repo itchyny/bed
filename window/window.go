@@ -841,6 +841,8 @@ func (w *window) cut() *buffer.Buffer {
 	} else if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
+	w.changedTick++
+	w.history.Push(w.buffer, w.offset, w.cursor)
 	return b
 }
 
@@ -862,6 +864,7 @@ func (w *window) paste(e event.Event) int64 {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
 	w.changedTick++
+	w.history.Push(w.buffer, w.offset, w.cursor)
 	return l * count
 }
 
