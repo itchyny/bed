@@ -14,6 +14,14 @@ import (
 	"github.com/itchyny/bed/state"
 )
 
+func (ui *Tui) initForTest(eventCh chan<- event.Event, screen tcell.SimulationScreen) (err error) {
+	ui.eventCh = eventCh
+	ui.mode = mode.Normal
+	ui.screen = screen
+	ui.waitCh = make(chan struct{})
+	return ui.screen.Init()
+}
+
 func mockKeyManager() map[mode.Mode]*key.Manager {
 	kms := make(map[mode.Mode]*key.Manager)
 	km := key.NewManager(true)

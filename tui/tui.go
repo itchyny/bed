@@ -37,14 +37,6 @@ func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 	return ui.screen.Init()
 }
 
-func (ui *Tui) initForTest(eventCh chan<- event.Event, screen tcell.SimulationScreen) (err error) {
-	ui.eventCh = eventCh
-	ui.mode = mode.Normal
-	ui.screen = screen
-	ui.waitCh = make(chan struct{})
-	return ui.screen.Init()
-}
-
 // Run the Tui.
 func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 	for {
