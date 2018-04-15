@@ -100,7 +100,15 @@ func (c *completor) listFileNames(arg string) (string, []string) {
 		}
 		for _, fileInfo := range fileInfos {
 			name := fileInfo.Name()
-			if fileInfo.IsDir() {
+			isDir := fileInfo.IsDir()
+			if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
+				fileInfo, err = c.fs.Stat(name)
+				if err != nil {
+					return arg, nil
+				}
+				isDir = fileInfo.IsDir()
+			}
+			if isDir {
 				name += separator
 			}
 			targets = append(targets, name)
