@@ -215,21 +215,25 @@ func TestEditorWritePartial(t *testing.T) {
 }
 
 func TestEditorWriteVisualSelection(t *testing.T) {
-	f, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection")
-	defer os.Remove(f.Name())
-	defer os.Remove(f.Name() + "_")
+	f1, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection1")
+	f2, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection2")
+	defer os.Remove(f1.Name())
+	defer os.Remove(f2.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	str := "Hello, world!"
-	n, err := f.WriteString(str)
+	n, err := f1.WriteString(str)
 	if n != 13 {
 		t.Errorf("WriteString should return %d but got %d", 13, n)
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got %v", err)
 	}
-	if err := f.Close(); err != nil {
+	if err := f1.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := f2.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	ui := newTestUI()
@@ -237,7 +241,7 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.Open(f.Name()); err != nil {
+	if err := editor.Open(f1.Name()); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	go func() {
@@ -252,7 +256,7 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
-		for _, ch := range f.Name() + "-" {
+		for _, ch := range f2.Name() {
 			ui.Emit(event.Event{Type: event.Rune, Rune: ch})
 		}
 		ui.Emit(event.Event{Type: event.ExecuteCmdline})
@@ -268,7 +272,7 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f.Name() + "-")
+	bs, err := ioutil.ReadFile(f2.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
