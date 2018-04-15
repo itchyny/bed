@@ -39,7 +39,7 @@ func TestManagerOpenEmpty(t *testing.T) {
 		t.Errorf("Length should be %d but got %d", int64(0), ws.Length)
 	}
 	if !strings.HasPrefix(string(ws.Bytes), "\x00") {
-		t.Errorf("Bytes should starts with %q but got %q", "\x00", string(ws.Bytes))
+		t.Errorf("Bytes should start with %q but got %q", "\x00", string(ws.Bytes))
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -89,7 +89,7 @@ func TestManagerOpenStates(t *testing.T) {
 		t.Errorf("Length should be %d but got %d", int64(41), ws.Length)
 	}
 	if !strings.HasPrefix(string(ws.Bytes), str) {
-		t.Errorf("Bytes should starts with %q but got %q", str, string(ws.Bytes))
+		t.Errorf("Bytes should start with %q but got %q", str, string(ws.Bytes))
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -144,7 +144,7 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 		t.Errorf("Length should be %d but got %d", int64(13), ws.Length)
 	}
 	if !strings.HasPrefix(string(ws.Bytes), str) {
-		t.Errorf("Bytes should starts with %q but got %q", str, string(ws.Bytes))
+		t.Errorf("Bytes should start with %q but got %q", str, string(ws.Bytes))
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
