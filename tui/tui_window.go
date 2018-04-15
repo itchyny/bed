@@ -51,7 +51,12 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 		d.setLeft(offsetStyleWidth + 3)
 		for j := 0; j < width; j++ {
 			style := styles[i][j]
-			if style == math.MaxUint16 {
+			if style == math.MaxInt16 {
+				continue
+			}
+			if active && style == math.MaxInt16-1 {
+				d.setOffset(3*j+1).setString(" ", style.Underline(s.FocusText))
+				d.setOffset(3*width+j+3).setString(" ", style.Underline(!s.FocusText))
 				continue
 			}
 			style1, style2 := style, style
@@ -108,7 +113,12 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 				continue
 			}
 			if k >= s.Size {
-				styles[i][j] = tcell.Style(math.MaxUint16)
+				if k == cursorPos {
+					styles[i][j] = tcell.Style(math.MaxInt16 - 1)
+				} else {
+					styles[i][j] = tcell.Style(math.MaxInt16)
+				}
+				k++
 				continue
 			}
 			bytes[i][j] = s.Bytes[k]
