@@ -50,26 +50,22 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 		d.setString(fmt.Sprintf(offsetStyle, s.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
 		d.setLeft(offsetStyleWidth + 3)
 		for j := 0; j < width; j++ {
-			if styles[i][j] == math.MaxUint16 {
-				d.setOffset(3*j).setString("   ", tcell.StyleDefault)
-				d.setOffset(3*width+j+3).setString(" ", tcell.StyleDefault)
-			} else {
-				d.setOffset(3*j).setString(" ", tcell.StyleDefault)
-				if i*width+j == cursorPos {
-					styles[i][j] = styles[i][j].Reverse(active && !s.FocusText).Bold(
-						!active || s.FocusText).Underline(!active || s.FocusText)
-				}
-				d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", bytes[i][j]), styles[i][j])
-				if i*width+j == cursorPos {
-					styles[i][j] = styles[i][j].Reverse(active && s.FocusText).Bold(
-						!active || !s.FocusText).Underline(!active || !s.FocusText)
-				}
-				d.setOffset(3*width+j+3).setString(string(prettyByte(bytes[i][j])), styles[i][j])
+			style := styles[i][j]
+			if style == math.MaxUint16 {
+				continue
 			}
+			style1, style2 := style, style
+			if i*width+j == cursorPos {
+				style1 = style1.Reverse(active && !s.FocusText).Bold(
+					!active || s.FocusText).Underline(!active || s.FocusText)
+				style2 = style2.Reverse(active && s.FocusText).Bold(
+					!active || !s.FocusText).Underline(!active || !s.FocusText)
+			}
+			d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", bytes[i][j]), style1)
+			d.setOffset(3*width+j+3).setString(string(prettyByte(bytes[i][j])), style2)
 		}
 		d.setOffset(-2).setString(" | ", tcell.StyleDefault)
 		d.setOffset(3*width).setString(" | ", tcell.StyleDefault)
-		d.setOffset(4*width+3).setString(" ", tcell.StyleDefault)
 	}
 	i := int(s.Cursor % int64(width))
 	if active {
@@ -98,19 +94,21 @@ func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]by
 	bytes := make([][]byte, height)
 	styles := make([][]tcell.Style, height)
 	color := tcell.ColorLightSeaGreen
+	cursorPos := int(s.Cursor - s.Offset)
 	for i := 0; i < height; i++ {
 		bytes[i] = make([]byte, width)
 		styles[i] = make([]tcell.Style, width)
 		for j := 0; j < width; j++ {
-			if k >= s.Size {
-				styles[i][j] = tcell.Style(math.MaxUint16)
-			}
-			if s.Pending && i*width+j == int(s.Cursor-s.Offset) {
+			if s.Pending && i*width+j == cursorPos {
 				bytes[i][j] = s.PendingByte
 				styles[i][j] = styles[i][j].Foreground(color)
 				if s.Mode == mode.Replace {
 					k++
 				}
+				continue
+			}
+			if k >= s.Size {
+				styles[i][j] = tcell.Style(math.MaxUint16)
 				continue
 			}
 			bytes[i][j] = s.Bytes[k]
