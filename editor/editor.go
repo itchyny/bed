@@ -113,6 +113,9 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 			e.err, e.errtyp = fmt.Errorf("%d (0x%x) bytes %s", l, l, ev.Arg), state.MessageInfo
 		}
 		redraw = true
+	case event.Pasted:
+		e.err, e.errtyp = fmt.Errorf("%d (0x%x) bytes pasted", ev.Count, ev.Count), state.MessageInfo
+		redraw = true
 	default:
 		switch ev.Type {
 		case event.StartInsert, event.StartInsertHead, event.StartAppend, event.StartAppendEnd:

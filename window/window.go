@@ -188,12 +188,6 @@ func (w *window) run() {
 				panic("event.Undo should be emitted under normal mode")
 			}
 			w.redo(e.Count)
-		case event.Paste:
-			w.paste(e.Count, e.Buffer, false)
-			w.changedTick++
-		case event.PastePrev:
-			w.paste(e.Count, e.Buffer, true)
-			w.changedTick++
 		case event.ExecuteSearch:
 			w.search(e.Arg, e.Rune == '/')
 		case event.NextSearch:
@@ -850,21 +844,25 @@ func (w *window) cut() *buffer.Buffer {
 	return b
 }
 
-func (w *window) paste(count int64, b *buffer.Buffer, prev bool) {
-	count = mathutil.MaxInt64(count, 1)
+func (w *window) paste(e event.Event) int64 {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	count := mathutil.MaxInt64(e.Count, 1)
 	pos := w.cursor
-	if !prev {
+	if e.Type != event.PastePrev {
 		pos = mathutil.MinInt64(w.cursor+1, w.length)
 	}
 	for i := int64(0); i < count; i++ {
-		w.buffer.Paste(pos, b)
+		w.buffer.Paste(pos, e.Buffer)
 	}
-	l, _ := b.Len()
+	l, _ := e.Buffer.Len()
 	w.length, _ = w.buffer.Len()
 	w.cursor = pos + mathutil.MinInt64(l*count-1, mathutil.MaxInt64(w.length, 1)-1-pos)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
+	w.changedTick++
+	return l * count
 }
 
 func (w *window) search(str string, forward bool) {

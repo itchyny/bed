@@ -79,6 +79,7 @@ const (
 	Copied
 	Paste
 	PastePrev
+	Pasted
 
 	StartCmdlineCommand
 	StartCmdlineSearchForward
