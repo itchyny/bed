@@ -2,7 +2,6 @@ package buffer
 
 import (
 	"io"
-	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -224,14 +223,6 @@ func TestBufferCopy(t *testing.T) {
 		if !strings.HasPrefix(string(p), testCase.expected+"\x00") {
 			t.Errorf("Copy(%d, %d) should clone %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
 		}
-		for _, rr := range got.rrs {
-			switch br := rr.r.(type) {
-			case *bytesReader:
-				if rr.max != math.MaxInt64 && int64(len(br.bs)) != rr.max-rr.min || rr.min+rr.diff != 0 {
-					t.Errorf("invalid bytesReader after Copy(%d, %d): %#v %#v", testCase.start, testCase.end, br, rr)
-				}
-			}
-		}
 		got.Insert(0, 0x48)
 		got.Insert(int64(len(testCase.expected)+1), 0x49)
 		p = make([]byte, 19)
@@ -280,14 +271,6 @@ func TestBufferCut(t *testing.T) {
 		_, _ = got.Read(p)
 		if !strings.HasPrefix(string(p), testCase.expected+"\x00") {
 			t.Errorf("Cut(%d, %d) should result into %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
-		}
-		for _, rr := range got.rrs {
-			switch br := rr.r.(type) {
-			case *bytesReader:
-				if rr.max != math.MaxInt64 && int64(len(br.bs)) != rr.max-rr.min || rr.min+rr.diff != 0 {
-					t.Errorf("invalid bytesReader after Cut(%d, %d): %#v %#v", testCase.start, testCase.end, br, rr)
-				}
-			}
 		}
 		got.Insert(0, 0x48)
 		got.Insert(int64(len(testCase.expected)+1), 0x49)

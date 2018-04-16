@@ -68,3 +68,9 @@ func (r *bytesReader) deleteByte(offset int64) {
 	copy(r.bs[offset:], r.bs[offset+1:])
 	r.bs = r.bs[:len(r.bs)-1]
 }
+
+func (r *bytesReader) clone() *bytesReader {
+	bs := make([]byte, len(r.bs))
+	copy(bs, r.bs)
+	return newBytesReader(bs)
+}
