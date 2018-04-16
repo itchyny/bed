@@ -426,8 +426,12 @@ func (b *Buffer) cleanup() {
 		case *bytesReader:
 			switch r2 := rr2.r.(type) {
 			case *bytesReader:
-				r1.bs = append(r1.bs[:rr1.max+rr1.diff], r2.bs[rr2.min+rr2.diff:]...)
+				bs := make([]byte, int(rr1.max-rr1.min)+len(r2.bs)-int(rr2.min+rr2.diff))
+				copy(bs, r1.bs[rr1.min+rr1.diff:rr1.max+rr1.diff])
+				copy(bs[rr1.max-rr1.min:], r2.bs[rr2.min+rr2.diff:])
+				b.rrs[i-1].r = newBytesReader(bs)
 				b.rrs[i-1].max = b.rrs[i].max
+				b.rrs[i-1].diff = -b.rrs[i-1].min
 				copy(b.rrs[i:], b.rrs[i+1:])
 				b.rrs = b.rrs[:len(b.rrs)-1]
 				i--
