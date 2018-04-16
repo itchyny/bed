@@ -235,11 +235,7 @@ func TestBufferCopy(t *testing.T) {
 		got.Insert(0, 0x48)
 		got.Insert(int64(len(testCase.expected)+1), 0x49)
 		p = make([]byte, 19)
-		_, err := got.Seek(0, io.SeekStart)
-		if err != nil {
-			t.Errorf("err should be nil but got: %v", err)
-		}
-		_, _ = got.Read(p)
+		_, _ = got.ReadAt(p, 0)
 		if !strings.HasPrefix(string(p), "H"+testCase.expected+"I\x00") {
 			t.Errorf("Copy(%d, %d) should clone %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
 		}
@@ -296,11 +292,7 @@ func TestBufferCut(t *testing.T) {
 		got.Insert(0, 0x48)
 		got.Insert(int64(len(testCase.expected)+1), 0x49)
 		p = make([]byte, 19)
-		_, err := got.Seek(0, io.SeekStart)
-		if err != nil {
-			t.Errorf("err should be nil but got: %v", err)
-		}
-		_, _ = got.Read(p)
+		_, _ = got.ReadAt(p, 0)
 		if !strings.HasPrefix(string(p), "H"+testCase.expected+"I\x00") {
 			t.Errorf("Cut(%d, %d) should result into %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
 		}
@@ -312,8 +304,7 @@ func TestBufferPaste(t *testing.T) {
 	c := b.Copy(3, 13)
 	b.Paste(5, c)
 	p := make([]byte, 100)
-	_, _ = b.Seek(0, io.SeekStart)
-	_, _ = b.Read(p)
+	_, _ = b.ReadAt(p, 0)
 	expected := "012343456789abc56789abcdef"
 	if !strings.HasPrefix(string(p), expected+"\x00") {
 		t.Errorf("p should be %q but got: %q", expected, string(p))
@@ -322,8 +313,7 @@ func TestBufferPaste(t *testing.T) {
 	c.Insert(6, 0x42)
 	b.Paste(10, c)
 	p = make([]byte, 100)
-	_, _ = b.Seek(0, io.SeekStart)
-	_, _ = b.Read(p)
+	_, _ = b.ReadAt(p, 0)
 	expected = "012343456734567AB9abc89abc56789abcdef"
 	if !strings.HasPrefix(string(p), expected+"\x00") {
 		t.Errorf("p should be %q but got: %q", expected, string(p))
@@ -331,8 +321,7 @@ func TestBufferPaste(t *testing.T) {
 	b.Cut(11, 14)
 	b.Cut(13, 20)
 	p = make([]byte, 100)
-	_, _ = b.Seek(0, io.SeekStart)
-	_, _ = b.Read(p)
+	_, _ = b.ReadAt(p, 0)
 	expected = "012343456737Aabc56789abcdef"
 	if !strings.HasPrefix(string(p), expected+"\x00") {
 		t.Errorf("p should be %q but got: %q", expected, string(p))
