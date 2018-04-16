@@ -57,7 +57,15 @@ func (r *bytesReader) appendByte(b byte) {
 }
 
 func (r *bytesReader) replaceByte(offset int64, b byte) {
-	r.bs[offset] = b
+	l := int64(len(r.bs))
+	switch {
+	case offset == l:
+		r.bs = append(r.bs, b)
+	case 0 <= offset && offset < l:
+		r.bs[offset] = b
+	default:
+		panic("buffer.bytesReader.replaceByte: unreachable")
+	}
 }
 
 func (r *bytesReader) deleteByte(offset int64) {
