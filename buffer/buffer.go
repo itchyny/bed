@@ -143,7 +143,7 @@ func (b *Buffer) Clone() *Buffer {
 	newBuf := new(Buffer)
 	newBuf.rrs = make([]readerRange, len(b.rrs))
 	for i, rr := range b.rrs {
-		newBuf.rrs[i] = readerRange{b.clone(rr.r), rr.min, rr.max, rr.diff}
+		newBuf.rrs[i] = readerRange{rr.r, rr.min, rr.max, rr.diff}
 	}
 	newBuf.index = b.index
 	newBuf.mu = new(sync.Mutex)
@@ -165,14 +165,7 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 			continue
 		}
 		max := mathutil.MinInt64(end-index, rr.max-index)
-		switch br := rr.r.(type) {
-		case *bytesReader:
-			bs := make([]byte, max)
-			copy(bs, br.bs[index+rr.diff:])
-			newBuf.rrs = append(newBuf.rrs, readerRange{newBytesReader(bs), index - start, index - start + max, -index + start})
-		default:
-			newBuf.rrs = append(newBuf.rrs, readerRange{br, index - start, index - start + max, rr.diff + start})
-		}
+		newBuf.rrs = append(newBuf.rrs, readerRange{rr.r, index - start, index - start + max, rr.diff + start})
 		index += max
 	}
 	newBuf.rrs = append(newBuf.rrs, readerRange{newBytesReader(nil), index - start, math.MaxInt64, -index + start})
@@ -205,29 +198,15 @@ func (b *Buffer) Cut(start, end int64) {
 		}
 		if start >= rr.min {
 			max = start - index
-			switch br := rr.r.(type) {
-			case *bytesReader:
-				bs := make([]byte, max)
-				copy(bs, br.bs[index+rr.diff:])
-				rrs = append(rrs, readerRange{newBytesReader(bs), index, index + max, -index})
-			default:
-				rrs = append(rrs, readerRange{br, index, index + max, rr.diff})
-			}
+			rrs = append(rrs, readerRange{rr.r, index, index + max, rr.diff})
 			index += max
 		}
 		if end < rr.max {
 			max = rr.max - end
-			switch br := rr.r.(type) {
-			case *bytesReader:
-				bs := make([]byte, max)
-				copy(bs, br.bs[end+rr.diff:])
-				rrs = append(rrs, readerRange{newBytesReader(bs), index, index + max, -index})
-			default:
-				if rr.max == math.MaxInt64 {
-					max = math.MaxInt64 - index
-				}
-				rrs = append(rrs, readerRange{br, index, index + max, rr.diff + end - index})
+			if rr.max == math.MaxInt64 {
+				max = math.MaxInt64 - index
 			}
+			rrs = append(rrs, readerRange{rr.r, index, index + max, rr.diff + end - index})
 			index += max
 		}
 	}
@@ -254,11 +233,11 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 		}
 		if offset < rr.min {
 			max = mathutil.MinInt64(rr.max, math.MaxInt64-index+rr.min) + index - rr.min
-			rrs = append(rrs, readerRange{b.clone(rr.r), index, max, rr.diff - index + rr.min})
+			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + rr.min})
 			index = max
 			continue
 		}
-		rrs = append(rrs, readerRange{b.clone(rr.r), rr.min, offset, rr.diff})
+		rrs = append(rrs, readerRange{rr.r, rr.min, offset, rr.diff})
 		index = offset
 		for _, rr := range c.rrs {
 			if rr.max == math.MaxInt64 {
@@ -267,11 +246,11 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 			} else {
 				max = rr.max - rr.min + index
 			}
-			rrs = append(rrs, readerRange{b.clone(rr.r), index, max, rr.diff - index + rr.min})
+			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + rr.min})
 			index = max
 		}
 		max = mathutil.MinInt64(rr.max, math.MaxInt64-index+offset) + index - offset
-		rrs = append(rrs, readerRange{b.clone(rr.r), index, max, rr.diff - index + offset})
+		rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + offset})
 		index = max
 	}
 	b.rrs = rrs
@@ -306,7 +285,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		b.rrs[i+2] = readerRange{b.clone(rr.r), offset + 1, mathutil.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
+		b.rrs[i+2] = readerRange{rr.r, offset + 1, mathutil.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
 		for i = i + 3; i < len(b.rrs); i++ {
 			b.rrs[i].min++
 			b.rrs[i].max = mathutil.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
@@ -350,7 +329,7 @@ func (b *Buffer) Replace(offset int64, c byte) {
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		b.rrs[i+2] = readerRange{b.clone(rr.r), offset + 1, rr.max, rr.diff}
+		b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
 		b.cleanup()
 		return
 	}
