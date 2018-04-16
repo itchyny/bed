@@ -44,7 +44,7 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 			&fileInfo{"editor", true},
 			&fileInfo{"cmdline", true},
 			&fileInfo{"buffer", true},
-			&fileInfo{"common", true},
+			&fileInfo{"build", true},
 		}), nil
 	}
 	homeDir, err := homedir.Dir()

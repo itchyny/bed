@@ -112,22 +112,22 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 
 func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
-	cmdline := " : : :  new   C"
+	cmdline := " : : :  new   B"
 	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
-	if cmdline != " : : :  new   cmdline"+string(filepath.Separator) {
-		t.Errorf("cmdline should be %q but got %q", " : : :  new   cmdline"+string(filepath.Separator), cmdline)
+	if cmdline != " : : :  new   buffer"+string(filepath.Separator) {
+		t.Errorf("cmdline should be %q but got %q", " : : :  new   buffer"+string(filepath.Separator), cmdline)
 	}
-	if c.target != " : : :  new   C" {
-		t.Errorf("completion target should be %q but got %q", " : : :  new   C", c.target)
+	if c.target != " : : :  new   B" {
+		t.Errorf("completion target should be %q but got %q", " : : :  new   B", c.target)
 	}
 	if c.index != 0 {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
-	if cmdline != " : : :  new   common"+string(filepath.Separator) {
-		t.Errorf("cmdline should be %q but got %q", " : : :  new   common"+string(filepath.Separator), cmdline)
+	if cmdline != " : : :  new   build"+string(filepath.Separator) {
+		t.Errorf("cmdline should be %q but got %q", " : : :  new   build"+string(filepath.Separator), cmdline)
 	}
 	if c.index != 1 {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
@@ -135,8 +135,8 @@ func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 
 	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
 	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
-	if cmdline != " : : :  new   C" {
-		t.Errorf("cmdline should be %q but got %q", " : : :  new   C", cmdline)
+	if cmdline != " : : :  new   B" {
+		t.Errorf("cmdline should be %q but got %q", " : : :  new   B", cmdline)
 	}
 	if c.index != -1 {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
