@@ -311,18 +311,27 @@ func TestBufferPaste(t *testing.T) {
 	}
 	c.Replace(5, 0x41)
 	c.Insert(6, 0x42)
+	c.Insert(7, 0x43)
 	b.Paste(10, c)
 	p = make([]byte, 100)
 	_, _ = b.ReadAt(p, 0)
-	expected = "012343456734567AB9abc89abc56789abcdef"
+	expected = "012343456734567ABC9abc89abc56789abcdef"
 	if !strings.HasPrefix(string(p), expected+"\x00") {
 		t.Errorf("p should be %q but got: %q", expected, string(p))
 	}
 	b.Cut(11, 14)
-	b.Cut(13, 20)
+	b.Paste(13, c)
+	b.Replace(13, 0x44)
 	p = make([]byte, 100)
 	_, _ = b.ReadAt(p, 0)
-	expected = "012343456737Aabc56789abcdef"
+	expected = "012343456737AD4567ABC9abcBC9abc89abc56789abcdef"
+	if !strings.HasPrefix(string(p), expected+"\x00") {
+		t.Errorf("p should be %q but got: %q", expected, string(p))
+	}
+	b.Insert(14, 0x45)
+	p = make([]byte, 100)
+	_, _ = b.ReadAt(p, 0)
+	expected = "012343456737ADE4567ABC9abcBC9abc89abc56789abcdef"
 	if !strings.HasPrefix(string(p), expected+"\x00") {
 		t.Errorf("p should be %q but got: %q", expected, string(p))
 	}
