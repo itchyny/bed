@@ -381,17 +381,6 @@ func (b *Buffer) Delete(offset int64) {
 	panic("buffer.Buffer.Delete: unreachable")
 }
 
-func (b *Buffer) clone(r readAtSeeker) readAtSeeker {
-	switch br := r.(type) {
-	case *bytesReader:
-		bs := make([]byte, len(br.bs))
-		copy(bs, br.bs)
-		return newBytesReader(bs)
-	default:
-		return r
-	}
-}
-
 func (b *Buffer) cleanup() {
 	for i := 0; i < len(b.rrs); i++ {
 		if b.rrs[i].min == b.rrs[i].max {
