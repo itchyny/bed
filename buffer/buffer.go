@@ -289,7 +289,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 		if offset == rr.min && i > 0 {
 			switch r := b.rrs[i-1].r.(type) {
 			case *bytesReader:
-				r.appendByte(c)
+				r.replaceByte(offset+b.rrs[i-1].diff, c)
 				b.rrs[i-1].max++
 				for ; i < len(b.rrs); i++ {
 					b.rrs[i].min++
@@ -332,7 +332,7 @@ func (b *Buffer) Replace(offset int64, c byte) {
 		if offset == rr.min && i > 0 {
 			switch r := b.rrs[i-1].r.(type) {
 			case *bytesReader:
-				r.appendByte(c)
+				r.replaceByte(offset+b.rrs[i-1].diff, c)
 				b.rrs[i-1].max++
 				b.rrs[i].min++
 				b.cleanup()

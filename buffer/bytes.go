@@ -52,10 +52,6 @@ func (r *bytesReader) ReadAt(b []byte, offset int64) (n int, err error) {
 	return
 }
 
-func (r *bytesReader) appendByte(b byte) {
-	r.bs = append(r.bs, b)
-}
-
 func (r *bytesReader) replaceByte(offset int64, b byte) {
 	l := int64(len(r.bs))
 	switch {
