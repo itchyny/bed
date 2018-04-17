@@ -811,12 +811,10 @@ func (w *window) copy() *buffer.Buffer {
 	if start > end {
 		start, end = end, start
 	}
-	w.cursor = w.visualStart
+	w.cursor = start
 	w.visualStart = -1
 	if w.cursor < w.offset {
 		w.offset = w.cursor / w.width * w.width
-	} else if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
 	return w.buffer.Copy(start, end+1)
 }
