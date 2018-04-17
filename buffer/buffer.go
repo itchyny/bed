@@ -164,9 +164,9 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 		if index >= rr.max {
 			continue
 		}
-		max := mathutil.MinInt64(end-index, rr.max-index)
-		newBuf.rrs = append(newBuf.rrs, readerRange{rr.r, index - start, index - start + max, rr.diff + start})
-		index += max
+		size := mathutil.MinInt64(end-index, rr.max-index)
+		newBuf.rrs = append(newBuf.rrs, readerRange{rr.r, index - start, index - start + size, rr.diff + start})
+		index += size
 	}
 	newBuf.rrs = append(newBuf.rrs, readerRange{newBytesReader(nil), index - start, math.MaxInt64, -index + start})
 	newBuf.cleanup()
@@ -197,17 +197,17 @@ func (b *Buffer) Cut(start, end int64) {
 			continue
 		}
 		if start >= rr.min {
-			max = start - index
-			rrs = append(rrs, readerRange{rr.r, index, index + max, rr.diff})
-			index += max
+			max = start
+			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff})
+			index = max
 		}
 		if end < rr.max {
-			max = rr.max - end
+			max = rr.max - end + index
 			if rr.max == math.MaxInt64 {
-				max = math.MaxInt64 - index
+				max = math.MaxInt64
 			}
-			rrs = append(rrs, readerRange{rr.r, index, index + max, rr.diff + end - index})
-			index += max
+			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff + end - index})
+			index = max
 		}
 	}
 	if index != math.MaxInt64 {
