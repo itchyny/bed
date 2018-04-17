@@ -863,7 +863,7 @@ func (w *window) paste(e event.Event) int64 {
 	}
 	l, _ := e.Buffer.Len()
 	w.length, _ = w.buffer.Len()
-	w.cursor = pos + mathutil.MinInt64(l*count-1, mathutil.MaxInt64(w.length, 1)-1-pos)
+	w.cursor = mathutil.MinInt64(mathutil.MaxInt64(pos+l*count-1, 0), mathutil.MaxInt64(w.length, 1)-1)
 	if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
