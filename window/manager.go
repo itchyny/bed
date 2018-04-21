@@ -456,8 +456,10 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		return name, 0, err
 	}
 	if window.filename == "" && window.name == "" {
+		window.mu.Lock()
 		window.filename = name
 		window.name = filepath.Base(name)
+		window.mu.Unlock()
 	}
 	tmpf, err := os.OpenFile(
 		name+"-"+strconv.FormatUint(rand.Uint64(), 16),
