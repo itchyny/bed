@@ -24,9 +24,12 @@ type Editor struct {
 	buffer        *buffer.Buffer
 	err           error
 	errtyp        int
-	eventCh       chan event.Event
+	cmdEventCh    chan event.Event
+	wmEventCh     chan event.Event
+	uiEventCh     chan event.Event
 	redrawCh      chan struct{}
 	cmdlineCh     chan event.Event
+	quitCh        chan struct{}
 	mu            *sync.Mutex
 }
 
@@ -43,29 +46,73 @@ func NewEditor(ui UI, wm Manager, cmdline Cmdline) *Editor {
 
 // Init initializes the editor.
 func (e *Editor) Init() error {
-	e.eventCh = make(chan event.Event, 1)
+	e.cmdEventCh = make(chan event.Event)
+	e.wmEventCh = make(chan event.Event)
+	e.uiEventCh = make(chan event.Event)
 	e.redrawCh = make(chan struct{})
 	e.cmdlineCh = make(chan event.Event)
-	e.cmdline.Init(e.eventCh, e.cmdlineCh, e.redrawCh)
-	e.wm.Init(e.eventCh, e.redrawCh)
+	e.cmdline.Init(e.cmdEventCh, e.cmdlineCh, e.redrawCh)
+	e.quitCh = make(chan struct{})
+	e.wm.Init(e.wmEventCh, e.redrawCh)
 	e.mu = new(sync.Mutex)
 	return nil
 }
 
 func (e *Editor) listen() {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		for {
-			<-e.redrawCh
-			e.redraw()
+			select {
+			case <-e.redrawCh:
+				e.redraw()
+			case <-e.quitCh:
+				return
+			}
 		}
 	}()
-	for ev := range e.eventCh {
-		if redraw, finish := e.emit(ev); redraw {
-			e.redrawCh <- struct{}{}
-		} else if finish {
-			break
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case ev := <-e.wmEventCh:
+				if redraw, finish := e.emit(ev); redraw {
+					e.redrawCh <- struct{}{}
+				} else if finish {
+					close(e.quitCh)
+				}
+			case <-e.quitCh:
+				return
+			}
 		}
-	}
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case ev := <-e.cmdEventCh:
+				if redraw, finish := e.emit(ev); redraw {
+					e.redrawCh <- struct{}{}
+				} else if finish {
+					close(e.quitCh)
+					return
+				}
+			case ev := <-e.uiEventCh:
+				if redraw, finish := e.emit(ev); redraw {
+					e.redrawCh <- struct{}{}
+				} else if finish {
+					close(e.quitCh)
+					return
+				}
+			case <-e.quitCh:
+				return
+			}
+		}
+	}()
+	wg.Wait()
 }
 
 func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
@@ -196,7 +243,7 @@ func (e *Editor) OpenEmpty() (err error) {
 
 // Run the editor.
 func (e *Editor) Run() error {
-	if err := e.ui.Init(e.eventCh); err != nil {
+	if err := e.ui.Init(e.uiEventCh); err != nil {
 		return err
 	}
 	if err := e.redraw(); err != nil {
@@ -248,7 +295,9 @@ func (e *Editor) suspend() error {
 
 // Close terminates the editor.
 func (e *Editor) Close() error {
-	close(e.eventCh)
+	close(e.cmdEventCh)
+	close(e.wmEventCh)
+	close(e.uiEventCh)
 	close(e.redrawCh)
 	close(e.cmdlineCh)
 	e.wm.Close()

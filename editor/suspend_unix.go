@@ -12,7 +12,7 @@ func suspend(e *Editor) error {
 	if err := syscall.Kill(pid, syscall.SIGSTOP); err != nil {
 		return err
 	}
-	if err := e.ui.Init(e.eventCh); err != nil {
+	if err := e.ui.Init(e.uiEventCh); err != nil {
 		return err
 	}
 	if err := e.redraw(); err != nil {

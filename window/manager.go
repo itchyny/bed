@@ -404,8 +404,7 @@ func (m *Manager) writeQuit(e event.Event) error {
 	if _, _, err := m.writeFile(nil, ""); err != nil {
 		return err
 	}
-	m.eventCh <- event.Event{Type: event.Quit}
-	return nil
+	return m.quit(e)
 }
 
 // State returns the state of the windows.
