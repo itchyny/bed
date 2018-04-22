@@ -73,11 +73,11 @@ func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- str
 }
 
 func (w *window) setSize(width, height int) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	w.width, w.height = int64(width), int64(height)
 	w.offset = w.offset / w.width * w.width
-	if w.cursor >= w.offset+w.height*w.width {
+	if w.cursor < w.offset {
+		w.offset = w.cursor / w.width * w.width
+	} else if w.cursor >= w.offset+w.height*w.width {
 		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
 	}
 	w.offset = mathutil.MinInt64(
@@ -283,9 +283,10 @@ func (w *window) positionToOffset(pos event.Position) (int64, error) {
 	}
 }
 
-func (w *window) state() (*state.WindowState, error) {
+func (w *window) state(width, height int) (*state.WindowState, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	w.setSize(width, height)
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
 		return nil, err

@@ -446,9 +446,10 @@ func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error
 	states := make(map[int]*state.WindowState, len(m.windows))
 	for i, window := range m.windows {
 		if l, ok := layouts[i]; ok {
-			window.setSize(hexWindowWidth(l.Width()), mathutil.MaxInt(l.Height()-2, 1))
 			var err error
-			if states[i], err = window.state(); err != nil {
+			if states[i], err = window.state(
+				hexWindowWidth(l.Width()), mathutil.MaxInt(l.Height()-2, 1),
+			); err != nil {
 				return nil, m.layout, 0, err
 			}
 		}
