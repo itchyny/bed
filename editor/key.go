@@ -161,7 +161,9 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.SwitchFocus, "tab")
 	km.Register(event.SwitchFocus, "backtab")
 	km.Register(event.Copy, "y")
+	km.Register(event.Cut, "x")
 	km.Register(event.Cut, "d")
+	km.Register(event.Cut, "delete")
 	kms[mode.Visual] = km
 
 	km = key.NewManager(false)
