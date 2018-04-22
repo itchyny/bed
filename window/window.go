@@ -136,8 +136,6 @@ func (w *window) run() {
 		case event.JumpBack:
 			w.jumpBack()
 
-		case event.DeletePrevByte:
-			w.deletePrevByte(e.Count)
 		case event.Increment:
 			w.increment(e.Count)
 		case event.Decrement:
@@ -611,13 +609,20 @@ func (w *window) deleteBytes(count int64) *buffer.Buffer {
 	return b
 }
 
-func (w *window) deletePrevByte(count int64) {
-	cnt := int(mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor%w.width))
-	for i := 0; i < cnt; i++ {
-		w.delete(w.cursor - 1)
-		w.cursor--
-		w.length--
+func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.cursor == 0 {
+		return nil
 	}
+	count = mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor)
+	b := w.buffer.Copy(w.cursor-count, w.cursor)
+	w.buffer.Cut(w.cursor-count, w.cursor)
+	w.length, _ = w.buffer.Len()
+	w.cursor -= count
+	w.changedTick++
+	w.history.Push(w.buffer, w.offset, w.cursor)
+	return b
 }
 
 func (w *window) increment(count int64) {

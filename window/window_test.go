@@ -548,7 +548,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
-	window.deletePrevByte(0)
+	window.deletePrevBytes(0)
 	s, _ := window.state()
 	if !strings.HasPrefix(string(s.Bytes), "Hell, world!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hello, orld!\x00", string(s.Bytes))
@@ -557,7 +557,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 		t.Errorf("s.Cursor should be %d but got %d", 4, s.Cursor)
 	}
 
-	window.deletePrevByte(3)
+	window.deletePrevBytes(3)
 	s, _ = window.state()
 	if !strings.HasPrefix(string(s.Bytes), "H, world!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "H, world!\x00", string(s.Bytes))
@@ -566,7 +566,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 		t.Errorf("s.Cursor should be %d but got %d", 1, s.Cursor)
 	}
 
-	window.deletePrevByte(3)
+	window.deletePrevBytes(3)
 	s, _ = window.state()
 	if !strings.HasPrefix(string(s.Bytes), ", world!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", ", world!\x00", string(s.Bytes))
