@@ -7,9 +7,6 @@ import (
 )
 
 func eventToKey(event *tcell.EventKey) key.Key {
-	if event.Key() == tcell.KeyTab && event.Modifiers() == tcell.ModShift {
-		return key.Key("backtab")
-	}
 	if key, ok := keyMap[event.Key()]; ok {
 		return key
 	}
