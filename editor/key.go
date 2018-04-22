@@ -46,6 +46,7 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.JumpTo, "\x1d")
 	km.Register(event.JumpBack, "c-t")
 	km.Register(event.DeleteByte, "x")
+	km.Register(event.DeleteByte, "delete")
 	km.Register(event.DeletePrevByte, "X")
 	km.Register(event.Increment, "c-a")
 	km.Register(event.Increment, "+")
