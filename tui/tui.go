@@ -86,7 +86,10 @@ func (ui *Tui) drawWindows(windowStates map[int]*state.WindowState, l layout.Lay
 	case layout.Window:
 		r := fromLayout(l)
 		if r.valid() {
-			ui.newTuiWindow(r).drawWindow(windowStates[l.Index], l.Active)
+			ui.newTuiWindow(r).drawWindow(
+				windowStates[l.Index],
+				l.Active && ui.mode != mode.Cmdline && ui.mode != mode.Search,
+			)
 		}
 	case layout.Horizontal:
 		ui.drawWindows(windowStates, l.Top)
