@@ -486,7 +486,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
-	window.deleteByte(0)
+	window.deleteBytes(0)
 	s, _ := window.state()
 	if !strings.HasPrefix(string(s.Bytes), "Hello, orld!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hello, orld!\x00", string(s.Bytes))
@@ -495,7 +495,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 		t.Errorf("s.Cursor should be %d but got %d", 7, s.Cursor)
 	}
 
-	window.deleteByte(3)
+	window.deleteBytes(3)
 	s, _ = window.state()
 	if !strings.HasPrefix(string(s.Bytes), "Hello, d!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hello, d!\x00", string(s.Bytes))
@@ -504,7 +504,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 		t.Errorf("s.Cursor should be %d but got %d", 7, s.Cursor)
 	}
 
-	window.deleteByte(3)
+	window.deleteBytes(3)
 	s, _ = window.state()
 	if !strings.HasPrefix(string(s.Bytes), "Hello, \x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hello, \x00", string(s.Bytes))
@@ -513,9 +513,9 @@ func TestWindowDeleteBytes(t *testing.T) {
 		t.Errorf("s.Cursor should be %d but got %d", 6, s.Cursor)
 	}
 
-	window.deleteByte(0)
-	window.deleteByte(0)
-	window.deleteByte(0)
+	window.deleteByte()
+	window.deleteByte()
+	window.deleteByte()
 	s, _ = window.state()
 	if !strings.HasPrefix(string(s.Bytes), "Hell\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hell\x00", string(s.Bytes))
@@ -524,11 +524,11 @@ func TestWindowDeleteBytes(t *testing.T) {
 		t.Errorf("s.Cursor should be %d but got %d", 3, s.Cursor)
 	}
 
-	window.deleteByte(0)
-	window.deleteByte(0)
-	window.deleteByte(0)
-	window.deleteByte(0)
-	window.deleteByte(0)
+	window.deleteBytes(0)
+	window.deleteBytes(0)
+	window.deleteBytes(0)
+	window.deleteBytes(0)
+	window.deleteBytes(0)
 	s, _ = window.state()
 	if !strings.HasPrefix(string(s.Bytes), "\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "\x00", string(s.Bytes))
