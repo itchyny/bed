@@ -128,6 +128,12 @@ func (m *Manager) Emit(e event.Event) {
 		} else {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
+	case event.Enew:
+		if err := m.enew(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.New:
 		if err := m.newWindow(e, false); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -261,6 +267,23 @@ func (m *Manager) edit(e event.Event) error {
 		name = e.Arg
 	}
 	window, err := m.open(name)
+	if err != nil {
+		return err
+	}
+	go window.run()
+	m.windows = append(m.windows, window)
+	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
+	m.layout = m.layout.Replace(m.windowIndex)
+	return nil
+}
+
+func (m *Manager) enew(e event.Event) error {
+	if len(e.Arg) > 0 {
+		return fmt.Errorf("too many arguments for %s", e.CmdName)
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	window, err := m.open("")
 	if err != nil {
 		return err
 	}

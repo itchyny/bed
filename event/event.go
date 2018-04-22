@@ -98,6 +98,7 @@ const (
 	PreviousSearch
 
 	Edit
+	Enew
 	New
 	Vnew
 	Wincmd
