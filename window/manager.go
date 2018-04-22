@@ -220,11 +220,11 @@ func (m *Manager) Emit(e event.Event) {
 		}
 	case event.DeleteByte:
 		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deleteBytes(e.Count), Arg: "yanked"}
+		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deleteBytes(e.Count), Arg: "deleted"}
 		m.mu.Unlock()
 	case event.DeletePrevByte:
 		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deletePrevBytes(e.Count), Arg: "yanked"}
+		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deletePrevBytes(e.Count), Arg: "deleted"}
 		m.mu.Unlock()
 	case event.Copy:
 		m.mu.Lock()
