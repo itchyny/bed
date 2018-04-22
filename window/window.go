@@ -346,9 +346,6 @@ func (w *window) redo(count int64) {
 
 func (w *window) cursorUp(count int64) {
 	w.cursor -= mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor/w.width) * w.width
-	if w.cursor < w.offset {
-		w.offset = w.cursor / w.width * w.width
-	}
 	if w.append && w.extending && w.cursor < w.length-1 {
 		w.append = false
 		w.extending = false
@@ -365,9 +362,6 @@ func (w *window) cursorDown(count int64) {
 			(mathutil.MaxInt64(w.length, 1)-1)/w.width-w.cursor/w.width,
 		)*w.width,
 		mathutil.MaxInt64(w.length, 1)-1-w.cursor)
-	if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 }
 
 func (w *window) cursorLeft(count int64) {
@@ -402,9 +396,6 @@ func (w *window) cursorRight(m mode.Mode, count int64) {
 
 func (w *window) cursorPrev(count int64) {
 	w.cursor -= mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor)
-	if w.cursor < w.offset {
-		w.offset = w.cursor / w.width * w.width
-	}
 	if w.append && w.extending && w.cursor != w.length {
 		w.append = false
 		w.extending = false
@@ -425,9 +416,6 @@ func (w *window) cursorNext(m mode.Mode, count int64) {
 			w.length++
 		}
 	}
-	if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 }
 
 func (w *window) cursorHead(_ int64) {
@@ -439,9 +427,6 @@ func (w *window) cursorEnd(count int64) {
 		(w.cursor/w.width+mathutil.MaxInt64(count, 1))*w.width-1,
 		mathutil.MaxInt64(w.length, 1)-1,
 	)
-	if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 }
 
 func (w *window) cursorGoto(e event.Event) {
@@ -682,9 +667,6 @@ func (w *window) startAppend() {
 		w.extending = true
 		w.length++
 	}
-	if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 }
 
 func (w *window) startAppendEnd() {
@@ -762,9 +744,6 @@ func (w *window) insertByte(m mode.Mode, b byte) {
 				}
 			}
 		}
-		if w.cursor >= w.offset+w.height*w.width {
-			w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-		}
 		w.pending = false
 		w.pendingByte = '\x00'
 	} else {
@@ -804,11 +783,6 @@ func (w *window) switchVisualEnd() {
 		panic("window#switchVisualEnd should be called in visual mode")
 	}
 	w.cursor, w.visualStart = w.visualStart, w.cursor
-	if w.cursor < w.offset {
-		w.offset = w.cursor / w.width * w.width
-	} else if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 }
 
 func (w *window) exitVisual() {
@@ -830,9 +804,6 @@ func (w *window) copy() *buffer.Buffer {
 	}
 	w.visualStart = -1
 	w.cursor = start
-	if w.cursor < w.offset {
-		w.offset = w.cursor / w.width * w.width
-	}
 	return w.buffer.Copy(start, end+1)
 }
 
@@ -854,11 +825,6 @@ func (w *window) cut() *buffer.Buffer {
 	w.buffer.Cut(start, end+1)
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(start, mathutil.MaxInt64(w.length, 1)-1)
-	if w.cursor < w.offset {
-		w.offset = w.cursor / w.width * w.width
-	} else if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 	w.changedTick++
 	w.history.Push(w.buffer, w.offset, w.cursor)
 	return b
@@ -878,9 +844,6 @@ func (w *window) paste(e event.Event) int64 {
 	l, _ := e.Buffer.Len()
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(mathutil.MaxInt64(pos+l*count-1, 0), mathutil.MaxInt64(w.length, 1)-1)
-	if w.cursor >= w.offset+w.height*w.width {
-		w.offset = (w.cursor - w.height*w.width + w.width) / w.width * w.width
-	}
 	w.changedTick++
 	w.history.Push(w.buffer, w.offset, w.cursor)
 	return l * count
@@ -921,9 +884,6 @@ func (w *window) searchBackward(str string) {
 	i := bytes.LastIndex(bs, target)
 	if i >= 0 {
 		w.cursor = base + int64(i)
-		if w.cursor < w.offset {
-			w.offset = w.cursor / w.width * w.width
-		}
 	}
 }
 
