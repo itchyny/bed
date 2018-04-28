@@ -89,8 +89,8 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if string(bs) != "\x01" {
-		t.Errorf("file contents should be %q but got %q", "\x12\x48\xff", string(bs))
+	if want := "\x01"; string(bs) != want {
+		t.Errorf("file contents should be %q but got %q", want, string(bs))
 	}
 }
 
