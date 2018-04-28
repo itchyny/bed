@@ -758,22 +758,26 @@ func (w *window) insertByte(m mode.Mode, b byte) {
 			w.cursor++
 			w.length++
 		case mode.Replace:
+			if w.replaceByte {
+				w.replace(w.cursor, w.pendingByte|b)
+				w.exitInsert()
+				return
+			}
 			w.replaceBuf = append(w.replaceBuf, w.pendingByte|b)
 			if w.length == 0 {
 				w.length++
 			}
-			if w.replaceByte {
-				w.exitInsert()
-			} else {
-				w.cursor++
-				if w.cursor == w.length {
-					w.append = true
-				}
+			w.cursor++
+			if w.cursor == w.length {
+				w.append = true
 			}
 		}
 		w.pending = false
 		w.pendingByte = '\x00'
 	} else {
+		if m == mode.Replace && w.replaceByte && w.length == 0 {
+			return
+		}
 		w.pending = true
 		w.pendingByte = b << 4
 	}
