@@ -703,7 +703,7 @@ func (w *window) startReplaceByte() {
 
 func (w *window) startReplace() {
 	w.replaceByte = false
-	w.append = false
+	w.append = true
 	w.extending = false
 	w.pending = false
 }
@@ -768,9 +768,6 @@ func (w *window) insertByte(m mode.Mode, b byte) {
 				w.length++
 			}
 			w.cursor++
-			if w.cursor == w.length {
-				w.append = true
-			}
 		}
 		w.pending = false
 		w.pendingByte = '\x00'
