@@ -1091,16 +1091,16 @@ func TestWindowBackspace(t *testing.T) {
 
 	window.cursorNext(mode.Normal, 5)
 	window.startInsert()
-	window.backspace()
+	window.backspace(mode.Insert)
 	s, _ := window.state(width, height)
 	if !strings.HasPrefix(string(s.Bytes), "Hell, world!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hell, world!\x00", string(s.Bytes))
 	}
-	window.backspace()
-	window.backspace()
-	window.backspace()
-	window.backspace()
-	window.backspace()
+	window.backspace(mode.Insert)
+	window.backspace(mode.Insert)
+	window.backspace(mode.Insert)
+	window.backspace(mode.Insert)
+	window.backspace(mode.Insert)
 	s, _ = window.state(width, height)
 	if !strings.HasPrefix(string(s.Bytes), ", world!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", ", world!\x00", string(s.Bytes))
@@ -1124,7 +1124,7 @@ func TestWindowBackspacePending(t *testing.T) {
 		t.Errorf("s.PendingByte should be %q but got %q", '\x30', s.PendingByte)
 	}
 
-	window.backspace()
+	window.backspace(mode.Insert)
 	s, _ = window.state(width, height)
 	if !strings.HasPrefix(string(s.Bytes), "Hello, world!\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "Hello, world!\x00", string(s.Bytes))
