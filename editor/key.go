@@ -35,6 +35,7 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.ScrollUp, "c-y")
 	km.Register(event.ScrollDown, "c-e")
 	km.Register(event.ScrollTop, "z", "t")
+	km.Register(event.ScrollTopHead, "z", "enter")
 	km.Register(event.ScrollBottom, "z", "b")
 	km.Register(event.PageUp, "c-b")
 	km.Register(event.PageDown, "c-f")

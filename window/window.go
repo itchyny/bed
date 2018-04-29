@@ -115,6 +115,8 @@ func (w *window) run() {
 			w.scrollDown(e.Count)
 		case event.ScrollTop:
 			w.scrollTop(e.Count)
+		case event.ScrollTopHead:
+			w.scrollTopHead(e.Count)
 		case event.ScrollBottom:
 			w.scrollBottom(e.Count)
 		case event.PageUp:
@@ -484,6 +486,11 @@ func (w *window) scrollTop(count int64) {
 		)
 	}
 	w.offset = w.cursor / w.width * w.width
+}
+
+func (w *window) scrollTopHead(count int64) {
+	w.cursorHead(0)
+	w.scrollTop(count)
 }
 
 func (w *window) scrollBottom(count int64) {
