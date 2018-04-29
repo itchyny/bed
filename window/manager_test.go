@@ -166,9 +166,9 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	wm.SetSize(110, 20)
-	cmd, filename := "`which whoami`", "whoami"
+	cmd, filename := "`which ls`", "ls"
 	if runtime.GOOS == "windows" {
-		cmd, filename = "`where whoami`", "whoami.exe"
+		cmd, filename = "`where ping`", "PING.EXE"
 	}
 	if err := wm.Open(cmd); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
