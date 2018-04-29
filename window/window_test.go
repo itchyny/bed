@@ -477,6 +477,25 @@ func TestWindowScreenMotions(t *testing.T) {
 	if s.Offset != 0 {
 		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
+
+	window.scrollTop(5)
+	s, _ = window.state(width, height)
+	if s.Cursor != 80 {
+		t.Errorf("s.Cursor should be %d but got %d", 80, s.Cursor)
+	}
+	if s.Offset != 80 {
+		t.Errorf("s.Offset should be %d but got %d", 80, s.Offset)
+	}
+
+	window.cursorDown(4)
+	window.scrollTop(0)
+	s, _ = window.state(width, height)
+	if s.Cursor != 144 {
+		t.Errorf("s.Cursor should be %d but got %d", 144, s.Cursor)
+	}
+	if s.Offset != 144 {
+		t.Errorf("s.Offset should be %d but got %d", 144, s.Offset)
+	}
 }
 
 func TestWindowDeleteBytes(t *testing.T) {

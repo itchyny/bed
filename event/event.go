@@ -37,6 +37,7 @@ const (
 	CursorGoto
 	ScrollUp
 	ScrollDown
+	ScrollTop
 	PageUp
 	PageDown
 	PageUpHalf
