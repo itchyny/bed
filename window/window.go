@@ -119,6 +119,8 @@ func (w *window) run() {
 			w.scrollTopHead(e.Count)
 		case event.ScrollMiddle:
 			w.scrollMiddle(e.Count)
+		case event.ScrollMiddleHead:
+			w.scrollMiddleHead(e.Count)
 		case event.ScrollBottom:
 			w.scrollBottom(e.Count)
 		case event.ScrollBottomHead:
@@ -508,6 +510,11 @@ func (w *window) scrollMiddle(count int64) {
 		)
 	}
 	w.offset = mathutil.MaxInt64(w.cursor/w.width-w.height/2, 0) * w.width
+}
+
+func (w *window) scrollMiddleHead(count int64) {
+	w.cursorHead(0)
+	w.scrollMiddle(count)
 }
 
 func (w *window) scrollBottom(count int64) {

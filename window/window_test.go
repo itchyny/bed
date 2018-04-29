@@ -517,6 +517,15 @@ func TestWindowScreenMotions(t *testing.T) {
 		t.Errorf("s.Offset should be %d but got %d", 112, s.Offset)
 	}
 
+	window.scrollMiddleHead(15)
+	s, _ = window.state(width, height)
+	if s.Cursor != 240 {
+		t.Errorf("s.Cursor should be %d but got %d", 240, s.Cursor)
+	}
+	if s.Offset != 160 {
+		t.Errorf("s.Offset should be %d but got %d", 160, s.Offset)
+	}
+
 	window.cursorNext(mode.Normal, 5)
 	window.scrollBottom(12)
 	s, _ = window.state(width, height)
