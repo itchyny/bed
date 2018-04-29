@@ -40,6 +40,7 @@ const (
 	ScrollTop
 	ScrollTopHead
 	ScrollBottom
+	ScrollBottomHead
 	PageUp
 	PageDown
 	PageUpHalf

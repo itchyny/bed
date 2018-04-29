@@ -507,10 +507,11 @@ func TestWindowScreenMotions(t *testing.T) {
 		t.Errorf("s.Offset should be %d but got %d", 160, s.Offset)
 	}
 
+	window.cursorNext(mode.Normal, 5)
 	window.scrollBottom(12)
 	s, _ = window.state(width, height)
-	if s.Cursor != 192 {
-		t.Errorf("s.Cursor should be %d but got %d", 192, s.Cursor)
+	if s.Cursor != 197 {
+		t.Errorf("s.Cursor should be %d but got %d", 197, s.Cursor)
 	}
 	if s.Offset != 48 {
 		t.Errorf("s.Offset should be %d but got %d", 48, s.Offset)
@@ -519,11 +520,20 @@ func TestWindowScreenMotions(t *testing.T) {
 	window.cursorDown(8)
 	window.scrollBottom(0)
 	s, _ = window.state(width, height)
-	if s.Cursor != 320 {
-		t.Errorf("s.Cursor should be %d but got %d", 320, s.Cursor)
+	if s.Cursor != 325 {
+		t.Errorf("s.Cursor should be %d but got %d", 325, s.Cursor)
 	}
 	if s.Offset != 176 {
 		t.Errorf("s.Offset should be %d but got %d", 176, s.Offset)
+	}
+
+	window.scrollBottomHead(10)
+	s, _ = window.state(width, height)
+	if s.Cursor != 160 {
+		t.Errorf("s.Cursor should be %d but got %d", 160, s.Cursor)
+	}
+	if s.Offset != 16 {
+		t.Errorf("s.Offset should be %d but got %d", 16, s.Offset)
 	}
 }
 
