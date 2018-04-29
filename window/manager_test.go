@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -165,13 +166,17 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	wm.SetSize(110, 20)
-	if err := wm.Open("`which echo`"); err != nil {
+	cmd, filename := "`which whoami`", "whoami"
+	if runtime.GOOS == "windows" {
+		cmd, filename = "`where whoami`", "whoami.exe"
+	}
+	if err := wm.Open(cmd); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	windowStates, _, _, err := wm.State()
 	ws := windowStates[0]
-	if ws.Name != "echo" {
-		t.Errorf("name should be %q but got %q", "echo", ws.Name)
+	if ws.Name != filename {
+		t.Errorf("name should be %q but got %q", filename, ws.Name)
 	}
 	if ws.Width != 16 {
 		t.Errorf("width should be %d but got %d", 16, ws.Width)
