@@ -115,6 +115,8 @@ func (w *window) run() {
 			w.scrollDown(e.Count)
 		case event.ScrollTop:
 			w.scrollTop(e.Count)
+		case event.ScrollBottom:
+			w.scrollBottom(e.Count)
 		case event.PageUp:
 			w.pageUp()
 		case event.PageDown:
@@ -482,6 +484,19 @@ func (w *window) scrollTop(count int64) {
 		)
 	}
 	w.offset = w.cursor / w.width * w.width
+}
+
+func (w *window) scrollBottom(count int64) {
+	if count > 0 {
+		w.cursor = mathutil.MinInt64(
+			mathutil.MinInt64(
+				count*w.width+w.cursor%w.width,
+				(mathutil.MaxInt64(w.length, 1)-1)/w.width*w.width+w.cursor%w.width,
+			),
+			mathutil.MaxInt64(w.length, 1)-1,
+		)
+	}
+	w.offset = mathutil.MaxInt64(w.cursor/w.width-w.height, 0) * w.width
 }
 
 func (w *window) pageUp() {
