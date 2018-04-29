@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/mitchellh/go-homedir"
@@ -73,7 +75,11 @@ func (m *Manager) open(filename string) (*window, error) {
 		}
 		return window, nil
 	}
-	name, err := homedir.Expand(filename)
+	name, err := expandBacktick(filename)
+	if err != nil {
+		return nil, err
+	}
+	name, err = homedir.Expand(name)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +108,23 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, err
 	}
 	return window, nil
+}
+
+func expandBacktick(filename string) (string, error) {
+	if !strings.HasPrefix(filename, "`") ||
+		!strings.HasSuffix(filename, "`") || len(filename) <= 2 {
+		return filename, nil
+	}
+	filename = strings.TrimSpace(filename[1 : len(filename)-1])
+	xs := strings.Fields(filename)
+	if len(xs) < 1 {
+		return filename, nil
+	}
+	out, err := exec.Command(xs[0], xs[1:]...).Output()
+	if err != nil {
+		return filename, err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 // SetSize sets the size of the screen.
