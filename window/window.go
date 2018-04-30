@@ -850,16 +850,14 @@ func (w *window) backspace(m mode.Mode) {
 	if w.pending {
 		w.pending = false
 		w.pendingByte = '\x00'
-	} else if w.cursor > 0 {
-		if m == mode.Replace {
-			l := len(w.replaceBuf)
-			if l == 0 {
-				return
-			}
+	} else if m == mode.Replace {
+		if w.cursor > 0 {
 			w.cursor--
-			w.replaceBuf = w.replaceBuf[:l-1]
-			return
+			if l := len(w.replaceBuf); l > 0 {
+				w.replaceBuf = w.replaceBuf[:l-1]
+			}
 		}
+	} else if w.cursor > 0 {
 		w.delete(w.cursor - 1)
 		w.cursor--
 		w.length--
