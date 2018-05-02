@@ -88,6 +88,7 @@ func (w *window) setSize(width, height int) {
 }
 
 func (w *window) emit(e event.Event) {
+	var newEvent event.Event
 	w.mu.Lock()
 	offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
 	switch e.Type {
@@ -199,20 +200,11 @@ func (w *window) emit(e event.Event) {
 		}
 		w.redo(e.Count)
 	case event.Copy:
-		buffer := w.copy()
-		w.mu.Unlock()
-		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "yanked"}
-		return
+		newEvent = event.Event{Type: event.Copied, Buffer: w.copy(), Arg: "yanked"}
 	case event.Cut:
-		buffer := w.cut()
-		w.mu.Unlock()
-		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "deleted"}
-		return
+		newEvent = event.Event{Type: event.Copied, Buffer: w.cut(), Arg: "deleted"}
 	case event.Paste, event.PastePrev:
-		count := w.paste(e)
-		w.mu.Unlock()
-		w.eventCh <- event.Event{Type: event.Pasted, Count: count}
-		return
+		newEvent = event.Event{Type: event.Pasted, Count: w.paste(e)}
 	case event.ExecuteSearch:
 		w.search(e.Arg, e.Rune == '/')
 	case event.NextSearch:
@@ -234,7 +226,11 @@ func (w *window) emit(e event.Event) {
 	}
 	w.prevChanged = changed
 	w.mu.Unlock()
-	w.redrawCh <- struct{}{}
+	if newEvent.Type == event.Nop {
+		w.redrawCh <- struct{}{}
+	} else {
+		w.eventCh <- newEvent
+	}
 }
 
 func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
