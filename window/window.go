@@ -37,7 +37,7 @@ type window struct {
 	visualStart int64
 	focusText   bool
 	redrawCh    chan<- struct{}
-	eventCh     chan event.Event
+	eventCh     chan<- event.Event
 	mu          *sync.Mutex
 }
 
@@ -51,7 +51,7 @@ type readAtSeeker interface {
 	io.Seeker
 }
 
-func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- struct{}) (*window, error) {
+func newWindow(r readAtSeeker, filename string, name string, eventCh chan<- event.Event, redrawCh chan<- struct{}) (*window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -67,7 +67,7 @@ func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- str
 		length:      length,
 		visualStart: -1,
 		redrawCh:    redrawCh,
-		eventCh:     make(chan event.Event),
+		eventCh:     eventCh,
 		mu:          new(sync.Mutex),
 	}, nil
 }
@@ -949,8 +949,4 @@ func (w *window) searchBackward(str string) {
 	if i >= 0 {
 		w.cursor = base + int64(i)
 	}
-}
-
-func (w *window) close() {
-	close(w.eventCh)
 }

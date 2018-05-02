@@ -68,7 +68,7 @@ func (m *Manager) Open(filename string) error {
 
 func (m *Manager) open(filename string) (*window, error) {
 	if filename == "" {
-		window, err := newWindow(bytes.NewReader(nil), "", "", m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), "", "", m.eventCh, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.eventCh, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, fmt.Errorf("%s is a directory", filename)
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	window, err := newWindow(f, filename, filepath.Base(filename), m.redrawCh)
+	window, err := newWindow(f, filename, filepath.Base(filename), m.eventCh, m.redrawCh)
 	if err != nil {
 		return nil, err
 	}
@@ -550,8 +550,5 @@ func (m *Manager) opened(name string) bool {
 func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
-	}
-	for _, w := range m.windows {
-		w.close()
 	}
 }
