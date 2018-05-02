@@ -60,7 +60,6 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
@@ -276,7 +275,7 @@ func (m *Manager) Emit(e event.Event) {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
 	default:
-		m.windows[m.windowIndex].eventCh <- e
+		m.windows[m.windowIndex].emit(e)
 	}
 }
 
@@ -293,7 +292,6 @@ func (m *Manager) edit(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
@@ -310,7 +308,6 @@ func (m *Manager) enew(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
@@ -324,7 +321,6 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	if vertical {

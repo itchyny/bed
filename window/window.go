@@ -86,139 +86,137 @@ func (w *window) setSize(width, height int) {
 	)
 }
 
-func (w *window) run() {
-	for e := range w.eventCh {
-		w.mu.Lock()
-		offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
-		switch e.Type {
-		case event.CursorUp:
-			w.cursorUp(e.Count)
-		case event.CursorDown:
-			w.cursorDown(e.Count)
-		case event.CursorLeft:
-			w.cursorLeft(e.Count)
-		case event.CursorRight:
-			w.cursorRight(e.Mode, e.Count)
-		case event.CursorPrev:
-			w.cursorPrev(e.Count)
-		case event.CursorNext:
-			w.cursorNext(e.Mode, e.Count)
-		case event.CursorHead:
-			w.cursorHead(e.Count)
-		case event.CursorEnd:
-			w.cursorEnd(e.Count)
-		case event.CursorGoto:
-			w.cursorGoto(e)
-		case event.ScrollUp:
-			w.scrollUp(e.Count)
-		case event.ScrollDown:
-			w.scrollDown(e.Count)
-		case event.ScrollTop:
-			w.scrollTop(e.Count)
-		case event.ScrollTopHead:
-			w.scrollTopHead(e.Count)
-		case event.ScrollMiddle:
-			w.scrollMiddle(e.Count)
-		case event.ScrollMiddleHead:
-			w.scrollMiddleHead(e.Count)
-		case event.ScrollBottom:
-			w.scrollBottom(e.Count)
-		case event.ScrollBottomHead:
-			w.scrollBottomHead(e.Count)
-		case event.PageUp:
-			w.pageUp()
-		case event.PageDown:
-			w.pageDown()
-		case event.PageUpHalf:
-			w.pageUpHalf()
-		case event.PageDownHalf:
-			w.pageDownHalf()
-		case event.PageTop:
-			w.pageTop()
-		case event.PageEnd:
-			w.pageEnd()
-		case event.WindowTop:
-			w.windowTop(e.Count)
-		case event.WindowMiddle:
-			w.windowMiddle()
-		case event.WindowBottom:
-			w.windowBottom(e.Count)
-		case event.JumpTo:
-			w.jumpTo()
-		case event.JumpBack:
-			w.jumpBack()
+func (w *window) emit(e event.Event) {
+	w.mu.Lock()
+	offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
+	switch e.Type {
+	case event.CursorUp:
+		w.cursorUp(e.Count)
+	case event.CursorDown:
+		w.cursorDown(e.Count)
+	case event.CursorLeft:
+		w.cursorLeft(e.Count)
+	case event.CursorRight:
+		w.cursorRight(e.Mode, e.Count)
+	case event.CursorPrev:
+		w.cursorPrev(e.Count)
+	case event.CursorNext:
+		w.cursorNext(e.Mode, e.Count)
+	case event.CursorHead:
+		w.cursorHead(e.Count)
+	case event.CursorEnd:
+		w.cursorEnd(e.Count)
+	case event.CursorGoto:
+		w.cursorGoto(e)
+	case event.ScrollUp:
+		w.scrollUp(e.Count)
+	case event.ScrollDown:
+		w.scrollDown(e.Count)
+	case event.ScrollTop:
+		w.scrollTop(e.Count)
+	case event.ScrollTopHead:
+		w.scrollTopHead(e.Count)
+	case event.ScrollMiddle:
+		w.scrollMiddle(e.Count)
+	case event.ScrollMiddleHead:
+		w.scrollMiddleHead(e.Count)
+	case event.ScrollBottom:
+		w.scrollBottom(e.Count)
+	case event.ScrollBottomHead:
+		w.scrollBottomHead(e.Count)
+	case event.PageUp:
+		w.pageUp()
+	case event.PageDown:
+		w.pageDown()
+	case event.PageUpHalf:
+		w.pageUpHalf()
+	case event.PageDownHalf:
+		w.pageDownHalf()
+	case event.PageTop:
+		w.pageTop()
+	case event.PageEnd:
+		w.pageEnd()
+	case event.WindowTop:
+		w.windowTop(e.Count)
+	case event.WindowMiddle:
+		w.windowMiddle()
+	case event.WindowBottom:
+		w.windowBottom(e.Count)
+	case event.JumpTo:
+		w.jumpTo()
+	case event.JumpBack:
+		w.jumpBack()
 
-		case event.Increment:
-			w.increment(e.Count)
-		case event.Decrement:
-			w.decrement(e.Count)
+	case event.Increment:
+		w.increment(e.Count)
+	case event.Decrement:
+		w.decrement(e.Count)
 
-		case event.StartInsert:
-			w.startInsert()
-		case event.StartInsertHead:
-			w.startInsertHead()
-		case event.StartAppend:
-			w.startAppend()
-		case event.StartAppendEnd:
-			w.startAppendEnd()
-		case event.StartReplaceByte:
-			w.startReplaceByte()
-		case event.StartReplace:
-			w.startReplace()
-		case event.ExitInsert:
-			w.exitInsert()
-		case event.Rune:
-			w.insertRune(e.Mode, e.Rune)
-		case event.Backspace:
-			w.backspace()
-		case event.Delete:
-			w.deleteByte()
-		case event.StartVisual:
-			w.startVisual()
-		case event.SwitchVisualEnd:
-			w.switchVisualEnd()
-		case event.ExitVisual:
-			w.exitVisual()
-		case event.SwitchFocus:
-			w.focusText = !w.focusText
-			if w.pending {
-				w.pending = false
-				w.pendingByte = '\x00'
-			}
-			w.changedTick++
-		case event.Undo:
-			if e.Mode != mode.Normal {
-				panic("event.Undo should be emitted under normal mode")
-			}
-			w.undo(e.Count)
-		case event.Redo:
-			if e.Mode != mode.Normal {
-				panic("event.Undo should be emitted under normal mode")
-			}
-			w.redo(e.Count)
-		case event.ExecuteSearch:
-			w.search(e.Arg, e.Rune == '/')
-		case event.NextSearch:
-			w.search(e.Arg, e.Rune == '/')
-		case event.PreviousSearch:
-			w.search(e.Arg, e.Rune != '/')
-		default:
-			w.mu.Unlock()
-			continue
+	case event.StartInsert:
+		w.startInsert()
+	case event.StartInsertHead:
+		w.startInsertHead()
+	case event.StartAppend:
+		w.startAppend()
+	case event.StartAppendEnd:
+		w.startAppendEnd()
+	case event.StartReplaceByte:
+		w.startReplaceByte()
+	case event.StartReplace:
+		w.startReplace()
+	case event.ExitInsert:
+		w.exitInsert()
+	case event.Rune:
+		w.insertRune(e.Mode, e.Rune)
+	case event.Backspace:
+		w.backspace()
+	case event.Delete:
+		w.deleteByte()
+	case event.StartVisual:
+		w.startVisual()
+	case event.SwitchVisualEnd:
+		w.switchVisualEnd()
+	case event.ExitVisual:
+		w.exitVisual()
+	case event.SwitchFocus:
+		w.focusText = !w.focusText
+		if w.pending {
+			w.pending = false
+			w.pendingByte = '\x00'
 		}
-		changed := changedTick != w.changedTick
-		if e.Type != event.Undo && e.Type != event.Redo {
-			if e.Mode == mode.Normal && changed || e.Type == event.ExitInsert && w.prevChanged {
-				w.history.Push(w.buffer, w.offset, w.cursor)
-			} else if e.Mode != mode.Normal && w.prevChanged && !changed &&
-				event.CursorUp <= e.Type && e.Type <= event.JumpBack {
-				w.history.Push(w.buffer, offset, cursor)
-			}
+		w.changedTick++
+	case event.Undo:
+		if e.Mode != mode.Normal {
+			panic("event.Undo should be emitted under normal mode")
 		}
-		w.prevChanged = changed
+		w.undo(e.Count)
+	case event.Redo:
+		if e.Mode != mode.Normal {
+			panic("event.Undo should be emitted under normal mode")
+		}
+		w.redo(e.Count)
+	case event.ExecuteSearch:
+		w.search(e.Arg, e.Rune == '/')
+	case event.NextSearch:
+		w.search(e.Arg, e.Rune == '/')
+	case event.PreviousSearch:
+		w.search(e.Arg, e.Rune != '/')
+	default:
 		w.mu.Unlock()
-		w.redrawCh <- struct{}{}
+		return
 	}
+	changed := changedTick != w.changedTick
+	if e.Type != event.Undo && e.Type != event.Redo {
+		if e.Mode == mode.Normal && changed || e.Type == event.ExitInsert && w.prevChanged {
+			w.history.Push(w.buffer, w.offset, w.cursor)
+		} else if e.Mode != mode.Normal && w.prevChanged && !changed &&
+			event.CursorUp <= e.Type && e.Type <= event.JumpBack {
+			w.history.Push(w.buffer, offset, cursor)
+		}
+	}
+	w.prevChanged = changed
+	w.mu.Unlock()
+	w.redrawCh <- struct{}{}
 }
 
 func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
