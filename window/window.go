@@ -172,6 +172,10 @@ func (w *window) emit(e event.Event) {
 		w.startReplace()
 	case event.ExitInsert:
 		w.exitInsert()
+	case event.Rune:
+		if w.insertRune(e.Mode, e.Rune) {
+			newEvent = event.Event{Type: event.ExitInsert}
+		}
 	case event.Backspace:
 		w.backspace(e.Mode)
 	case event.Delete:
@@ -807,8 +811,6 @@ func (w *window) exitInsert() {
 }
 
 func (w *window) insertRune(m mode.Mode, ch rune) (exitInsert bool) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	if m == mode.Insert || m == mode.Replace {
 		if w.focusText {
 			buf := make([]byte, 4)
