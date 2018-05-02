@@ -209,6 +209,11 @@ func (w *window) emit(e event.Event) {
 		w.mu.Unlock()
 		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "deleted"}
 		return
+	case event.Paste, event.PastePrev:
+		count := w.paste(e)
+		w.mu.Unlock()
+		w.eventCh <- event.Event{Type: event.Pasted, Count: count}
+		return
 	case event.ExecuteSearch:
 		w.search(e.Arg, e.Rune == '/')
 	case event.NextSearch:
@@ -901,8 +906,6 @@ func (w *window) cut() *buffer.Buffer {
 }
 
 func (w *window) paste(e event.Event) int64 {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	count := mathutil.MaxInt64(e.Count, 1)
 	pos := w.cursor
 	if e.Type != event.PastePrev {

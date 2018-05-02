@@ -246,10 +246,6 @@ func (m *Manager) Emit(e event.Event) {
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case event.Paste, event.PastePrev:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Pasted, Count: m.windows[m.windowIndex].paste(e)}
-		m.mu.Unlock()
 	case event.Write:
 		if err := m.write(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
