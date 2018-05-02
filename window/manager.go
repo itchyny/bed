@@ -60,7 +60,6 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
@@ -69,7 +68,7 @@ func (m *Manager) Open(filename string) error {
 
 func (m *Manager) open(filename string) (*window, error) {
 	if filename == "" {
-		window, err := newWindow(bytes.NewReader(nil), "", "", m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), "", "", m.eventCh, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +88,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.redrawCh)
+		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.eventCh, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
@@ -103,7 +102,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, fmt.Errorf("%s is a directory", filename)
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
-	window, err := newWindow(f, filename, filepath.Base(filename), m.redrawCh)
+	window, err := newWindow(f, filename, filepath.Base(filename), m.eventCh, m.redrawCh)
 	if err != nil {
 		return nil, err
 	}
@@ -247,26 +246,6 @@ func (m *Manager) Emit(e event.Event) {
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case event.DeleteByte:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deleteBytes(e.Count), Arg: "deleted"}
-		m.mu.Unlock()
-	case event.DeletePrevByte:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deletePrevBytes(e.Count), Arg: "deleted"}
-		m.mu.Unlock()
-	case event.Copy:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].copy(), Arg: "yanked"}
-		m.mu.Unlock()
-	case event.Cut:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].cut(), Arg: "deleted"}
-		m.mu.Unlock()
-	case event.Paste, event.PastePrev:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Pasted, Count: m.windows[m.windowIndex].paste(e)}
-		m.mu.Unlock()
 	case event.Write:
 		if err := m.write(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -276,7 +255,7 @@ func (m *Manager) Emit(e event.Event) {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
 	default:
-		m.windows[m.windowIndex].eventCh <- e
+		m.windows[m.windowIndex].emit(e)
 	}
 }
 
@@ -293,7 +272,6 @@ func (m *Manager) edit(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
@@ -310,7 +288,6 @@ func (m *Manager) enew(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	m.layout = m.layout.Replace(m.windowIndex)
@@ -324,7 +301,6 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	if err != nil {
 		return err
 	}
-	go window.run()
 	m.windows = append(m.windows, window)
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 	if vertical {
@@ -554,8 +530,5 @@ func (m *Manager) opened(name string) bool {
 func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
-	}
-	for _, w := range m.windows {
-		w.close()
 	}
 }
