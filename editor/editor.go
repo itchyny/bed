@@ -20,7 +20,6 @@ type Editor struct {
 	prevMode      mode.Mode
 	searchTarget  string
 	searchMode    rune
-	replaceByte   int // the number of events required by replace command (r).
 	prevEventType event.Type
 	buffer        *buffer.Buffer
 	err           error
@@ -121,24 +120,6 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 	if ev.Type != event.Redraw {
 		e.prevEventType = ev.Type
 	}
-	if e.replaceByte > 0 {
-		switch ev.Type {
-		case event.Rune:
-		default:
-			e.mu.Unlock()
-			return
-		}
-		e.replaceByte--
-		if e.replaceByte == 0 {
-			e.mode, e.prevMode = mode.Normal, e.mode
-		}
-		ev.Mode = mode.Replace
-		width, height := e.ui.Size()
-		e.wm.Resize(width, height-1)
-		e.mu.Unlock()
-		e.wm.Emit(ev)
-		return
-	}
 	switch ev.Type {
 	case event.QuitAll:
 		if len(ev.Arg) > 0 {
@@ -189,10 +170,7 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 		switch ev.Type {
 		case event.StartInsert, event.StartInsertHead, event.StartAppend, event.StartAppendEnd:
 			e.mode, e.prevMode = mode.Insert, e.mode
-		case event.StartReplaceByte:
-			e.mode, e.prevMode = mode.Replace, e.mode
-			e.replaceByte = 2 // expect 2 events
-		case event.StartReplace:
+		case event.StartReplaceByte, event.StartReplace:
 			e.mode, e.prevMode = mode.Replace, e.mode
 		case event.ExitInsert:
 			e.mode, e.prevMode = mode.Normal, e.mode

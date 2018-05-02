@@ -247,6 +247,15 @@ func (m *Manager) Emit(e event.Event) {
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
+	case event.Rune:
+		m.mu.Lock()
+		exitInsert := m.windows[m.windowIndex].insertRune(e.Mode, e.Rune)
+		m.mu.Unlock()
+		if exitInsert {
+			m.eventCh <- event.Event{Type: event.ExitInsert}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.DeleteByte:
 		m.mu.Lock()
 		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].deleteBytes(e.Count), Arg: "deleted"}
