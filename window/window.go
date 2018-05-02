@@ -38,7 +38,7 @@ type window struct {
 	visualStart int64
 	focusText   bool
 	redrawCh    chan<- struct{}
-	eventCh     chan event.Event
+	eventCh     chan<- event.Event
 	mu          *sync.Mutex
 }
 
@@ -52,7 +52,7 @@ type readAtSeeker interface {
 	io.Seeker
 }
 
-func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- struct{}) (*window, error) {
+func newWindow(r readAtSeeker, filename string, name string, eventCh chan<- event.Event, redrawCh chan<- struct{}) (*window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -68,7 +68,7 @@ func newWindow(r readAtSeeker, filename string, name string, redrawCh chan<- str
 		length:      length,
 		visualStart: -1,
 		redrawCh:    redrawCh,
-		eventCh:     make(chan event.Event),
+		eventCh:     eventCh,
 		mu:          new(sync.Mutex),
 	}, nil
 }
@@ -87,137 +87,154 @@ func (w *window) setSize(width, height int) {
 	)
 }
 
-func (w *window) run() {
-	for e := range w.eventCh {
-		w.mu.Lock()
-		offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
-		switch e.Type {
-		case event.CursorUp:
-			w.cursorUp(e.Count)
-		case event.CursorDown:
-			w.cursorDown(e.Count)
-		case event.CursorLeft:
-			w.cursorLeft(e.Count)
-		case event.CursorRight:
-			w.cursorRight(e.Mode, e.Count)
-		case event.CursorPrev:
-			w.cursorPrev(e.Count)
-		case event.CursorNext:
-			w.cursorNext(e.Mode, e.Count)
-		case event.CursorHead:
-			w.cursorHead(e.Count)
-		case event.CursorEnd:
-			w.cursorEnd(e.Count)
-		case event.CursorGoto:
-			w.cursorGoto(e)
-		case event.ScrollUp:
-			w.scrollUp(e.Count)
-		case event.ScrollDown:
-			w.scrollDown(e.Count)
-		case event.ScrollTop:
-			w.scrollTop(e.Count)
-		case event.ScrollTopHead:
-			w.scrollTopHead(e.Count)
-		case event.ScrollMiddle:
-			w.scrollMiddle(e.Count)
-		case event.ScrollMiddleHead:
-			w.scrollMiddleHead(e.Count)
-		case event.ScrollBottom:
-			w.scrollBottom(e.Count)
-		case event.ScrollBottomHead:
-			w.scrollBottomHead(e.Count)
-		case event.PageUp:
-			w.pageUp()
-		case event.PageDown:
-			w.pageDown()
-		case event.PageUpHalf:
-			w.pageUpHalf()
-		case event.PageDownHalf:
-			w.pageDownHalf()
-		case event.PageTop:
-			w.pageTop()
-		case event.PageEnd:
-			w.pageEnd()
-		case event.WindowTop:
-			w.windowTop(e.Count)
-		case event.WindowMiddle:
-			w.windowMiddle()
-		case event.WindowBottom:
-			w.windowBottom(e.Count)
-		case event.JumpTo:
-			w.jumpTo()
-		case event.JumpBack:
-			w.jumpBack()
+func (w *window) emit(e event.Event) {
+	w.mu.Lock()
+	offset, cursor, changedTick := w.offset, w.cursor, w.changedTick
+	switch e.Type {
+	case event.CursorUp:
+		w.cursorUp(e.Count)
+	case event.CursorDown:
+		w.cursorDown(e.Count)
+	case event.CursorLeft:
+		w.cursorLeft(e.Count)
+	case event.CursorRight:
+		w.cursorRight(e.Mode, e.Count)
+	case event.CursorPrev:
+		w.cursorPrev(e.Count)
+	case event.CursorNext:
+		w.cursorNext(e.Mode, e.Count)
+	case event.CursorHead:
+		w.cursorHead(e.Count)
+	case event.CursorEnd:
+		w.cursorEnd(e.Count)
+	case event.CursorGoto:
+		w.cursorGoto(e)
+	case event.ScrollUp:
+		w.scrollUp(e.Count)
+	case event.ScrollDown:
+		w.scrollDown(e.Count)
+	case event.ScrollTop:
+		w.scrollTop(e.Count)
+	case event.ScrollTopHead:
+		w.scrollTopHead(e.Count)
+	case event.ScrollMiddle:
+		w.scrollMiddle(e.Count)
+	case event.ScrollMiddleHead:
+		w.scrollMiddleHead(e.Count)
+	case event.ScrollBottom:
+		w.scrollBottom(e.Count)
+	case event.ScrollBottomHead:
+		w.scrollBottomHead(e.Count)
+	case event.PageUp:
+		w.pageUp()
+	case event.PageDown:
+		w.pageDown()
+	case event.PageUpHalf:
+		w.pageUpHalf()
+	case event.PageDownHalf:
+		w.pageDownHalf()
+	case event.PageTop:
+		w.pageTop()
+	case event.PageEnd:
+		w.pageEnd()
+	case event.WindowTop:
+		w.windowTop(e.Count)
+	case event.WindowMiddle:
+		w.windowMiddle()
+	case event.WindowBottom:
+		w.windowBottom(e.Count)
+	case event.JumpTo:
+		w.jumpTo()
+	case event.JumpBack:
+		w.jumpBack()
 
-		case event.Increment:
-			w.increment(e.Count)
-		case event.Decrement:
-			w.decrement(e.Count)
+	case event.DeleteByte:
+		w.deleteBytes(e.Count)
+	case event.DeletePrevByte:
+		w.deletePrevBytes(e.Count)
+	case event.Increment:
+		w.increment(e.Count)
+	case event.Decrement:
+		w.decrement(e.Count)
 
-		case event.StartInsert:
-			w.startInsert()
-		case event.StartInsertHead:
-			w.startInsertHead()
-		case event.StartAppend:
-			w.startAppend()
-		case event.StartAppendEnd:
-			w.startAppendEnd()
-		case event.StartReplaceByte:
-			w.startReplaceByte()
-		case event.StartReplace:
-			w.startReplace()
-		case event.ExitInsert:
-			w.exitInsert()
-		case event.Backspace:
-			w.backspace(e.Mode)
-		case event.Delete:
-			w.deleteByte()
-		case event.StartVisual:
-			w.startVisual()
-		case event.SwitchVisualEnd:
-			w.switchVisualEnd()
-		case event.ExitVisual:
-			w.exitVisual()
-		case event.SwitchFocus:
-			w.focusText = !w.focusText
-			if w.pending {
-				w.pending = false
-				w.pendingByte = '\x00'
-			}
-			w.changedTick++
-		case event.Undo:
-			if e.Mode != mode.Normal {
-				panic("event.Undo should be emitted under normal mode")
-			}
-			w.undo(e.Count)
-		case event.Redo:
-			if e.Mode != mode.Normal {
-				panic("event.Undo should be emitted under normal mode")
-			}
-			w.redo(e.Count)
-		case event.ExecuteSearch:
-			w.search(e.Arg, e.Rune == '/')
-		case event.NextSearch:
-			w.search(e.Arg, e.Rune == '/')
-		case event.PreviousSearch:
-			w.search(e.Arg, e.Rune != '/')
-		default:
-			w.mu.Unlock()
-			continue
+	case event.StartInsert:
+		w.startInsert()
+	case event.StartInsertHead:
+		w.startInsertHead()
+	case event.StartAppend:
+		w.startAppend()
+	case event.StartAppendEnd:
+		w.startAppendEnd()
+	case event.StartReplaceByte:
+		w.startReplaceByte()
+	case event.StartReplace:
+		w.startReplace()
+	case event.ExitInsert:
+		w.exitInsert()
+	case event.Backspace:
+		w.backspace(e.Mode)
+	case event.Delete:
+		w.deleteByte()
+	case event.StartVisual:
+		w.startVisual()
+	case event.SwitchVisualEnd:
+		w.switchVisualEnd()
+	case event.ExitVisual:
+		w.exitVisual()
+	case event.SwitchFocus:
+		w.focusText = !w.focusText
+		if w.pending {
+			w.pending = false
+			w.pendingByte = '\x00'
 		}
-		changed := changedTick != w.changedTick
-		if e.Type != event.Undo && e.Type != event.Redo {
-			if e.Mode == mode.Normal && changed || e.Type == event.ExitInsert && w.prevChanged {
-				w.history.Push(w.buffer, w.offset, w.cursor)
-			} else if e.Mode != mode.Normal && w.prevChanged && !changed &&
-				event.CursorUp <= e.Type && e.Type <= event.JumpBack {
-				w.history.Push(w.buffer, offset, cursor)
-			}
+		w.changedTick++
+	case event.Undo:
+		if e.Mode != mode.Normal {
+			panic("event.Undo should be emitted under normal mode")
 		}
-		w.prevChanged = changed
+		w.undo(e.Count)
+	case event.Redo:
+		if e.Mode != mode.Normal {
+			panic("event.Undo should be emitted under normal mode")
+		}
+		w.redo(e.Count)
+	case event.Copy:
+		buffer := w.copy()
 		w.mu.Unlock()
-		w.redrawCh <- struct{}{}
+		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "yanked"}
+		return
+	case event.Cut:
+		buffer := w.cut()
+		w.mu.Unlock()
+		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "deleted"}
+		return
+	case event.Paste, event.PastePrev:
+		count := w.paste(e)
+		w.mu.Unlock()
+		w.eventCh <- event.Event{Type: event.Pasted, Count: count}
+		return
+	case event.ExecuteSearch:
+		w.search(e.Arg, e.Rune == '/')
+	case event.NextSearch:
+		w.search(e.Arg, e.Rune == '/')
+	case event.PreviousSearch:
+		w.search(e.Arg, e.Rune != '/')
+	default:
+		w.mu.Unlock()
+		return
 	}
+	changed := changedTick != w.changedTick
+	if e.Type != event.Undo && e.Type != event.Redo {
+		if e.Mode == mode.Normal && changed || e.Type == event.ExitInsert && w.prevChanged {
+			w.history.Push(w.buffer, w.offset, w.cursor)
+		} else if e.Mode != mode.Normal && w.prevChanged && !changed &&
+			event.CursorUp <= e.Type && e.Type <= event.JumpBack {
+			w.history.Push(w.buffer, offset, cursor)
+		}
+	}
+	w.prevChanged = changed
+	w.mu.Unlock()
+	w.redrawCh <- struct{}{}
 }
 
 func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
@@ -663,11 +680,9 @@ func (w *window) jumpBack() {
 	w.stack = w.stack[:len(w.stack)-1]
 }
 
-func (w *window) deleteBytes(count int64) *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
+func (w *window) deleteBytes(count int64) {
 	if w.length == 0 {
-		return nil
+		return
 	}
 	count = mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.length-w.cursor)
 	b := w.buffer.Copy(w.cursor, w.cursor+count)
@@ -676,14 +691,12 @@ func (w *window) deleteBytes(count int64) *buffer.Buffer {
 	w.cursor = mathutil.MinInt64(w.cursor, mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
 	w.history.Push(w.buffer, w.offset, w.cursor)
-	return b
+	w.eventCh <- event.Event{Type: event.Copied, Buffer: b, Arg: "deleted"}
 }
 
-func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
+func (w *window) deletePrevBytes(count int64) {
 	if w.cursor == 0 {
-		return nil
+		return
 	}
 	count = mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor)
 	b := w.buffer.Copy(w.cursor-count, w.cursor)
@@ -692,7 +705,7 @@ func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
 	w.cursor -= count
 	w.changedTick++
 	w.history.Push(w.buffer, w.offset, w.cursor)
-	return b
+	w.eventCh <- event.Event{Type: event.Copied, Buffer: b, Arg: "deleted"}
 }
 
 func (w *window) increment(count int64) {
@@ -893,8 +906,6 @@ func (w *window) exitVisual() {
 }
 
 func (w *window) copy() *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	if w.visualStart < 0 {
 		panic("window#copy should be called in visual mode")
 	}
@@ -911,8 +922,6 @@ func (w *window) copy() *buffer.Buffer {
 }
 
 func (w *window) cut() *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	if w.visualStart < 0 {
 		panic("window#cut should be called in visual mode")
 	}
@@ -934,8 +943,6 @@ func (w *window) cut() *buffer.Buffer {
 }
 
 func (w *window) paste(e event.Event) int64 {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	count := mathutil.MaxInt64(e.Count, 1)
 	pos := w.cursor
 	if e.Type != event.PastePrev {
@@ -988,8 +995,4 @@ func (w *window) searchBackward(str string) {
 	if i >= 0 {
 		w.cursor = base + int64(i)
 	}
-}
-
-func (w *window) close() {
-	close(w.eventCh)
 }
