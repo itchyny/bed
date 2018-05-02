@@ -199,6 +199,11 @@ func (w *window) emit(e event.Event) {
 			panic("event.Undo should be emitted under normal mode")
 		}
 		w.redo(e.Count)
+	case event.Copy:
+		buffer := w.copy()
+		w.mu.Unlock()
+		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "yanked"}
+		return
 	case event.ExecuteSearch:
 		w.search(e.Arg, e.Rune == '/')
 	case event.NextSearch:
@@ -854,8 +859,6 @@ func (w *window) exitVisual() {
 }
 
 func (w *window) copy() *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	if w.visualStart < 0 {
 		panic("window#copy should be called in visual mode")
 	}
