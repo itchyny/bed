@@ -204,6 +204,11 @@ func (w *window) emit(e event.Event) {
 		w.mu.Unlock()
 		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "yanked"}
 		return
+	case event.Cut:
+		buffer := w.cut()
+		w.mu.Unlock()
+		w.eventCh <- event.Event{Type: event.Copied, Buffer: buffer, Arg: "deleted"}
+		return
 	case event.ExecuteSearch:
 		w.search(e.Arg, e.Rune == '/')
 	case event.NextSearch:
@@ -875,8 +880,6 @@ func (w *window) copy() *buffer.Buffer {
 }
 
 func (w *window) cut() *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	if w.visualStart < 0 {
 		panic("window#cut should be called in visual mode")
 	}

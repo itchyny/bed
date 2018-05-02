@@ -246,10 +246,6 @@ func (m *Manager) Emit(e event.Event) {
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
-	case event.Cut:
-		m.mu.Lock()
-		m.eventCh <- event.Event{Type: event.Copied, Buffer: m.windows[m.windowIndex].cut(), Arg: "deleted"}
-		m.mu.Unlock()
 	case event.Paste, event.PastePrev:
 		m.mu.Lock()
 		m.eventCh <- event.Event{Type: event.Pasted, Count: m.windows[m.windowIndex].paste(e)}
