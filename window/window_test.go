@@ -14,7 +14,7 @@ import (
 func TestWindowState(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, err := newWindow(r, "test", "test", make(chan struct{}))
+	window, err := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +70,7 @@ func TestWindowState(t *testing.T) {
 func TestWindowEmptyState(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, err := newWindow(r, "test", "test", make(chan struct{}))
+	window, err := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func TestWindowEmptyState(t *testing.T) {
 func TestWindowCursorMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
 	width, height := 16, 10
-	window, err := newWindow(r, "test", "test", make(chan struct{}))
+	window, err := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -377,7 +377,7 @@ func TestWindowCursorMotions(t *testing.T) {
 func TestWindowScreenMotions(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 100))
 	width, height := 16, 10
-	window, err := newWindow(r, "test", "test", make(chan struct{}))
+	window, err := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -559,7 +559,7 @@ func TestWindowScreenMotions(t *testing.T) {
 func TestWindowDeleteBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
@@ -621,7 +621,7 @@ func TestWindowDeleteBytes(t *testing.T) {
 func TestWindowDeletePrevBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
@@ -656,7 +656,7 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 func TestWindowIncrementDecrement(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.increment(0)
@@ -706,7 +706,7 @@ func TestWindowIncrementDecrement(t *testing.T) {
 func TestWindowIncrementDecrementEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	s, _ := window.state(width, height)
@@ -729,7 +729,7 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
 
-	window, _ = newWindow(r, "test", "test", make(chan struct{}))
+	window, _ = newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.decrement(0)
@@ -748,7 +748,7 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 func TestWindowInsertByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 1
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
@@ -808,7 +808,7 @@ func TestWindowInsertByte(t *testing.T) {
 func TestWindowInsertEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.startInsert()
@@ -844,7 +844,7 @@ func TestWindowInsertEmpty(t *testing.T) {
 func TestWindowInsertHead(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 2))
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.pageEnd()
@@ -877,7 +877,7 @@ func TestWindowInsertHead(t *testing.T) {
 func TestWindowInsertHeadEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.startInsertHead()
@@ -913,7 +913,7 @@ func TestWindowInsertHeadEmpty(t *testing.T) {
 func TestWindowAppend(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
@@ -957,7 +957,7 @@ func TestWindowAppend(t *testing.T) {
 func TestWindowAppendEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.startAppend()
@@ -1004,7 +1004,7 @@ func TestWindowAppendEmpty(t *testing.T) {
 func TestWindowReplaceByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
@@ -1031,7 +1031,7 @@ func TestWindowReplaceByte(t *testing.T) {
 func TestWindowReplaceByteEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.startReplaceByte()
@@ -1057,7 +1057,7 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 func TestWindowReplace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 10)
@@ -1104,7 +1104,7 @@ func TestWindowReplace(t *testing.T) {
 func TestWindowReplaceEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.startReplace()
@@ -1133,7 +1133,7 @@ func TestWindowReplaceEmpty(t *testing.T) {
 func TestWindowInsertByte2(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.startInsert()
@@ -1163,7 +1163,7 @@ func TestWindowInsertByte2(t *testing.T) {
 func TestWindowBackspace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
@@ -1187,7 +1187,7 @@ func TestWindowBackspace(t *testing.T) {
 func TestWindowBackspacePending(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan struct{}))
+	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
@@ -1217,17 +1217,14 @@ func TestWindowBackspacePending(t *testing.T) {
 func TestWindowEventRune(t *testing.T) {
 	width, height := 16, 10
 	redrawCh := make(chan struct{})
-	window, _ := newWindow(strings.NewReader(""), "test", "test", redrawCh)
+	window, _ := newWindow(strings.NewReader(""), "test", "test", make(chan event.Event), redrawCh)
 	window.setSize(width, height)
 
 	str := "48723fffab"
 	go func() {
-		window.run()
-	}()
-	go func() {
-		window.eventCh <- event.Event{Type: event.StartInsert}
+		window.emit(event.Event{Type: event.StartInsert})
 		for _, r := range str {
-			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: mode.Insert}
+			window.emit(event.Event{Type: event.Rune, Rune: r, Mode: mode.Insert})
 		}
 	}()
 	<-redrawCh
@@ -1238,24 +1235,20 @@ func TestWindowEventRune(t *testing.T) {
 	if !strings.HasPrefix(string(s.Bytes), "\x48\x72\x3f\xff\xab\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", "\x48\x72\x3f\xff\xab\x00", string(s.Bytes))
 	}
-	window.close()
 }
 
 func TestWindowEventRuneText(t *testing.T) {
 	width, height := 16, 10
 	redrawCh := make(chan struct{})
-	window, _ := newWindow(strings.NewReader(""), "test", "test", redrawCh)
+	window, _ := newWindow(strings.NewReader(""), "test", "test", make(chan event.Event), redrawCh)
 	window.setSize(width, height)
 
 	str := "Hello, World!\nこんにちは、世界！\n鰰は魚の一種"
 	go func() {
-		window.run()
-	}()
-	go func() {
-		window.eventCh <- event.Event{Type: event.SwitchFocus}
-		window.eventCh <- event.Event{Type: event.StartInsert}
+		window.emit(event.Event{Type: event.SwitchFocus})
+		window.emit(event.Event{Type: event.StartInsert})
 		for _, r := range str {
-			window.eventCh <- event.Event{Type: event.Rune, Rune: r, Mode: mode.Insert}
+			window.emit(event.Event{Type: event.Rune, Rune: r, Mode: mode.Insert})
 		}
 	}()
 	<-redrawCh
@@ -1267,19 +1260,17 @@ func TestWindowEventRuneText(t *testing.T) {
 	if !strings.HasPrefix(string(s.Bytes), str+"\x00") {
 		t.Errorf("s.Bytes should start with %q but got %q", str+"\x00", string(s.Bytes))
 	}
-	window.close()
 }
 
 func TestWindowEventUndoRedo(t *testing.T) {
 	width, height := 16, 10
 	redrawCh := make(chan struct{})
-	window, _ := newWindow(strings.NewReader("Hello, world!"), "test", "test", redrawCh)
+	window, _ := newWindow(strings.NewReader("Hello, world!"), "test", "test", make(chan event.Event), redrawCh)
 	window.setSize(width, height)
 	waitCh := make(chan struct{})
 	defer func() {
 		close(waitCh)
 		close(redrawCh)
-		window.close()
 	}()
 
 	waitRedraw := func(count int) {
@@ -1288,38 +1279,35 @@ func TestWindowEventUndoRedo(t *testing.T) {
 		}
 	}
 	go func() {
-		window.run()
-	}()
-	go func() {
-		window.eventCh <- event.Event{Type: event.Undo}
-		window.eventCh <- event.Event{Type: event.SwitchFocus}
-		window.eventCh <- event.Event{Type: event.StartAppend, Mode: mode.Insert}
+		window.emit(event.Event{Type: event.Undo})
+		window.emit(event.Event{Type: event.SwitchFocus})
+		window.emit(event.Event{Type: event.StartAppend, Mode: mode.Insert})
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.ExitInsert}
+		window.emit(event.Event{Type: event.Rune, Rune: 'x', Mode: mode.Insert})
+		window.emit(event.Event{Type: event.Rune, Rune: 'y', Mode: mode.Insert})
+		window.emit(event.Event{Type: event.Rune, Rune: 'z', Mode: mode.Insert})
+		window.emit(event.Event{Type: event.ExitInsert})
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.StartInsert, Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'x', Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'y', Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.CursorLeft, Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'z', Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.ExitInsert}
+		window.emit(event.Event{Type: event.StartInsert, Mode: mode.Insert})
+		window.emit(event.Event{Type: event.Rune, Rune: 'x', Mode: mode.Insert})
+		window.emit(event.Event{Type: event.Rune, Rune: 'y', Mode: mode.Insert})
+		window.emit(event.Event{Type: event.CursorLeft, Mode: mode.Insert})
+		window.emit(event.Event{Type: event.Rune, Rune: 'z', Mode: mode.Insert})
+		window.emit(event.Event{Type: event.ExitInsert})
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.Undo, Count: 2}
-		window.eventCh <- event.Event{Type: event.StartInsert, Mode: mode.Insert}
-		window.eventCh <- event.Event{Type: event.Rune, Rune: 'w', Mode: mode.Insert}
+		window.emit(event.Event{Type: event.Undo, Count: 2})
+		window.emit(event.Event{Type: event.StartInsert, Mode: mode.Insert})
+		window.emit(event.Event{Type: event.Rune, Rune: 'w', Mode: mode.Insert})
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.ExitInsert}
-		window.eventCh <- event.Event{Type: event.Undo}
+		window.emit(event.Event{Type: event.ExitInsert})
+		window.emit(event.Event{Type: event.Undo})
 
 		<-waitCh
-		window.eventCh <- event.Event{Type: event.Redo, Count: 2}
+		window.emit(event.Event{Type: event.Redo, Count: 2})
 	}()
 
 	waitRedraw(3)
@@ -1384,7 +1372,7 @@ func TestWindowEventUndoRedo(t *testing.T) {
 
 func TestWindowWriteTo(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
-	window, err := newWindow(r, "test", "test", make(chan struct{}))
+	window, err := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
 	if err != nil {
 		t.Fatal(err)
 	}
