@@ -559,7 +559,13 @@ func TestWindowScreenMotions(t *testing.T) {
 func TestWindowDeleteBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
+	eventCh := make(chan event.Event)
+	go func() {
+		for {
+			<-eventCh
+		}
+	}()
+	window, _ := newWindow(r, "test", "test", eventCh, make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
@@ -621,7 +627,13 @@ func TestWindowDeleteBytes(t *testing.T) {
 func TestWindowDeletePrevBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", make(chan event.Event), make(chan struct{}))
+	eventCh := make(chan event.Event)
+	go func() {
+		for {
+			<-eventCh
+		}
+	}()
+	window, _ := newWindow(r, "test", "test", eventCh, make(chan struct{}))
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)

@@ -147,6 +147,10 @@ func (w *window) emit(e event.Event) {
 	case event.JumpBack:
 		w.jumpBack()
 
+	case event.DeleteByte:
+		w.deleteBytes(e.Count)
+	case event.DeletePrevByte:
+		w.deletePrevBytes(e.Count)
 	case event.Increment:
 		w.increment(e.Count)
 	case event.Decrement:
@@ -643,11 +647,9 @@ func (w *window) jumpBack() {
 	w.stack = w.stack[:len(w.stack)-1]
 }
 
-func (w *window) deleteBytes(count int64) *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
+func (w *window) deleteBytes(count int64) {
 	if w.length == 0 {
-		return nil
+		return
 	}
 	count = mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.length-w.cursor)
 	b := w.buffer.Copy(w.cursor, w.cursor+count)
@@ -656,14 +658,12 @@ func (w *window) deleteBytes(count int64) *buffer.Buffer {
 	w.cursor = mathutil.MinInt64(w.cursor, mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
 	w.history.Push(w.buffer, w.offset, w.cursor)
-	return b
+	w.eventCh <- event.Event{Type: event.Copied, Buffer: b, Arg: "deleted"}
 }
 
-func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
-	w.mu.Lock()
-	defer w.mu.Unlock()
+func (w *window) deletePrevBytes(count int64) {
 	if w.cursor == 0 {
-		return nil
+		return
 	}
 	count = mathutil.MinInt64(mathutil.MaxInt64(count, 1), w.cursor)
 	b := w.buffer.Copy(w.cursor-count, w.cursor)
@@ -672,7 +672,7 @@ func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
 	w.cursor -= count
 	w.changedTick++
 	w.history.Push(w.buffer, w.offset, w.cursor)
-	return b
+	w.eventCh <- event.Event{Type: event.Copied, Buffer: b, Arg: "deleted"}
 }
 
 func (w *window) increment(count int64) {
