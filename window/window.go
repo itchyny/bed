@@ -29,7 +29,6 @@ type window struct {
 	cursor      int64
 	length      int64
 	stack       []position
-	replaceBuf  []byte
 	append      bool
 	replaceByte bool
 	extending   bool
@@ -314,29 +313,10 @@ func (w *window) positionToOffset(pos event.Position) (int64, error) {
 func (w *window) state(width, height int) (*state.WindowState, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	length := w.length
-	if len(w.replaceBuf) > 0 && w.cursor > w.length {
-		w.length = w.cursor + 1
-	}
 	w.setSize(width, height)
-	w.length = length
 	n, bytes, err := w.readBytes(w.offset, int(w.height*w.width))
 	if err != nil {
 		return nil, err
-	}
-	if l := len(w.replaceBuf); l > 0 {
-		c := w.cursor - w.offset
-		if c > int64(cap(bytes)) {
-			newSlice := make([]byte, c)
-			copy(newSlice, bytes)
-			bytes = newSlice
-		}
-		m := mathutil.MaxInt64(c-int64(l), 0)
-		copy(bytes[m:], w.replaceBuf[int64(l)-mathutil.MinInt64(int64(l), c):])
-		if x := c - int64(n); x > 0 {
-			n += int(x)
-			length += x
-		}
 	}
 	return &state.WindowState{
 		Name:          w.name,
@@ -345,7 +325,7 @@ func (w *window) state(width, height int) (*state.WindowState, error) {
 		Cursor:        w.cursor,
 		Bytes:         bytes,
 		Size:          n,
-		Length:        length,
+		Length:        w.length,
 		Pending:       w.pending,
 		PendingByte:   w.pendingByte,
 		VisualStart:   w.visualStart,
@@ -361,6 +341,11 @@ func (w *window) insert(offset int64, c byte) {
 
 func (w *window) replace(offset int64, c byte) {
 	w.buffer.Replace(offset, c)
+	w.changedTick++
+}
+
+func (w *window) undoReplace(offset int64) {
+	w.buffer.UndoReplace(offset)
 	w.changedTick++
 }
 
@@ -780,22 +765,13 @@ func (w *window) startReplaceByte() {
 
 func (w *window) startReplace() {
 	w.replaceByte = false
-	w.append = true
+	w.append = false
 	w.extending = false
 	w.pending = false
 }
 
 func (w *window) exitInsert() {
 	w.pending = false
-	if l := len(w.replaceBuf); l > 0 {
-		if x := w.cursor - w.length; x > 0 {
-			w.length += x
-		}
-		for i, b := range w.replaceBuf {
-			w.replace(w.cursor-int64(l-i), b)
-		}
-		w.replaceBuf = w.replaceBuf[:0]
-	}
 	if w.append {
 		if w.extending && w.length > 0 {
 			w.length--
@@ -808,6 +784,7 @@ func (w *window) exitInsert() {
 		w.extending = false
 		w.pending = false
 	}
+	w.buffer.Flush()
 }
 
 func (w *window) insertRune(m mode.Mode, ch rune) (exitInsert bool) {
@@ -836,16 +813,20 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 			w.cursor++
 			w.length++
 		case mode.Replace:
-			if w.replaceByte {
-				w.replace(w.cursor, w.pendingByte|b)
-				w.exitInsert()
-				return true
-			}
-			w.replaceBuf = append(w.replaceBuf, w.pendingByte|b)
+			w.replace(w.cursor, w.pendingByte|b)
 			if w.length == 0 {
 				w.length++
 			}
+			if w.replaceByte {
+				w.exitInsert()
+				return true
+			}
 			w.cursor++
+			if w.cursor == w.length {
+				w.append = true
+				w.extending = true
+				w.length++
+			}
 		}
 		w.pending = false
 		w.pendingByte = '\x00'
@@ -865,10 +846,8 @@ func (w *window) backspace(m mode.Mode) {
 		w.pendingByte = '\x00'
 	} else if m == mode.Replace {
 		if w.cursor > 0 {
+			w.undoReplace(w.cursor)
 			w.cursor--
-			if l := len(w.replaceBuf); l > 0 {
-				w.replaceBuf = w.replaceBuf[:l-1]
-			}
 		}
 	} else if w.cursor > 0 {
 		w.delete(w.cursor - 1)
