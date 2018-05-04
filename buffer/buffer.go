@@ -331,6 +331,15 @@ func (b *Buffer) Replace(offset int64, c byte) {
 	b.bytes = append(b.bytes, c)
 }
 
+// UndoReplace removes the last byte of the replacing byte slice.
+func (b *Buffer) UndoReplace(offset int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if len(b.bytes) > 0 && b.offset+int64(len(b.bytes)) == offset {
+		b.bytes = b.bytes[:len(b.bytes)-1]
+	}
+}
+
 func (b *Buffer) replace(offset int64, c byte) {
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
