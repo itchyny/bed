@@ -11,9 +11,11 @@ import (
 
 // Buffer represents a buffer.
 type Buffer struct {
-	rrs   []readerRange
-	index int64
-	mu    *sync.Mutex
+	rrs    []readerRange
+	index  int64
+	mu     *sync.Mutex
+	bytes  []byte
+	offset int64
 }
 
 type readAtSeeker interface {
@@ -45,6 +47,7 @@ func (b *Buffer) Read(p []byte) (int, error) {
 }
 
 func (b *Buffer) read(p []byte) (i int, err error) {
+	index := b.index
 	for _, rr := range b.rrs {
 		if b.index < rr.min {
 			break
@@ -55,11 +58,20 @@ func (b *Buffer) read(p []byte) (i int, err error) {
 		m := int(mathutil.MinInt64(int64(len(p)-i), rr.max-b.index))
 		var k int
 		if k, err = rr.r.ReadAt(p[i:i+m], b.index+rr.diff); err != nil && k == 0 {
-			return
+			break
 		}
 		err = nil
 		b.index += int64(m)
 		i += k
+	}
+	if len(b.bytes) > 0 {
+		j := mathutil.MaxInt64(b.offset-index, 0)
+		k := mathutil.MaxInt64(index-b.offset, 0)
+		if j < int64(len(p)) && k < int64(len(b.bytes)) {
+			if cnt := copy(p[j:], b.bytes[k:]); i < int(j)+cnt {
+				i = int(j) + cnt
+			}
+		}
 	}
 	return
 }
@@ -108,7 +120,7 @@ func (b *Buffer) len() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return l - rr.diff, nil
+	return mathutil.MaxInt64(l-rr.diff, b.offset+int64(len(b.bytes))), nil
 }
 
 // ReadAt reads bytes at the specific offset.
@@ -147,6 +159,11 @@ func (b *Buffer) Clone() *Buffer {
 	}
 	newBuf.index = b.index
 	newBuf.mu = new(sync.Mutex)
+	if len(b.bytes) > 0 {
+		newBuf.bytes = make([]byte, len(b.bytes))
+		copy(newBuf.bytes, b.bytes)
+	}
+	newBuf.offset = b.offset
 	return newBuf
 }
 
@@ -154,6 +171,7 @@ func (b *Buffer) Clone() *Buffer {
 func (b *Buffer) Copy(start, end int64) *Buffer {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	newBuf := new(Buffer)
 	newBuf.rrs = make([]readerRange, 0, len(b.rrs)+1)
 	index := start
@@ -179,6 +197,7 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 func (b *Buffer) Cut(start, end int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	rrs := make([]readerRange, 0, len(b.rrs)+1)
 	var index, max int64
 	for _, rr := range b.rrs {
@@ -224,6 +243,7 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 	c.mu.Lock()
 	defer b.mu.Unlock()
 	defer c.mu.Unlock()
+	b.flush()
 	rrs := make([]readerRange, 0, len(b.rrs)+len(c.rrs)+1)
 	var index, max int64
 	for _, rr := range b.rrs {
@@ -261,6 +281,7 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 func (b *Buffer) Insert(offset int64, c byte) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -301,6 +322,16 @@ func (b *Buffer) Insert(offset int64, c byte) {
 func (b *Buffer) Replace(offset int64, c byte) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	if b.offset+int64(len(b.bytes)) != offset {
+		b.flush()
+	}
+	if len(b.bytes) == 0 {
+		b.offset = offset
+	}
+	b.bytes = append(b.bytes, c)
+}
+
+func (b *Buffer) replace(offset int64, c byte) {
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -333,13 +364,14 @@ func (b *Buffer) Replace(offset int64, c byte) {
 		b.cleanup()
 		return
 	}
-	panic("buffer.Buffer.Replace: unreachable")
+	panic("buffer.Buffer.replace: unreachable")
 }
 
 // Delete deletes a byte at the specific position.
 func (b *Buffer) Delete(offset int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -379,6 +411,21 @@ func (b *Buffer) Delete(offset int64) {
 		return
 	}
 	panic("buffer.Buffer.Delete: unreachable")
+}
+
+// Flush temporary bytes.
+func (b *Buffer) Flush() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.flush()
+}
+
+func (b *Buffer) flush() {
+	for i, c := range b.bytes {
+		b.replace(b.offset+int64(i), c)
+	}
+	b.offset = 0
+	b.bytes = nil
 }
 
 func (b *Buffer) cleanup() {
