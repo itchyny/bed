@@ -178,11 +178,13 @@ func TestBufferClone(t *testing.T) {
 	}
 
 	b2.Replace(4, 0x40)
+	b2.Flush()
 	if !bufferEqual(b2, b1) {
 		t.Errorf("Buffer should be equal: %+v, %+v", b1, b2)
 	}
 
 	b2.Replace(5, 0x40)
+	b2.Flush()
 	if bufferEqual(b2, b1) {
 		t.Errorf("Buffer should not be equal: %+v, %+v", b1, b2)
 	}
