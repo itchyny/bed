@@ -369,7 +369,16 @@ func (b *Buffer) replace(offset int64, c byte) {
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+		if b.rrs[i+2].max == math.MaxInt64 {
+			l, _ := b.rrs[i+2].r.Seek(0, io.SeekEnd)
+			if l-b.rrs[i+2].diff == offset {
+				b.rrs[i+2] = readerRange{newBytesReader(nil), offset + 1, math.MaxInt64, -offset - 1}
+			} else {
+				b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+			}
+		} else {
+			b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+		}
 		b.cleanup()
 		return
 	}
