@@ -399,9 +399,9 @@ func TestBufferReplace(t *testing.T) {
 		{4, 0x31, 0, "87231067", 16},
 		{3, 0x30, 0, "87201067", 16},
 		{2, 0x31, 0, "87101067", 16},
-		{16, 0x31, 9, "9abcdef1", 16},
-		{15, 0x30, 9, "9abcde01", 16},
-		{2, 0x39, 0, "87901067", 16},
+		{16, 0x31, 9, "9abcdef1", 17},
+		{15, 0x30, 9, "9abcde01", 17},
+		{2, 0x39, 0, "87901067", 17},
 	}
 
 	for _, test := range tests {
@@ -434,12 +434,12 @@ func TestBufferReplace(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{0, 6, 15, 17}
+	expected := []int64{0, 6, 15, 9223372036854775807}
 	if !reflect.DeepEqual(eis, expected) {
 		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
-	if len(b.rrs) != 4 {
+	if len(b.rrs) != 3 {
 		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
 	}
 }
