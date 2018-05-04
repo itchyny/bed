@@ -668,7 +668,6 @@ func (w *window) deleteBytes(count int64) {
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(w.cursor, mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
-	w.history.Push(w.buffer, w.offset, w.cursor)
 	w.eventCh <- event.Event{Type: event.Copied, Buffer: b, Arg: "deleted"}
 }
 
@@ -682,7 +681,6 @@ func (w *window) deletePrevBytes(count int64) {
 	w.length, _ = w.buffer.Len()
 	w.cursor -= count
 	w.changedTick++
-	w.history.Push(w.buffer, w.offset, w.cursor)
 	w.eventCh <- event.Event{Type: event.Copied, Buffer: b, Arg: "deleted"}
 }
 
@@ -897,7 +895,6 @@ func (w *window) cut() *buffer.Buffer {
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(start, mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
-	w.history.Push(w.buffer, w.offset, w.cursor)
 	return b
 }
 
@@ -914,7 +911,6 @@ func (w *window) paste(e event.Event) int64 {
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(mathutil.MaxInt64(pos+l*count-1, 0), mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
-	w.history.Push(w.buffer, w.offset, w.cursor)
 	return l * count
 }
 
