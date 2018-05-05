@@ -442,6 +442,39 @@ func TestBufferReplace(t *testing.T) {
 	if len(b.rrs) != 3 {
 		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
 	}
+
+	{
+		b.Replace(3, 0x39)
+		b.Replace(4, 0x38)
+		b.Replace(5, 0x37)
+		b.Replace(6, 0x36)
+		b.Replace(7, 0x35)
+		p := make([]byte, 8)
+		b.ReadAt(p, 2)
+		expected := "99876589"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		b.UndoReplace(8)
+		b.UndoReplace(7)
+		p = make([]byte, 8)
+		b.ReadAt(p, 2)
+		expected = "99876789"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		b.UndoReplace(6)
+		b.UndoReplace(5)
+		b.Flush()
+		b.UndoReplace(4)
+		b.UndoReplace(3)
+		p = make([]byte, 8)
+		b.ReadAt(p, 2)
+		expected = "99106789"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+	}
 }
 
 func TestBufferDelete(t *testing.T) {
