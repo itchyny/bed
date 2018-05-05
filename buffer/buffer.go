@@ -353,6 +353,9 @@ func (b *Buffer) Insert(offset int64, c byte) {
 }
 
 // Replace replaces a byte at the specific position.
+// This method does not overwrite the reader ranges,
+// but just append the byte to the temporary byte slice
+// in order to cancel the replacement with backspace key.
 func (b *Buffer) Replace(offset int64, c byte) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
