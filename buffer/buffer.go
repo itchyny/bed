@@ -393,7 +393,16 @@ func (b *Buffer) replace(offset int64, c byte) {
 				r.replaceByte(offset+b.rrs[i-1].diff, c)
 				b.rrs[i-1].r = r
 				b.rrs[i-1].max++
-				b.rrs[i].min++
+				if b.rrs[i].max == math.MaxInt64 {
+					l, _ := b.rrs[i].r.Seek(0, io.SeekEnd)
+					if l-b.rrs[i].diff == offset {
+						b.rrs[i] = readerRange{newBytesReader(nil), offset + 1, math.MaxInt64, -offset - 1}
+					} else {
+						b.rrs[i].min++
+					}
+				} else {
+					b.rrs[i].min++
+				}
 				b.cleanup()
 				return
 			}
