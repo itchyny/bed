@@ -399,9 +399,10 @@ func TestBufferReplace(t *testing.T) {
 		{4, 0x31, 0, "87231067", 16},
 		{3, 0x30, 0, "87201067", 16},
 		{2, 0x31, 0, "87101067", 16},
-		{16, 0x31, 9, "9abcdef1", 17},
-		{15, 0x30, 9, "9abcde01", 17},
+		{15, 0x30, 8, "89abcde0", 16},
+		{16, 0x31, 9, "9abcde01", 17},
 		{2, 0x39, 0, "87901067", 17},
+		{17, 0x32, 10, "abcde012", 18},
 	}
 
 	for _, test := range tests {
@@ -473,6 +474,22 @@ func TestBufferReplace(t *testing.T) {
 		expected = "99106789"
 		if string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+	}
+
+	{
+		b := NewBuffer(strings.NewReader("0123456789abcdef"))
+		b.Replace(16, 0x30)
+		b.Replace(10, 0x30)
+		p := make([]byte, 8)
+		b.ReadAt(p, 9)
+		expected := "90bcdef0"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		l, _ := b.Len()
+		if l != 17 {
+			t.Errorf("l should be %d but got: %d", 17, l)
 		}
 	}
 }
