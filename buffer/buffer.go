@@ -145,7 +145,41 @@ func (b *Buffer) EditedIndices() []int64 {
 			eis = append(eis, rr.max)
 		}
 	}
+	if len(b.bytes) > 0 {
+		eis = insertInterval(eis, b.offset, b.offset+int64(len(b.bytes)))
+	}
 	return eis
+}
+
+func insertInterval(xs []int64, start int64, end int64) []int64 {
+	ys := make([]int64, 0, len(xs)+2)
+	var inserted bool
+	for i := 0; i < len(xs); i += 2 {
+		if !inserted && start <= xs[i] {
+			ys = append(ys, start)
+			ys = append(ys, end)
+			inserted = true
+		}
+		if len(ys) > 0 && xs[i] <= ys[len(ys)-1] {
+			if ys[len(ys)-1] < xs[i+1] {
+				ys[len(ys)-1] = xs[i+1]
+			}
+			continue
+		}
+		ys = append(ys, xs[i])
+		ys = append(ys, xs[i+1])
+		if !inserted && start <= ys[len(ys)-1] {
+			if ys[len(ys)-1] < end {
+				ys[len(ys)-1] = end
+			}
+			inserted = true
+		}
+	}
+	if !inserted {
+		ys = append(ys, start)
+		ys = append(ys, end)
+	}
+	return ys
 }
 
 // Clone the buffer.
