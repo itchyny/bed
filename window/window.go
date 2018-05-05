@@ -765,7 +765,7 @@ func (w *window) startReplaceByte() {
 
 func (w *window) startReplace() {
 	w.replaceByte = false
-	w.append = false
+	w.append = true
 	w.extending = false
 	w.pending = false
 }
