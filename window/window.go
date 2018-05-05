@@ -843,8 +843,8 @@ func (w *window) backspace(m mode.Mode) {
 		w.pendingByte = '\x00'
 	} else if m == mode.Replace {
 		if w.cursor > 0 {
-			w.undoReplace(w.cursor)
 			w.cursor--
+			w.undoReplace(w.cursor)
 		}
 	} else if w.cursor > 0 {
 		w.delete(w.cursor - 1)

@@ -369,7 +369,7 @@ func (b *Buffer) Replace(offset int64, c byte) {
 func (b *Buffer) UndoReplace(offset int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if len(b.bytes) > 0 && b.offset+int64(len(b.bytes)) == offset {
+	if len(b.bytes) > 0 && b.offset+int64(len(b.bytes))-1 == offset {
 		b.bytes = b.bytes[:len(b.bytes)-1]
 	}
 }

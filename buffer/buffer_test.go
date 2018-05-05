@@ -456,19 +456,19 @@ func TestBufferReplace(t *testing.T) {
 		if string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
-		b.UndoReplace(8)
 		b.UndoReplace(7)
+		b.UndoReplace(6)
 		p = make([]byte, 8)
 		b.ReadAt(p, 2)
 		expected = "99876789"
 		if string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
-		b.UndoReplace(6)
 		b.UndoReplace(5)
-		b.Flush()
 		b.UndoReplace(4)
+		b.Flush()
 		b.UndoReplace(3)
+		b.UndoReplace(2)
 		p = make([]byte, 8)
 		b.ReadAt(p, 2)
 		expected = "99106789"
