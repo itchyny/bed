@@ -178,11 +178,13 @@ func TestBufferClone(t *testing.T) {
 	}
 
 	b2.Replace(4, 0x40)
+	b2.Flush()
 	if !bufferEqual(b2, b1) {
 		t.Errorf("Buffer should be equal: %+v, %+v", b1, b2)
 	}
 
 	b2.Replace(5, 0x40)
+	b2.Flush()
 	if bufferEqual(b2, b1) {
 		t.Errorf("Buffer should not be equal: %+v, %+v", b1, b2)
 	}
@@ -397,9 +399,10 @@ func TestBufferReplace(t *testing.T) {
 		{4, 0x31, 0, "87231067", 16},
 		{3, 0x30, 0, "87201067", 16},
 		{2, 0x31, 0, "87101067", 16},
-		{16, 0x31, 9, "9abcdef1", 16},
-		{15, 0x30, 9, "9abcde01", 16},
-		{2, 0x39, 0, "87901067", 16},
+		{15, 0x30, 8, "89abcde0", 16},
+		{16, 0x31, 9, "9abcde01", 17},
+		{2, 0x39, 0, "87901067", 17},
+		{17, 0x32, 10, "abcde012", 18},
 	}
 
 	for _, test := range tests {
@@ -432,13 +435,74 @@ func TestBufferReplace(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{0, 6, 15, 17}
-	if !reflect.DeepEqual(eis, expected) {
-		t.Errorf("edited indices should be %v but got: %v", expected, eis)
+	expectedIndices := []int64{0, 6, 15, 9223372036854775807}
+	if !reflect.DeepEqual(eis, expectedIndices) {
+		t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
 	}
 
-	if len(b.rrs) != 4 {
+	if len(b.rrs) != 3 {
 		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+	}
+
+	{
+		b.Replace(3, 0x39)
+		b.Replace(4, 0x38)
+		b.Replace(5, 0x37)
+		b.Replace(6, 0x36)
+		b.Replace(7, 0x35)
+		p := make([]byte, 8)
+		b.ReadAt(p, 2)
+		expected := "99876589"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		b.UndoReplace(7)
+		b.UndoReplace(6)
+		p = make([]byte, 8)
+		b.ReadAt(p, 2)
+		expected = "99876789"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		b.UndoReplace(5)
+		b.UndoReplace(4)
+		b.Flush()
+		b.UndoReplace(3)
+		b.UndoReplace(2)
+		p = make([]byte, 8)
+		b.ReadAt(p, 2)
+		expected = "99106789"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+
+		eis := b.EditedIndices()
+		expectedIndices := []int64{0, 6, 15, 9223372036854775807}
+		if !reflect.DeepEqual(eis, expectedIndices) {
+			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		}
+	}
+
+	{
+		b := NewBuffer(strings.NewReader("0123456789abcdef"))
+		b.Replace(16, 0x30)
+		b.Replace(10, 0x30)
+		p := make([]byte, 8)
+		b.ReadAt(p, 9)
+		expected := "90bcdef0"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		l, _ := b.Len()
+		if l != 17 {
+			t.Errorf("l should be %d but got: %d", 17, l)
+		}
+
+		eis := b.EditedIndices()
+		expectedIndices := []int64{10, 11, 16, 9223372036854775807}
+		if !reflect.DeepEqual(eis, expectedIndices) {
+			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		}
 	}
 }
 
@@ -508,5 +572,46 @@ func TestBufferDelete(t *testing.T) {
 
 	if len(b.rrs) != 4 {
 		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+	}
+}
+
+func TestInsertInterval(t *testing.T) {
+	tests := []struct {
+		intervals   []int64
+		newInterval []int64
+		expected    []int64
+	}{
+		{[]int64{}, []int64{10, 20}, []int64{10, 20}},
+		{[]int64{10, 20}, []int64{0, 5}, []int64{0, 5, 10, 20}},
+		{[]int64{10, 20}, []int64{5, 15}, []int64{5, 20}},
+		{[]int64{10, 20}, []int64{15, 17}, []int64{10, 20}},
+		{[]int64{10, 20}, []int64{15, 25}, []int64{10, 25}},
+		{[]int64{10, 20}, []int64{25, 30}, []int64{10, 20, 25, 30}},
+		{[]int64{10, 20, 30, 40}, []int64{0, 5}, []int64{0, 5, 10, 20, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{5, 10}, []int64{5, 20, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{5, 15}, []int64{5, 20, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{5, 20}, []int64{5, 20, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{5, 25}, []int64{5, 25, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{5, 30}, []int64{5, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{5, 45}, []int64{5, 45}},
+		{[]int64{10, 20, 30, 40}, []int64{10, 20}, []int64{10, 20, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{10, 30}, []int64{10, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{15, 45}, []int64{10, 45}},
+		{[]int64{10, 20, 30, 40}, []int64{15, 25}, []int64{10, 25, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{15, 35}, []int64{10, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{35, 37}, []int64{10, 20, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{40, 50}, []int64{10, 20, 30, 50}},
+		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{45, 47}, []int64{10, 20, 30, 40, 45, 47, 50, 60, 70, 80}},
+		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{35, 65}, []int64{10, 20, 30, 65, 70, 80}},
+		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{25, 55}, []int64{10, 20, 25, 60, 70, 80}},
+		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{75, 90}, []int64{10, 20, 30, 40, 50, 60, 70, 90}},
+		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{0, 100}, []int64{0, 100}},
+	}
+	for _, test := range tests {
+		got := insertInterval(test.intervals, test.newInterval[0], test.newInterval[1])
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Errorf("insertInterval(%+v, %d, %d) should be %+v but got: %+v",
+				test.intervals, test.newInterval[0], test.newInterval[1], test.expected, got)
+		}
 	}
 }

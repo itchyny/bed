@@ -172,9 +172,11 @@ func (w *window) emit(e event.Event) {
 	case event.ExitInsert:
 		w.exitInsert()
 	case event.Rune:
-		w.insertRune(e.Mode, e.Rune)
+		if w.insertRune(e.Mode, e.Rune) {
+			newEvent = event.Event{Type: event.ExitInsert}
+		}
 	case event.Backspace:
-		w.backspace()
+		w.backspace(e.Mode)
 	case event.Delete:
 		w.deleteByte()
 	case event.StartVisual:
@@ -339,6 +341,11 @@ func (w *window) insert(offset int64, c byte) {
 
 func (w *window) replace(offset int64, c byte) {
 	w.buffer.Replace(offset, c)
+	w.changedTick++
+}
+
+func (w *window) undoReplace(offset int64) {
+	w.buffer.UndoReplace(offset)
 	w.changedTick++
 }
 
@@ -756,7 +763,7 @@ func (w *window) startReplaceByte() {
 
 func (w *window) startReplace() {
 	w.replaceByte = false
-	w.append = false
+	w.append = true
 	w.extending = false
 	w.pending = false
 }
@@ -775,26 +782,28 @@ func (w *window) exitInsert() {
 		w.extending = false
 		w.pending = false
 	}
+	w.buffer.Flush()
 }
 
-func (w *window) insertRune(m mode.Mode, ch rune) {
+func (w *window) insertRune(m mode.Mode, ch rune) (exitInsert bool) {
 	if m == mode.Insert || m == mode.Replace {
 		if w.focusText {
 			buf := make([]byte, 4)
 			n := utf8.EncodeRune(buf, ch)
 			for i := 0; i < n; i++ {
-				w.insertByte(m, byte(buf[i]>>4))
-				w.insertByte(m, byte(buf[i]&0x0f))
+				exitInsert = exitInsert || w.insertByte(m, byte(buf[i]>>4))
+				exitInsert = exitInsert || w.insertByte(m, byte(buf[i]&0x0f))
 			}
 		} else if '0' <= ch && ch <= '9' {
-			w.insertByte(m, byte(ch-'0'))
+			exitInsert = w.insertByte(m, byte(ch-'0'))
 		} else if 'a' <= ch && ch <= 'f' {
-			w.insertByte(m, byte(ch-'a'+0x0a))
+			exitInsert = w.insertByte(m, byte(ch-'a'+0x0a))
 		}
 	}
+	return
 }
 
-func (w *window) insertByte(m mode.Mode, b byte) {
+func (w *window) insertByte(m mode.Mode, b byte) bool {
 	if w.pending {
 		switch m {
 		case mode.Insert:
@@ -808,13 +817,13 @@ func (w *window) insertByte(m mode.Mode, b byte) {
 			}
 			if w.replaceByte {
 				w.exitInsert()
-			} else {
-				w.cursor++
-				if w.cursor == w.length {
-					w.append = true
-					w.extending = true
-					w.length++
-				}
+				return true
+			}
+			w.cursor++
+			if w.cursor == w.length {
+				w.append = true
+				w.extending = true
+				w.length++
 			}
 		}
 		w.pending = false
@@ -823,12 +832,18 @@ func (w *window) insertByte(m mode.Mode, b byte) {
 		w.pending = true
 		w.pendingByte = b << 4
 	}
+	return false
 }
 
-func (w *window) backspace() {
+func (w *window) backspace(m mode.Mode) {
 	if w.pending {
 		w.pending = false
 		w.pendingByte = '\x00'
+	} else if m == mode.Replace {
+		if w.cursor > 0 {
+			w.cursor--
+			w.undoReplace(w.cursor)
+		}
 	} else if w.cursor > 0 {
 		w.delete(w.cursor - 1)
 		w.cursor--

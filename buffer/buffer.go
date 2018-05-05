@@ -11,9 +11,11 @@ import (
 
 // Buffer represents a buffer.
 type Buffer struct {
-	rrs   []readerRange
-	index int64
-	mu    *sync.Mutex
+	rrs    []readerRange
+	index  int64
+	mu     *sync.Mutex
+	bytes  []byte
+	offset int64
 }
 
 type readAtSeeker interface {
@@ -45,6 +47,7 @@ func (b *Buffer) Read(p []byte) (int, error) {
 }
 
 func (b *Buffer) read(p []byte) (i int, err error) {
+	index := b.index
 	for _, rr := range b.rrs {
 		if b.index < rr.min {
 			break
@@ -55,11 +58,20 @@ func (b *Buffer) read(p []byte) (i int, err error) {
 		m := int(mathutil.MinInt64(int64(len(p)-i), rr.max-b.index))
 		var k int
 		if k, err = rr.r.ReadAt(p[i:i+m], b.index+rr.diff); err != nil && k == 0 {
-			return
+			break
 		}
 		err = nil
 		b.index += int64(m)
 		i += k
+	}
+	if len(b.bytes) > 0 {
+		j := mathutil.MaxInt64(b.offset-index, 0)
+		k := mathutil.MaxInt64(index-b.offset, 0)
+		if j < int64(len(p)) && k < int64(len(b.bytes)) {
+			if cnt := copy(p[j:], b.bytes[k:]); i < int(j)+cnt {
+				i = int(j) + cnt
+			}
+		}
 	}
 	return
 }
@@ -108,7 +120,7 @@ func (b *Buffer) len() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return l - rr.diff, nil
+	return mathutil.MaxInt64(l-rr.diff, b.offset+int64(len(b.bytes))), nil
 }
 
 // ReadAt reads bytes at the specific offset.
@@ -133,7 +145,41 @@ func (b *Buffer) EditedIndices() []int64 {
 			eis = append(eis, rr.max)
 		}
 	}
+	if len(b.bytes) > 0 {
+		eis = insertInterval(eis, b.offset, b.offset+int64(len(b.bytes)))
+	}
 	return eis
+}
+
+func insertInterval(xs []int64, start int64, end int64) []int64 {
+	ys := make([]int64, 0, len(xs)+2)
+	var inserted bool
+	for i := 0; i < len(xs); i += 2 {
+		if !inserted && start <= xs[i] {
+			ys = append(ys, start)
+			ys = append(ys, end)
+			inserted = true
+		}
+		if len(ys) > 0 && xs[i] <= ys[len(ys)-1] {
+			if ys[len(ys)-1] < xs[i+1] {
+				ys[len(ys)-1] = xs[i+1]
+			}
+			continue
+		}
+		ys = append(ys, xs[i])
+		ys = append(ys, xs[i+1])
+		if !inserted && start <= ys[len(ys)-1] {
+			if ys[len(ys)-1] < end {
+				ys[len(ys)-1] = end
+			}
+			inserted = true
+		}
+	}
+	if !inserted {
+		ys = append(ys, start)
+		ys = append(ys, end)
+	}
+	return ys
 }
 
 // Clone the buffer.
@@ -147,6 +193,11 @@ func (b *Buffer) Clone() *Buffer {
 	}
 	newBuf.index = b.index
 	newBuf.mu = new(sync.Mutex)
+	if len(b.bytes) > 0 {
+		newBuf.bytes = make([]byte, len(b.bytes))
+		copy(newBuf.bytes, b.bytes)
+	}
+	newBuf.offset = b.offset
 	return newBuf
 }
 
@@ -154,6 +205,7 @@ func (b *Buffer) Clone() *Buffer {
 func (b *Buffer) Copy(start, end int64) *Buffer {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	newBuf := new(Buffer)
 	newBuf.rrs = make([]readerRange, 0, len(b.rrs)+1)
 	index := start
@@ -179,6 +231,7 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 func (b *Buffer) Cut(start, end int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	rrs := make([]readerRange, 0, len(b.rrs)+1)
 	var index, max int64
 	for _, rr := range b.rrs {
@@ -224,6 +277,7 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 	c.mu.Lock()
 	defer b.mu.Unlock()
 	defer c.mu.Unlock()
+	b.flush()
 	rrs := make([]readerRange, 0, len(b.rrs)+len(c.rrs)+1)
 	var index, max int64
 	for _, rr := range b.rrs {
@@ -261,6 +315,7 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 func (b *Buffer) Insert(offset int64, c byte) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -298,9 +353,31 @@ func (b *Buffer) Insert(offset int64, c byte) {
 }
 
 // Replace replaces a byte at the specific position.
+// This method does not overwrite the reader ranges,
+// but just append the byte to the temporary byte slice
+// in order to cancel the replacement with backspace key.
 func (b *Buffer) Replace(offset int64, c byte) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	if b.offset+int64(len(b.bytes)) != offset {
+		b.flush()
+	}
+	if len(b.bytes) == 0 {
+		b.offset = offset
+	}
+	b.bytes = append(b.bytes, c)
+}
+
+// UndoReplace removes the last byte of the replacing byte slice.
+func (b *Buffer) UndoReplace(offset int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if len(b.bytes) > 0 && b.offset+int64(len(b.bytes))-1 == offset {
+		b.bytes = b.bytes[:len(b.bytes)-1]
+	}
+}
+
+func (b *Buffer) replace(offset int64, c byte) {
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -319,7 +396,16 @@ func (b *Buffer) Replace(offset int64, c byte) {
 				r.replaceByte(offset+b.rrs[i-1].diff, c)
 				b.rrs[i-1].r = r
 				b.rrs[i-1].max++
-				b.rrs[i].min++
+				if b.rrs[i].max == math.MaxInt64 {
+					l, _ := b.rrs[i].r.Seek(0, io.SeekEnd)
+					if l-b.rrs[i].diff == offset {
+						b.rrs[i] = readerRange{newBytesReader(nil), offset + 1, math.MaxInt64, -offset - 1}
+					} else {
+						b.rrs[i].min++
+					}
+				} else {
+					b.rrs[i].min++
+				}
 				b.cleanup()
 				return
 			}
@@ -329,17 +415,27 @@ func (b *Buffer) Replace(offset int64, c byte) {
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+		if b.rrs[i+2].max == math.MaxInt64 {
+			l, _ := b.rrs[i+2].r.Seek(0, io.SeekEnd)
+			if l-b.rrs[i+2].diff == offset {
+				b.rrs[i+2] = readerRange{newBytesReader(nil), offset + 1, math.MaxInt64, -offset - 1}
+			} else {
+				b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+			}
+		} else {
+			b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
+		}
 		b.cleanup()
 		return
 	}
-	panic("buffer.Buffer.Replace: unreachable")
+	panic("buffer.Buffer.replace: unreachable")
 }
 
 // Delete deletes a byte at the specific position.
 func (b *Buffer) Delete(offset int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+	b.flush()
 	for i, rr := range b.rrs {
 		if offset >= rr.max {
 			continue
@@ -379,6 +475,21 @@ func (b *Buffer) Delete(offset int64) {
 		return
 	}
 	panic("buffer.Buffer.Delete: unreachable")
+}
+
+// Flush temporary bytes.
+func (b *Buffer) Flush() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.flush()
+}
+
+func (b *Buffer) flush() {
+	for i, c := range b.bytes {
+		b.replace(b.offset+int64(i), c)
+	}
+	b.offset = 0
+	b.bytes = nil
 }
 
 func (b *Buffer) cleanup() {
