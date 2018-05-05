@@ -435,9 +435,9 @@ func TestBufferReplace(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{0, 6, 15, 9223372036854775807}
-	if !reflect.DeepEqual(eis, expected) {
-		t.Errorf("edited indices should be %v but got: %v", expected, eis)
+	expectedIndices := []int64{0, 6, 15, 9223372036854775807}
+	if !reflect.DeepEqual(eis, expectedIndices) {
+		t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
 	}
 
 	if len(b.rrs) != 3 {
@@ -475,6 +475,12 @@ func TestBufferReplace(t *testing.T) {
 		if string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
+
+		eis := b.EditedIndices()
+		expectedIndices := []int64{0, 6, 15, 9223372036854775807}
+		if !reflect.DeepEqual(eis, expectedIndices) {
+			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		}
 	}
 
 	{
@@ -490,6 +496,12 @@ func TestBufferReplace(t *testing.T) {
 		l, _ := b.Len()
 		if l != 17 {
 			t.Errorf("l should be %d but got: %d", 17, l)
+		}
+
+		eis := b.EditedIndices()
+		expectedIndices := []int64{10, 11, 16, 9223372036854775807}
+		if !reflect.DeepEqual(eis, expectedIndices) {
+			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
 		}
 	}
 }
