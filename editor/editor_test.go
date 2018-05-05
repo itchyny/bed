@@ -39,7 +39,7 @@ func (ui *testUI) Run(km map[mode.Mode]*key.Manager) {}
 
 func (ui *testUI) Height() int { return 10 }
 
-func (ui *testUI) Size() (int, int) { return 10, 10 }
+func (ui *testUI) Size() (int, int) { return 90, 20 }
 
 func (ui *testUI) Redraw(_ state.State) error { return nil }
 
@@ -308,6 +308,73 @@ func TestEditorCmdlineQuit(t *testing.T) {
 	}
 	if err := editor.err; err != nil {
 		t.Errorf("err should be nil but got: %v", err)
+	}
+}
+
+func TestEditorReplace(t *testing.T) {
+	f1, _ := ioutil.TempFile("", "bed-test-editor-replace1")
+	f2, _ := ioutil.TempFile("", "bed-test-editor-replace2")
+	defer os.Remove(f1.Name())
+	defer os.Remove(f2.Name())
+	str := "Hello, world!"
+	_, _ = f1.WriteString(str)
+	_ = f1.Close()
+	_ = f2.Close()
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f1.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ   event.Type
+			ch    rune
+			count int64
+			arg   string
+		}{
+			{event.CursorNext, 'w', 2, ""}, {event.StartReplace, 'R', 0, ""},
+			{event.SwitchFocus, '\x00', 0, ""}, {event.Rune, 'a', 0, ""},
+			{event.Rune, 'b', 0, ""}, {event.Rune, 'c', 0, ""},
+			{event.CursorNext, 'w', 2, ""}, {event.Rune, 'd', 0, ""}, {event.Rune, 'e', 0, ""},
+			{event.ExitInsert, '\x00', 0, ""}, {event.CursorLeft, 'b', 5, ""},
+			{event.StartReplaceByte, 'r', 0, ""}, {event.SwitchFocus, '\x00', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '2', 0, ""},
+			{event.CursorNext, 'w', 2, ""}, {event.StartReplace, 'R', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '2', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '3', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '4', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '5', 0, ""},
+			{event.Backspace, '\x00', 0, ""}, {event.ExitInsert, '\x00', 0, ""},
+			{event.CursorEnd, '\x00', 0, ""}, {event.StartReplace, '\x00', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '6', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '7', 0, ""},
+			{event.Rune, '7', 0, ""}, {event.Rune, '8', 0, ""},
+			{event.Backspace, '\x00', 0, ""}, {event.ExitInsert, '\x00', 0, ""},
+			{event.CursorHead, '\x00', 0, ""}, {event.DeleteByte, '\x00', 0, ""},
+			{event.Write, 'w', 0, f2.Name()},
+		} {
+			time.Sleep(50 * time.Millisecond)
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
+		}
+		time.Sleep(500 * time.Millisecond)
+		ui.Emit(event.Event{Type: event.Quit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; !strings.HasSuffix(err.Error(), "13 (0xd) bytes written") {
+		t.Errorf("err should be ends with %q but got: %v", "13 (0xd) bytes written", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, _ := ioutil.ReadFile(f2.Name())
+	expected := "earcrsterldvw"
+	if string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
 
