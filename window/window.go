@@ -831,9 +831,6 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 		w.pending = false
 		w.pendingByte = '\x00'
 	} else {
-		if m == mode.Replace && w.replaceByte && w.length == 0 {
-			return false
-		}
 		w.pending = true
 		w.pendingByte = b << 4
 	}

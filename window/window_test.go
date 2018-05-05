@@ -1055,11 +1055,11 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 	window.insertByte(mode.Replace, 0x03)
 	window.insertByte(mode.Replace, 0x0a)
 	s, _ = window.state(width, height)
-	if strings.HasPrefix(string(s.Bytes), ":\x00") {
-		t.Errorf("s.Bytes should not start with %q but got %q", ":\x00", string(s.Bytes))
+	if !strings.HasPrefix(string(s.Bytes), ":\x00") {
+		t.Errorf("s.Bytes should start with %q but got %q", ":\x00", string(s.Bytes))
 	}
-	if s.Length != 0 {
-		t.Errorf("s.Length should be %d but got %d", 0, s.Length)
+	if s.Length != 1 {
+		t.Errorf("s.Length should be %d but got %d", 1, s.Length)
 	}
 	if s.Cursor != 0 {
 		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
