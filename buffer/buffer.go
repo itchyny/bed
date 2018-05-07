@@ -377,58 +377,45 @@ func (b *Buffer) UndoReplace(offset int64) {
 	}
 }
 
-func (b *Buffer) replace(offset int64, c byte) {
-	for i, rr := range b.rrs {
-		if offset >= rr.max {
-			continue
-		}
-		switch r := rr.r.(type) {
-		case *bytesReader:
-			r = r.clone()
-			r.replaceByte(offset+rr.diff, c)
-			b.rrs[i].r = r
-			return
-		}
-		if offset == rr.min && i > 0 {
-			switch r := b.rrs[i-1].r.(type) {
-			case *bytesReader:
-				r = r.clone()
-				r.replaceByte(offset+b.rrs[i-1].diff, c)
-				b.rrs[i-1].r = r
-				b.rrs[i-1].max++
-				if b.rrs[i].max == math.MaxInt64 {
-					l, _ := b.rrs[i].r.Seek(0, io.SeekEnd)
-					if l-b.rrs[i].diff == offset {
-						b.rrs[i] = readerRange{newBytesReader(nil), offset + 1, math.MaxInt64, -offset - 1}
-					} else {
-						b.rrs[i].min++
-					}
-				} else {
-					b.rrs[i].min++
-				}
-				b.cleanup()
-				return
-			}
-		}
-		b.rrs = append(b.rrs, readerRange{})
-		b.rrs = append(b.rrs, readerRange{})
-		copy(b.rrs[i+2:], b.rrs[i:])
-		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
-		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		if b.rrs[i+2].max == math.MaxInt64 {
-			l, _ := b.rrs[i+2].r.Seek(0, io.SeekEnd)
-			if l-b.rrs[i+2].diff == offset {
-				b.rrs[i+2] = readerRange{newBytesReader(nil), offset + 1, math.MaxInt64, -offset - 1}
-			} else {
-				b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
-			}
-		} else {
-			b.rrs[i+2] = readerRange{rr.r, offset + 1, rr.max, rr.diff}
-		}
-		b.cleanup()
+// Flush temporary bytes.
+func (b *Buffer) Flush() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.flush()
+}
+
+func (b *Buffer) flush() {
+	if len(b.bytes) == 0 {
 		return
 	}
-	panic("buffer.Buffer.replace: unreachable")
+	rrs := make([]readerRange, 0, len(b.rrs)+1)
+	end := b.offset + int64(len(b.bytes))
+	for _, rr := range b.rrs {
+		if b.offset >= rr.max || end <= rr.min {
+			rrs = append(rrs, rr)
+			continue
+		}
+		if b.offset >= rr.min {
+			if rr.min < b.offset {
+				rrs = append(rrs, readerRange{rr.r, rr.min, b.offset, rr.diff})
+			}
+			rrs = append(rrs, readerRange{newBytesReader(b.bytes), b.offset, end, -b.offset})
+		}
+		if rr.max == math.MaxInt64 {
+			l, _ := rr.r.Seek(0, io.SeekEnd)
+			if l-rr.diff <= end {
+				rrs = append(rrs, readerRange{newBytesReader(nil), end, math.MaxInt64, -end})
+				continue
+			}
+		}
+		if end < rr.max {
+			rrs = append(rrs, readerRange{rr.r, end, rr.max, rr.diff})
+		}
+	}
+	b.rrs = rrs
+	b.offset = 0
+	b.bytes = nil
+	b.cleanup()
 }
 
 // Delete deletes a byte at the specific position.
@@ -475,21 +462,6 @@ func (b *Buffer) Delete(offset int64) {
 		return
 	}
 	panic("buffer.Buffer.Delete: unreachable")
-}
-
-// Flush temporary bytes.
-func (b *Buffer) Flush() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.flush()
-}
-
-func (b *Buffer) flush() {
-	for i, c := range b.bytes {
-		b.replace(b.offset+int64(i), c)
-	}
-	b.offset = 0
-	b.bytes = nil
 }
 
 func (b *Buffer) cleanup() {
