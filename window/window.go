@@ -220,9 +220,9 @@ func (w *window) emit(e event.Event) {
 	}
 	changed := changedTick != w.changedTick
 	if e.Type != event.Undo && e.Type != event.Redo {
-		if e.Mode == mode.Normal && changed || e.Type == event.ExitInsert && w.prevChanged {
+		if (e.Mode == mode.Normal || e.Mode == mode.Visual) && changed || e.Type == event.ExitInsert && w.prevChanged {
 			w.history.Push(w.buffer, w.offset, w.cursor)
-		} else if e.Mode != mode.Normal && w.prevChanged && !changed &&
+		} else if e.Mode != mode.Normal && e.Mode != mode.Visual && w.prevChanged && !changed &&
 			event.CursorUp <= e.Type && e.Type <= event.JumpBack {
 			w.history.Push(w.buffer, offset, cursor)
 		}
