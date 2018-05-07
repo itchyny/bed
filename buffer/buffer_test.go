@@ -441,7 +441,7 @@ func TestBufferReplace(t *testing.T) {
 	}
 
 	if len(b.rrs) != 3 {
-		t.Errorf("len(b.rrs) should be 4 but got: %d", len(b.rrs))
+		t.Errorf("len(b.rrs) should be 3 but got: %d", len(b.rrs))
 	}
 
 	{
