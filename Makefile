@@ -25,6 +25,7 @@ lintdeps:
 
 clean:
 	rm -rf build
+	rm -rf vendor
 	go clean
 
 .PHONY: build install deps test lint lintdeps clean
