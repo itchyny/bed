@@ -3,6 +3,7 @@ package window
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"sync"
@@ -156,6 +157,9 @@ func (w *window) emit(e event.Event) {
 		w.increment(e.Count)
 	case event.Decrement:
 		w.decrement(e.Count)
+
+	case event.ShowBinary:
+		w.showBinary()
 
 	case event.StartInsert:
 		w.startInsert()
@@ -711,6 +715,15 @@ func (w *window) decrement(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
+}
+
+// showBinary shows in binary format an 8-bit integer at the cursor.
+func (w *window) showBinary() {
+	n, bytes, err := w.readBytes(w.cursor, 1)
+	if err != nil || n == 0 {
+		return
+	}
+	w.eventCh <- event.Event{Type: event.Info, Error: fmt.Errorf("%08b", bytes[0])}
 }
 
 func (w *window) startInsert() {
