@@ -431,3 +431,39 @@ func TestEditorCopyCutPaste(t *testing.T) {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
+
+func TestEditorShowBinary(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	f, err := ioutil.TempFile("", "bed-test-editor-show-binary")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	_, _ = f.WriteString("Hello, world!")
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	defer os.Remove(f.Name())
+	if err := editor.Open(f.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		ui.Emit(event.Event{Type: event.ShowBinary})
+		ui.Emit(event.Event{Type: event.Quit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if editor.errtyp != state.MessageInfo {
+		t.Errorf("errtyp should be MessageInfo but got: %v", editor.errtyp)
+	}
+	if msg, expected := editor.err.Error(), "01001000"; msg != expected {
+		t.Errorf("message should be %q but got: %q", expected, msg)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+}

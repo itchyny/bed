@@ -60,6 +60,7 @@ const (
 	Increment
 	Decrement
 	SwitchFocus
+	ShowBinary
 
 	StartInsert
 	StartInsertHead
