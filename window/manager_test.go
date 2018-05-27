@@ -193,6 +193,73 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	wm.Close()
 }
 
+func TestManagerAlternative(t *testing.T) {
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	go func() {
+		for {
+			select {
+			case <-eventCh:
+			case <-redrawCh:
+			}
+		}
+	}()
+	wm.SetSize(110, 20)
+
+	wm.Open("bed-test-manager-alternative-1")
+	wm.Open("bed-test-manager-alternative-2")
+	wm.Emit(event.Event{Type: event.Alternative})
+	_, _, windowIndex, _ := wm.State()
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Open("bed-test-manager-alternative-3")
+	_, _, windowIndex, _ = wm.State()
+	if expected := 2; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Alternative})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Alternative})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 2; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Open("bed-test-manager-alternative-4")
+	_, _, windowIndex, _ = wm.State()
+	if expected := 3; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Alternative, Count: 2})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 1; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Alternative, Count: 4})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 3; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Alternative})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 1; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Close()
+}
+
 func TestManagerWincmd(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
