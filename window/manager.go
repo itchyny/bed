@@ -60,10 +60,20 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
-	m.windows = append(m.windows, window)
-	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
+	m.addWindow(window)
 	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
 	return nil
+}
+
+func (m *Manager) addWindow(window *window) {
+	for i, w := range m.windows {
+		if w == window {
+			m.windowIndex, m.prevWindowIndex = i, m.windowIndex
+			return
+		}
+	}
+	m.windows = append(m.windows, window)
+	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 }
 
 func (m *Manager) open(filename string) (*window, error) {
@@ -73,6 +83,16 @@ func (m *Manager) open(filename string) (*window, error) {
 			return nil, err
 		}
 		return window, nil
+	}
+	if filename == "#" {
+		return m.windows[m.prevWindowIndex], nil
+	}
+	if strings.HasPrefix(filename, "#") {
+		index, err := strconv.Atoi(filename[1:])
+		if err != nil || index <= 0 || len(m.windows) < index {
+			return nil, fmt.Errorf("invalid window index: %s", filename)
+		}
+		return m.windows[index-1], nil
 	}
 	name, err := expandBacktick(filename)
 	if err != nil {
@@ -275,8 +295,7 @@ func (m *Manager) edit(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	m.windows = append(m.windows, window)
-	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
+	m.addWindow(window)
 	m.layout = m.layout.Replace(m.windowIndex)
 	return nil
 }
@@ -291,8 +310,7 @@ func (m *Manager) enew(e event.Event) error {
 	if err != nil {
 		return err
 	}
-	m.windows = append(m.windows, window)
-	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
+	m.addWindow(window)
 	m.layout = m.layout.Replace(m.windowIndex)
 	return nil
 }
@@ -304,8 +322,7 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	if err != nil {
 		return err
 	}
-	m.windows = append(m.windows, window)
-	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
+	m.addWindow(window)
 	if vertical {
 		m.layout = m.layout.SplitLeft(m.windowIndex).Resize(0, 0, m.width, m.height)
 	} else {
