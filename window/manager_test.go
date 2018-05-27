@@ -257,6 +257,24 @@ func TestManagerAlternative(t *testing.T) {
 		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
 	}
 
+	wm.Emit(event.Event{Type: event.Edit, Arg: "#2"})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 1; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Edit, Arg: "#4"})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 3; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
+	wm.Emit(event.Event{Type: event.Edit, Arg: "#"})
+	_, _, windowIndex, _ = wm.State()
+	if expected := 1; windowIndex != expected {
+		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+	}
+
 	wm.Close()
 }
 
