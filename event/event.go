@@ -108,6 +108,7 @@ const (
 	Enew
 	New
 	Vnew
+	Alternative
 	Wincmd
 	FocusWindowUp
 	FocusWindowDown

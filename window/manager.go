@@ -168,6 +168,9 @@ func (m *Manager) Emit(e event.Event) {
 		} else {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
+	case event.Alternative:
+		m.alternative(e)
+		m.eventCh <- event.Event{Type: event.Redraw}
 	case event.Wincmd:
 		if len(e.Arg) == 0 {
 			m.eventCh <- event.Event{Type: event.Error, Error: fmt.Errorf("an argument is required for %s", e.CmdName)}
@@ -309,6 +312,17 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 		m.layout = m.layout.SplitTop(m.windowIndex).Resize(0, 0, m.width, m.height)
 	}
 	return nil
+}
+
+func (m *Manager) alternative(e event.Event) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if e.Count == 0 {
+		m.windowIndex, m.prevWindowIndex = m.prevWindowIndex, m.windowIndex
+	} else if 0 < e.Count && e.Count <= int64(len(m.windows)) {
+		m.windowIndex, m.prevWindowIndex = int(e.Count)-1, m.windowIndex
+	}
+	m.layout = m.layout.Replace(m.windowIndex)
 }
 
 func (m *Manager) wincmd(arg string) error {

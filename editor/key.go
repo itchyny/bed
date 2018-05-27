@@ -88,6 +88,7 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 
 	km.Register(event.New, "c-w", "n")
 	km.Register(event.New, "c-w", "c-n")
+	km.Register(event.Alternative, "\x1e")
 	km.Register(event.FocusWindowDown, "c-w", "down")
 	km.Register(event.FocusWindowDown, "c-w", "c-j")
 	km.Register(event.FocusWindowDown, "c-w", "j")
