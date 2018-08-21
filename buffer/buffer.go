@@ -140,7 +140,12 @@ func (b *Buffer) EditedIndices() []int64 {
 	eis := make([]int64, 0, len(b.rrs))
 	for _, rr := range b.rrs {
 		switch rr.r.(type) {
-		case *bytesReader:
+		case *bytesReader, constReader:
+			// constReader can be adjacent to another bytesReader or constReader.
+			if l := len(eis); l > 0 && eis[l-1] == rr.min {
+				eis[l-1] = rr.max
+				continue
+			}
 			eis = append(eis, rr.min)
 			eis = append(eis, rr.max)
 		}
@@ -377,6 +382,30 @@ func (b *Buffer) UndoReplace(offset int64) {
 	}
 }
 
+// ReplaceIn replaces a byte within a specific range.
+// ReplaceIn assumes that start is less than or equal to end.
+func (b *Buffer) ReplaceIn(start, end int64, c byte) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	rrs := make([]readerRange, 0, len(b.rrs)+1)
+	for _, rr := range b.rrs {
+		if rr.max < start || end <= rr.min {
+			rrs = append(rrs, rr)
+			continue
+		}
+		if start > rr.min {
+			rrs = append(rrs, readerRange{rr.r, rr.min, start, rr.diff})
+		}
+		n := mathutil.MaxInt64(start, rr.min)
+		rrs = append(rrs, readerRange{constReader(c), n, mathutil.MinInt64(end, rr.max), -n})
+		if end < rr.max {
+			rrs = append(rrs, readerRange{rr.r, end, rr.max, rr.diff})
+		}
+	}
+	b.rrs = rrs
+	b.cleanup()
+}
+
 // Flush temporary bytes.
 func (b *Buffer) Flush() {
 	b.mu.Lock()
@@ -474,6 +503,17 @@ func (b *Buffer) cleanup() {
 	for i := 1; i < len(b.rrs); i++ {
 		rr1, rr2 := b.rrs[i-1], b.rrs[i]
 		switch r1 := rr1.r.(type) {
+		case constReader:
+			switch r2 := rr2.r.(type) {
+			case constReader:
+				if byte(r1) == byte(r2) {
+					b.rrs[i-1].max = b.rrs[i].max
+					b.rrs[i-1].diff = -b.rrs[i-1].min
+					copy(b.rrs[i:], b.rrs[i+1:])
+					b.rrs = b.rrs[:len(b.rrs)-1]
+					i--
+				}
+			}
 		case *bytesReader:
 			switch r2 := rr2.r.(type) {
 			case *bytesReader:

@@ -506,6 +506,90 @@ func TestBufferReplace(t *testing.T) {
 	}
 }
 
+func TestBufferReplaceIn(t *testing.T) {
+	b := NewBuffer(strings.NewReader("0123456789abcdef"))
+
+	tests := []struct {
+		start    int64
+		end      int64
+		b        byte
+		offset   int64
+		expected string
+		len      int64
+	}{
+		{0, 1, 0x39, 0, "91234567", 16},
+		{0, 1, 0x38, 0, "81234567", 16},
+		{1, 2, 0x37, 0, "87234567", 16},
+		{5, 7, 0x30, 0, "87234007", 16},
+		{4, 5, 0x31, 0, "87231007", 16},
+		{3, 4, 0x30, 0, "87201007", 16},
+		{2, 3, 0x31, 0, "87101007", 16},
+		{15, 16, 0x30, 8, "89abcde0", 16},
+		{1, 5, 0x39, 0, "89999007", 16},
+	}
+
+	for _, test := range tests {
+		b.ReplaceIn(test.start, test.end, test.b)
+		p := make([]byte, 8)
+
+		_, err := b.Seek(test.offset, io.SeekStart)
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+
+		n, err := b.Read(p)
+		if err != nil && err != io.EOF {
+			t.Errorf("err should be nil or io.EOF but got: %v", err)
+		}
+		if n != 8 {
+			t.Errorf("n should be 8 but got: %d", n)
+		}
+		if string(p) != test.expected {
+			t.Errorf("p should be %s but got: %s", test.expected, string(p))
+		}
+
+		l, err := b.Len()
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if l != test.len {
+			t.Errorf("l should be %d but got: %d", test.len, l)
+		}
+	}
+
+	eis := b.EditedIndices()
+	expectedIndices := []int64{0, 7, 15, 16}
+	if !reflect.DeepEqual(eis, expectedIndices) {
+		t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+	}
+
+	if want := 6; len(b.rrs) != 6 {
+		t.Errorf("len(b.rrs) should be %d but got: %d", want, len(b.rrs))
+	}
+
+	{
+		b := NewBuffer(strings.NewReader("0123456789abcdef"))
+		b.ReplaceIn(16, 17, 0x30)
+		b.ReplaceIn(10, 11, 0x30)
+		p := make([]byte, 8)
+		b.ReadAt(p, 9)
+		expected := "90bcdef0"
+		if string(p) != expected {
+			t.Errorf("p should be %s but got: %s", expected, string(p))
+		}
+		l, _ := b.Len()
+		if l != 16 {
+			t.Errorf("l should be %d but got: %d", 16, l)
+		}
+
+		eis := b.EditedIndices()
+		expectedIndices := []int64{10, 11, 16, 17}
+		if !reflect.DeepEqual(eis, expectedIndices) {
+			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		}
+	}
+}
+
 func TestBufferDelete(t *testing.T) {
 	b := NewBuffer(strings.NewReader("0123456789abcdef"))
 

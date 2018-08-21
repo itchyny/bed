@@ -353,6 +353,11 @@ func (w *window) undoReplace(offset int64) {
 	w.changedTick++
 }
 
+func (w *window) replaceIn(start, end int64, c byte) {
+	w.buffer.ReplaceIn(start, end, c)
+	w.changedTick++
+}
+
 func (w *window) delete(offset int64) {
 	w.buffer.Delete(offset)
 	w.changedTick++
@@ -824,6 +829,15 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 			w.cursor++
 			w.length++
 		case mode.Replace:
+			if w.visualStart >= 0 && w.replaceByte {
+				start, end := w.visualStart, w.cursor
+				if start > end {
+					start, end = end, start
+				}
+				w.replaceIn(start, end+1, w.pendingByte|b)
+				w.visualStart = -1
+				return true
+			}
 			w.replace(w.cursor, w.pendingByte|b)
 			if w.length == 0 {
 				w.length++
