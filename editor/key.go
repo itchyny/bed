@@ -15,14 +15,6 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.Quit, "c-w", "c")
 	km.Register(event.Suspend, "c-z")
 
-	km.Register(event.ScrollTopHead, "z", "enter")
-	km.Register(event.ScrollMiddle, "z", "z")
-	km.Register(event.ScrollMiddleHead, "z", ".")
-	km.Register(event.ScrollBottom, "z", "b")
-	km.Register(event.ScrollBottomHead, "z", "-")
-	km.Register(event.WindowTop, "H")
-	km.Register(event.WindowMiddle, "M")
-	km.Register(event.WindowBottom, "L")
 	km.Register(event.JumpTo, "\x1d")
 	km.Register(event.JumpBack, "c-t")
 	km.Register(event.DeleteByte, "x")
@@ -47,11 +39,6 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.Redo, "c-r")
 
 	km.Register(event.StartVisual, "v")
-
-	km.Register(event.StartCmdlineSearchForward, "/")
-	km.Register(event.StartCmdlineSearchBackward, "?")
-	km.Register(event.NextSearch, "n")
-	km.Register(event.PreviousSearch, "N")
 
 	km.Register(event.New, "c-w", "n")
 	km.Register(event.New, "c-w", "c-n")
@@ -170,6 +157,14 @@ func defaultNormalAndVisual() *key.Manager {
 	km.Register(event.ScrollUp, "c-y")
 	km.Register(event.ScrollDown, "c-e")
 	km.Register(event.ScrollTop, "z", "t")
+	km.Register(event.ScrollTopHead, "z", "enter")
+	km.Register(event.ScrollMiddle, "z", "z")
+	km.Register(event.ScrollMiddleHead, "z", ".")
+	km.Register(event.ScrollBottom, "z", "b")
+	km.Register(event.ScrollBottomHead, "z", "-")
+	km.Register(event.WindowTop, "H")
+	km.Register(event.WindowMiddle, "M")
+	km.Register(event.WindowBottom, "L")
 
 	km.Register(event.PageUp, "c-b")
 	km.Register(event.PageDown, "c-f")
@@ -180,6 +175,11 @@ func defaultNormalAndVisual() *key.Manager {
 
 	km.Register(event.SwitchFocus, "tab")
 	km.Register(event.SwitchFocus, "backtab")
+
+	km.Register(event.StartCmdlineSearchForward, "/")
+	km.Register(event.StartCmdlineSearchBackward, "?")
+	km.Register(event.NextSearch, "n")
+	km.Register(event.PreviousSearch, "N")
 
 	km.Register(event.StartCmdlineCommand, ":")
 	km.Register(event.StartReplaceByte, "r")
