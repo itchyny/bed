@@ -517,15 +517,14 @@ func TestBufferReplaceIn(t *testing.T) {
 		expected string
 		len      int64
 	}{
-		{0, 1, 0x39, 0, "91234567", 16},
-		{0, 1, 0x38, 0, "81234567", 16},
-		{1, 2, 0x37, 0, "87234567", 16},
-		{5, 7, 0x30, 0, "87234007", 16},
-		{4, 5, 0x31, 0, "87231007", 16},
-		{3, 4, 0x30, 0, "87201007", 16},
-		{2, 3, 0x31, 0, "87101007", 16},
+		{1, 2, 0x39, 0, "09234567", 16},
+		{0, 6, 0x38, 0, "88888867", 16},
+		{1, 3, 0x37, 0, "87788867", 16},
+		{5, 7, 0x30, 0, "87788007", 16},
+		{2, 6, 0x31, 0, "87111107", 16},
+		{3, 4, 0x30, 0, "87101107", 16},
 		{15, 16, 0x30, 8, "89abcde0", 16},
-		{1, 5, 0x39, 0, "89999007", 16},
+		{1, 5, 0x39, 0, "89999107", 16},
 	}
 
 	for _, test := range tests {
@@ -563,7 +562,7 @@ func TestBufferReplaceIn(t *testing.T) {
 		t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
 	}
 
-	if want := 6; len(b.rrs) != 6 {
+	if want := 7; len(b.rrs) != 7 {
 		t.Errorf("len(b.rrs) should be %d but got: %d", want, len(b.rrs))
 	}
 
