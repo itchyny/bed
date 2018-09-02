@@ -3,7 +3,7 @@ sudo: false
 language: go
 
 go:
-  - "1.10"
+  - 1.11
 
 env: PATH=/home/travis/gopath/bin:$PATH
 
