@@ -3,52 +3,68 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:4416ad04caf950d004921268f777e418f8c328080ccf6a91e799f977dc128808"
   name = "github.com/gdamore/encoding"
   packages = ["."]
+  pruneopts = ""
   revision = "b23993cbb6353f0e6aa98d0ee318a34728f628b9"
 
 [[projects]]
   branch = "master"
+  digest = "1:cfdc5e7e40860f3fc94d0a5afac8c2aede88878ec28b23833d01e992fd51d66e"
   name = "github.com/gdamore/tcell"
   packages = [
     ".",
-    "terminfo"
+    "terminfo",
   ]
+  pruneopts = ""
   revision = "2f258105ca8ce35819115b49f5ac58197241653e"
 
 [[projects]]
   branch = "master"
+  digest = "1:04d51db1d12a604203af8469c6d2f6d7473a78b88cf2cf37bd2cd3dcf74d03bd"
   name = "github.com/lucasb-eyer/go-colorful"
   packages = ["."]
+  pruneopts = ""
   revision = "231272389856c976b7500c4fffcc52ddf06ff4eb"
 
 [[projects]]
+  digest = "1:81e673df85e765593a863f67cba4544cf40e8919590f04d67664940786c2b61a"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
+  pruneopts = ""
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:59d11e81d6fdd12a771321696bb22abdd9a94d26ac864787e98c9b419e428734"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
+  pruneopts = ""
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
+  digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
   name = "golang.org/x/text"
   packages = [
     "encoding",
     "encoding/internal/identifier",
     "internal/gen",
     "transform",
-    "unicode/cldr"
+    "unicode/cldr",
   ]
+  pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9a8027429325c79210d78917e1eb3cbdd96bf53a2dde195037e0cce7f310e259"
+  input-imports = [
+    "github.com/gdamore/tcell",
+    "github.com/mattn/go-runewidth",
+    "github.com/mitchellh/go-homedir",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
