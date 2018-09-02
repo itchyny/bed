@@ -383,21 +383,21 @@ func (b *Buffer) UndoReplace(offset int64) {
 }
 
 // ReplaceIn replaces a byte within a specific range.
-// ReplaceIn assumes that start is less than or equal to end.
 func (b *Buffer) ReplaceIn(start, end int64, c byte) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	rrs := make([]readerRange, 0, len(b.rrs)+1)
 	for _, rr := range b.rrs {
-		if rr.max < start || end <= rr.min {
+		if rr.max <= start || end <= rr.min {
 			rrs = append(rrs, rr)
 			continue
 		}
 		if start > rr.min {
 			rrs = append(rrs, readerRange{rr.r, rr.min, start, rr.diff})
 		}
-		n := mathutil.MaxInt64(start, rr.min)
-		rrs = append(rrs, readerRange{constReader(c), n, mathutil.MinInt64(end, rr.max), -n})
+		if start >= rr.min {
+			rrs = append(rrs, readerRange{constReader(c), start, end, -start})
+		}
 		if end < rr.max {
 			rrs = append(rrs, readerRange{rr.r, end, rr.max, rr.diff})
 		}
