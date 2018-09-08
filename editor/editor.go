@@ -197,7 +197,11 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 		case event.ExitCmdline:
 			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.ExecuteCmdline:
-			e.mode, e.prevMode = mode.Normal, e.mode
+			m := mode.Normal
+			if e.mode == mode.Search {
+				m = e.prevMode
+			}
+			e.mode, e.prevMode = m, e.mode
 		case event.ExecuteSearch:
 			e.searchTarget, e.searchMode = ev.Arg, ev.Rune
 		case event.NextSearch:
