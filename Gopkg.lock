@@ -11,38 +11,38 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cfdc5e7e40860f3fc94d0a5afac8c2aede88878ec28b23833d01e992fd51d66e"
+  digest = "1:13e9e3204e8b24e0ea70827d6262af413b00db428ad9db54e8c388ee33d27088"
   name = "github.com/gdamore/tcell"
   packages = [
     ".",
     "terminfo",
   ]
   pruneopts = ""
-  revision = "2f258105ca8ce35819115b49f5ac58197241653e"
+  revision = "86147f14ef3003e51f7c21b541007521d167b46a"
 
 [[projects]]
-  branch = "master"
-  digest = "1:04d51db1d12a604203af8469c6d2f6d7473a78b88cf2cf37bd2cd3dcf74d03bd"
+  digest = "1:863ba095ae0954100963826333bd1503c169424bb798d9ce800d9f6651f4c234"
   name = "github.com/lucasb-eyer/go-colorful"
   packages = ["."]
   pruneopts = ""
-  revision = "231272389856c976b7500c4fffcc52ddf06ff4eb"
+  revision = "345fbb3dbcdb252d9985ee899a84963c0fa24c82"
+  version = "v1.0"
 
 [[projects]]
-  digest = "1:81e673df85e765593a863f67cba4544cf40e8919590f04d67664940786c2b61a"
+  digest = "1:82b912465c1da0668582a7d1117339c278e786c2536b3c3623029a0c7141c2d0"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = ""
-  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
-  version = "v0.0.2"
+  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
+  version = "v0.0.3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:59d11e81d6fdd12a771321696bb22abdd9a94d26ac864787e98c9b419e428734"
+  digest = "1:096a8a9182648da3d00ff243b88407838902b6703fc12657f76890e08d1899bf"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
   pruneopts = ""
-  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+  revision = "ae18d6b8b3205b561c79e8e5f69bff09736185f4"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
