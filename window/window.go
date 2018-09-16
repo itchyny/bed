@@ -157,9 +157,10 @@ func (w *window) emit(e event.Event) {
 		w.increment(e.Count)
 	case event.Decrement:
 		w.decrement(e.Count)
-
 	case event.ShowBinary:
-		w.showBinary()
+		if str := w.showBinary(); str != "" {
+			newEvent = event.Event{Type: event.Info, Error: errors.New(str)}
+		}
 
 	case event.StartInsert:
 		w.startInsert()
@@ -722,13 +723,12 @@ func (w *window) decrement(count int64) {
 	}
 }
 
-// showBinary shows in binary format an 8-bit integer at the cursor.
-func (w *window) showBinary() {
+func (w *window) showBinary() string {
 	n, bytes, err := w.readBytes(w.cursor, 1)
 	if err != nil || n == 0 {
-		return
+		return ""
 	}
-	w.eventCh <- event.Event{Type: event.Info, Error: fmt.Errorf("%08b", bytes[0])}
+	return fmt.Sprintf("%08b", bytes[0])
 }
 
 func (w *window) startInsert() {
