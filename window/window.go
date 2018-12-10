@@ -161,6 +161,10 @@ func (w *window) emit(e event.Event) {
 		if str := w.showBinary(); str != "" {
 			newEvent = event.Event{Type: event.Info, Error: errors.New(str)}
 		}
+	case event.ShowDecimal:
+		if str := w.showDecimal(); str != "" {
+			newEvent = event.Event{Type: event.Info, Error: errors.New(str)}
+		}
 
 	case event.StartInsert:
 		w.startInsert()
@@ -729,6 +733,14 @@ func (w *window) showBinary() string {
 		return ""
 	}
 	return fmt.Sprintf("%08b", bytes[0])
+}
+
+func (w *window) showDecimal() string {
+	n, bytes, err := w.readBytes(w.cursor, 1)
+	if err != nil || n == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%d", bytes[0])
 }
 
 func (w *window) startInsert() {

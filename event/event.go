@@ -61,6 +61,7 @@ const (
 	Decrement
 	SwitchFocus
 	ShowBinary
+	ShowDecimal
 
 	StartInsert
 	StartInsertHead
