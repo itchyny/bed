@@ -59,6 +59,8 @@ const (
 	DeletePrevByte
 	Increment
 	Decrement
+	ShiftLeft
+	ShiftRight
 	SwitchFocus
 	ShowBinary
 	ShowDecimal

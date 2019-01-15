@@ -24,6 +24,8 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.Increment, "+")
 	km.Register(event.Decrement, "c-x")
 	km.Register(event.Decrement, "-")
+	km.Register(event.ShiftLeft, "<")
+	km.Register(event.ShiftRight, ">")
 	km.Register(event.ShowBinary, "g", "b")
 	km.Register(event.ShowDecimal, "g", "d")
 

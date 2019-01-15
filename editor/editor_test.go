@@ -503,3 +503,54 @@ func TestEditorShowDecimal(t *testing.T) {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 }
+
+func TestEditorShift(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	f, err := ioutil.TempFile("", "bed-test-editor-show-decimal")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	_, _ = f.WriteString("Hello, world!")
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	defer os.Remove(f.Name())
+	if err := editor.Open(f.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ   event.Type
+			ch    rune
+			count int64
+		}{
+			{event.ShiftLeft, '<', 1},
+			{event.CursorNext, 'w', 7},
+			{event.ShiftRight, '<', 3},
+		} {
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
+		}
+		time.Sleep(100 * time.Millisecond)
+		ui.Emit(event.Event{Type: event.WriteQuit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "\x90ello, \x0eorld!"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+}
