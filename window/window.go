@@ -157,6 +157,10 @@ func (w *window) emit(e event.Event) {
 		w.increment(e.Count)
 	case event.Decrement:
 		w.decrement(e.Count)
+	case event.ShiftLeft:
+		w.shiftLeft(e.Count)
+	case event.ShiftRight:
+		w.shiftRight(e.Count)
 	case event.ShowBinary:
 		if str := w.showBinary(); str != "" {
 			newEvent = event.Event{Type: event.Info, Error: errors.New(str)}
@@ -722,6 +726,28 @@ func (w *window) decrement(count int64) {
 		return
 	}
 	w.replace(w.cursor, bytes[0]-byte(mathutil.MaxInt64(count, 1)%256))
+	if w.length == 0 {
+		w.length++
+	}
+}
+
+func (w *window) shiftLeft(count int64) {
+	_, bytes, err := w.readBytes(w.cursor, 1)
+	if err != nil {
+		return
+	}
+	w.replace(w.cursor, bytes[0]<<byte(mathutil.MaxInt64(count, 1)))
+	if w.length == 0 {
+		w.length++
+	}
+}
+
+func (w *window) shiftRight(count int64) {
+	_, bytes, err := w.readBytes(w.cursor, 1)
+	if err != nil {
+		return
+	}
+	w.replace(w.cursor, bytes[0]>>byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
