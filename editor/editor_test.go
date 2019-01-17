@@ -534,7 +534,7 @@ func TestEditorShift(t *testing.T) {
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.WriteQuit})
 	}()
 	if err := editor.Run(); err != nil {
