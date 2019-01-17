@@ -714,7 +714,7 @@ func (w *window) increment(count int64) {
 	if err != nil {
 		return
 	}
-	w.replace(w.cursor, bytes[0]+byte(mathutil.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]+byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
@@ -725,7 +725,7 @@ func (w *window) decrement(count int64) {
 	if err != nil {
 		return
 	}
-	w.replace(w.cursor, bytes[0]-byte(mathutil.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]-byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
