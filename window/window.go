@@ -736,7 +736,7 @@ func (w *window) shiftLeft(count int64) {
 	if err != nil {
 		return
 	}
-	w.replace(w.cursor, bytes[0]<<byte(mathutil.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]<<byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
@@ -747,7 +747,7 @@ func (w *window) shiftRight(count int64) {
 	if err != nil {
 		return
 	}
-	w.replace(w.cursor, bytes[0]>>byte(mathutil.MaxInt64(count, 1)%256))
+	w.replace(w.cursor, bytes[0]>>byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
