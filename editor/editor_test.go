@@ -510,16 +510,24 @@ func TestEditorShift(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-shift")
+	f1, err := ioutil.TempFile("", "bed-test-editor-shift-1")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	_, _ = f.WriteString("Hello, world!")
-	if err := f.Close(); err != nil {
+	f2, err := ioutil.TempFile("", "bed-test-editor-shift-2")
+	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	defer os.Remove(f.Name())
-	if err := editor.Open(f.Name()); err != nil {
+	defer os.Remove(f1.Name())
+	defer os.Remove(f2.Name())
+	_, _ = f1.WriteString("Hello, world!")
+	if err := f1.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := f2.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f1.Name()); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	go func() {
@@ -534,19 +542,20 @@ func TestEditorShift(t *testing.T) {
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
-		time.Sleep(100 * time.Millisecond)
-		ui.Emit(event.Event{Type: event.WriteQuit})
+		ui.Emit(event.Event{Type: event.Write, Arg: f2.Name()})
+		time.Sleep(500 * time.Millisecond)
+		ui.Emit(event.Event{Type: event.Quit})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+	if err := editor.err; !strings.HasSuffix(err.Error(), "13 (0xd) bytes written") {
+		t.Errorf("err should be ends with %q but got: %v", "13 (0xd) bytes written", err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f.Name())
+	bs, err := ioutil.ReadFile(f2.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
