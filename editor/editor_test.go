@@ -532,7 +532,6 @@ func TestEditorShift(t *testing.T) {
 			{event.CursorNext, 'w', 7},
 			{event.ShiftRight, '>', 3},
 		} {
-			time.Sleep(50 * time.Millisecond)
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
 		time.Sleep(500 * time.Millisecond)
