@@ -510,7 +510,7 @@ func TestEditorShift(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-show-decimal")
+	f, err := ioutil.TempFile("", "bed-test-editor-shift")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -530,7 +530,7 @@ func TestEditorShift(t *testing.T) {
 		}{
 			{event.ShiftLeft, '<', 1},
 			{event.CursorNext, 'w', 7},
-			{event.ShiftRight, '<', 3},
+			{event.ShiftRight, '>', 3},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
