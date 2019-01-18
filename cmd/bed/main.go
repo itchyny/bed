@@ -1,11 +1,17 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
-const name = "bed"
+const cmdName = "bed"
 const version = "v0.0.0"
 const author = "itchyny"
 
 func main() {
-	os.Exit(run(os.Args))
+	if err := run(os.Args); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", cmdName, err)
+		os.Exit(1)
+	}
 }
