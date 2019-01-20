@@ -2,23 +2,23 @@
 
 
 [[projects]]
-  branch = "master"
-  digest = "1:4416ad04caf950d004921268f777e418f8c328080ccf6a91e799f977dc128808"
+  digest = "1:65c9e58c85d0791b146dc7f4387330329204a70fb34532e7ffce71a2f04f59a2"
   name = "github.com/gdamore/encoding"
   packages = ["."]
   pruneopts = ""
-  revision = "b23993cbb6353f0e6aa98d0ee318a34728f628b9"
+  revision = "6289cdc94c00ac4aa177771c5fce7af2f96b626d"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:13e9e3204e8b24e0ea70827d6262af413b00db428ad9db54e8c388ee33d27088"
+  digest = "1:32fbb94c71dea82de77d99d2a639213770be32994cae305da694106d6b650174"
   name = "github.com/gdamore/tcell"
   packages = [
     ".",
     "terminfo",
   ]
   pruneopts = ""
-  revision = "86147f14ef3003e51f7c21b541007521d167b46a"
+  revision = "aaadc574a6ed8dc3abe56036ca130dcee1ee6b6e"
 
 [[projects]]
   digest = "1:863ba095ae0954100963826333bd1503c169424bb798d9ce800d9f6651f4c234"
@@ -29,12 +29,12 @@
   version = "v1.0"
 
 [[projects]]
-  digest = "1:82b912465c1da0668582a7d1117339c278e786c2536b3c3623029a0c7141c2d0"
+  digest = "1:84c28d9899cc4e00c38042d345cea8819275a5a62403a58530cac67022894776"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = ""
-  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
-  version = "v0.0.3"
+  revision = "3ee7d812e62a0804a7d0a324e0249ca2db3476d3"
+  version = "v0.0.4"
 
 [[projects]]
   digest = "1:096a8a9182648da3d00ff243b88407838902b6703fc12657f76890e08d1899bf"
