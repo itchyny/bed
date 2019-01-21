@@ -1,7 +1,6 @@
 package window
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +13,7 @@ import (
 	"github.com/itchyny/bed/history"
 	"github.com/itchyny/bed/mathutil"
 	"github.com/itchyny/bed/mode"
+	"github.com/itchyny/bed/searcher"
 	"github.com/itchyny/bed/state"
 )
 
@@ -22,6 +22,7 @@ type window struct {
 	changedTick uint64
 	prevChanged bool
 	history     *history.History
+	searcher    *searcher.Searcher
 	filename    string
 	name        string
 	height      int64
@@ -63,6 +64,7 @@ func newWindow(r readAtSeeker, filename string, name string, eventCh chan<- even
 	return &window{
 		buffer:      buffer,
 		history:     history,
+		searcher:    searcher.NewSearcher(r),
 		filename:    filename,
 		name:        name,
 		length:      length,
@@ -1003,31 +1005,17 @@ func (w *window) search(str string, forward bool) {
 }
 
 func (w *window) searchForward(str string) {
-	target := []byte(str)
-	base, size := w.cursor+1, mathutil.MaxInt(int(w.height*w.width)*50, len(target)*500)
-	_, bs, err := w.readBytes(base, size)
+	cursor, err := w.searcher.Forward(w.cursor, str)
 	if err != nil {
 		return
 	}
-	i := bytes.Index(bs, target)
-	if i >= 0 {
-		w.cursor = base + int64(i)
-		if w.cursor >= w.offset+w.height*w.width {
-			w.offset = (w.cursor - w.height*w.width + w.width + 1) / w.width * w.width
-		}
-	}
+	w.cursor = cursor
 }
 
 func (w *window) searchBackward(str string) {
-	target := []byte(str)
-	size := mathutil.MaxInt(int(w.height*w.width)*50, len(target)*500)
-	base := mathutil.MaxInt64(0, w.cursor-int64(size))
-	_, bs, err := w.readBytes(base, int(mathutil.MinInt64(int64(size), w.cursor)))
+	cursor, err := w.searcher.Backward(w.cursor, str)
 	if err != nil {
 		return
 	}
-	i := bytes.LastIndex(bs, target)
-	if i >= 0 {
-		w.cursor = base + int64(i)
-	}
+	w.cursor = cursor
 }
