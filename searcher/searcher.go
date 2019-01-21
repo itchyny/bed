@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/itchyny/bed/mathutil"
@@ -15,6 +16,7 @@ type Searcher struct {
 	loopCh  chan struct{}
 	cursor  int64
 	pattern string
+	mu      *sync.Mutex
 }
 
 type readAtSeeker interface {
@@ -24,7 +26,7 @@ type readAtSeeker interface {
 
 // NewSearcher creates a new searcher.
 func NewSearcher(r readAtSeeker) *Searcher {
-	return &Searcher{r: r}
+	return &Searcher{r: r, mu: new(sync.Mutex)}
 }
 
 var errNotFound = errors.New("pattern not found")
@@ -33,6 +35,8 @@ const loadSize = 1024 * 1024
 
 // Forward searches the pattern forward.
 func (s *Searcher) Forward(cursor int64, pattern string) <-chan int64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.cursor, s.pattern = cursor, pattern
 	ch := make(chan int64)
 	s.loop(s.forward, ch)
@@ -40,6 +44,8 @@ func (s *Searcher) Forward(cursor int64, pattern string) <-chan int64 {
 }
 
 func (s *Searcher) forward() (int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	target := []byte(s.pattern)
 	base := s.cursor + 1
 	n, bs, err := s.readBytes(base, loadSize)
@@ -59,6 +65,8 @@ func (s *Searcher) forward() (int64, error) {
 
 // Backward searches the pattern forward.
 func (s *Searcher) Backward(cursor int64, pattern string) <-chan int64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.cursor, s.pattern = cursor, pattern
 	ch := make(chan int64)
 	s.loop(s.backward, ch)
@@ -66,6 +74,8 @@ func (s *Searcher) Backward(cursor int64, pattern string) <-chan int64 {
 }
 
 func (s *Searcher) backward() (int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	target := []byte(s.pattern)
 	base := mathutil.MaxInt64(0, s.cursor-int64(loadSize))
 	n, bs, err := s.readBytes(base, int(mathutil.MinInt64(int64(loadSize), s.cursor)))
