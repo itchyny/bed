@@ -23,6 +23,7 @@ type window struct {
 	prevChanged bool
 	history     *history.History
 	searcher    *searcher.Searcher
+	searchTick  uint64
 	filename    string
 	name        string
 	height      int64
@@ -999,6 +1000,11 @@ func (w *window) paste(e event.Event) int64 {
 }
 
 func (w *window) search(str string, forward bool) {
+	if w.searchTick != w.changedTick {
+		w.searcher.Abort()
+		w.searcher = searcher.NewSearcher(w.buffer)
+		w.searchTick = w.changedTick
+	}
 	ch := w.searcher.Search(w.cursor, str, forward)
 	go func() {
 		select {
