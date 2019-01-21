@@ -997,7 +997,7 @@ func (w *window) paste(e event.Event) int64 {
 }
 
 func (w *window) search(str string, forward bool) {
-	var ch <-chan int64
+	var ch <-chan interface{}
 	if forward {
 		ch = w.searcher.Forward(w.cursor, str)
 	} else {
@@ -1005,10 +1005,13 @@ func (w *window) search(str string, forward bool) {
 	}
 	go func() {
 		select {
-		case cursor := <-ch:
-			if cursor >= 0 {
+		case x := <-ch:
+			switch x := x.(type) {
+			case error:
+				w.eventCh <- event.Event{Type: event.Info, Error: x}
+			case int64:
 				w.mu.Lock()
-				w.cursor = cursor
+				w.cursor = x
 				w.mu.Unlock()
 				w.redrawCh <- struct{}{}
 			}

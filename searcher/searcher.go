@@ -2,7 +2,6 @@ package searcher
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"sync"
 	"time"
@@ -29,16 +28,20 @@ func NewSearcher(r readAtSeeker) *Searcher {
 	return &Searcher{r: r, mu: new(sync.Mutex)}
 }
 
-var errNotFound = errors.New("pattern not found")
+type errNotFound string
+
+func (err errNotFound) Error() string {
+	return "pattern not found: " + string(err)
+}
 
 const loadSize = 1024 * 1024
 
 // Forward searches the pattern forward.
-func (s *Searcher) Forward(cursor int64, pattern string) <-chan int64 {
+func (s *Searcher) Forward(cursor int64, pattern string) <-chan interface{} {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cursor, s.pattern = cursor, pattern
-	ch := make(chan int64)
+	ch := make(chan interface{})
 	s.loop(s.forward, ch)
 	return ch
 }
@@ -53,7 +56,7 @@ func (s *Searcher) forward() (int64, error) {
 		return -1, err
 	}
 	if n == 0 {
-		return -1, errNotFound
+		return -1, errNotFound(s.pattern)
 	}
 	s.cursor += int64(n)
 	i := bytes.Index(bs, target)
@@ -64,11 +67,11 @@ func (s *Searcher) forward() (int64, error) {
 }
 
 // Backward searches the pattern forward.
-func (s *Searcher) Backward(cursor int64, pattern string) <-chan int64 {
+func (s *Searcher) Backward(cursor int64, pattern string) <-chan interface{} {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cursor, s.pattern = cursor, pattern
-	ch := make(chan int64)
+	ch := make(chan interface{})
 	s.loop(s.backward, ch)
 	return ch
 }
@@ -83,7 +86,7 @@ func (s *Searcher) backward() (int64, error) {
 		return -1, err
 	}
 	if n == 0 {
-		return -1, errNotFound
+		return -1, errNotFound(s.pattern)
 	}
 	s.cursor = base
 	i := bytes.LastIndex(bs, target)
@@ -93,12 +96,13 @@ func (s *Searcher) backward() (int64, error) {
 	return -1, nil
 }
 
-func (s *Searcher) loop(f func() (int64, error), ch chan<- int64) {
+func (s *Searcher) loop(f func() (int64, error), ch chan<- interface{}) {
 	if s.loopCh != nil {
 		close(s.loopCh)
 	}
 	s.loopCh = make(chan struct{})
 	go func() {
+		defer close(ch)
 		for {
 			select {
 			case <-s.loopCh:
@@ -106,13 +110,11 @@ func (s *Searcher) loop(f func() (int64, error), ch chan<- int64) {
 			case <-time.After(10 * time.Millisecond):
 				idx, err := f()
 				if err != nil {
-					ch <- -1
-					close(ch)
+					ch <- err
 					return
 				}
 				if idx >= 0 {
 					ch <- idx
-					close(ch)
 					return
 				}
 			}
