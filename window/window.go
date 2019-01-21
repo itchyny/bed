@@ -997,25 +997,21 @@ func (w *window) paste(e event.Event) int64 {
 }
 
 func (w *window) search(str string, forward bool) {
+	var ch <-chan int64
 	if forward {
-		w.searchForward(str)
+		ch = w.searcher.Forward(w.cursor, str)
 	} else {
-		w.searchBackward(str)
+		ch = w.searcher.Backward(w.cursor, str)
 	}
-}
-
-func (w *window) searchForward(str string) {
-	cursor, err := w.searcher.Forward(w.cursor, str)
-	if err != nil {
-		return
-	}
-	w.cursor = cursor
-}
-
-func (w *window) searchBackward(str string) {
-	cursor, err := w.searcher.Backward(w.cursor, str)
-	if err != nil {
-		return
-	}
-	w.cursor = cursor
+	go func() {
+		select {
+		case cursor := <-ch:
+			if cursor >= 0 {
+				w.mu.Lock()
+				w.cursor = cursor
+				w.mu.Unlock()
+				w.redrawCh <- struct{}{}
+			}
+		}
+	}()
 }
