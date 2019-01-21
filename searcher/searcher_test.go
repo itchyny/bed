@@ -44,17 +44,31 @@ func TestSearcher(t *testing.T) {
 		},
 		{
 			str:      strings.Repeat(" ", 10*1024*1024+100) + "abcde",
-			cursor:   0,
+			cursor:   102,
 			pattern:  "bcd",
 			forward:  true,
 			expected: 10*1024*1024 + 101,
 		},
 		{
+			str:     strings.Repeat(" ", 10*1024*1024+100) + "abcde",
+			cursor:  102,
+			pattern: "cba",
+			forward: true,
+			err:     errNotFound("cba"),
+		},
+		{
 			str:      "abcde" + strings.Repeat(" ", 10*1024*1024),
-			cursor:   10 * 1024 * 1024,
+			cursor:   10*1024*1024 + 2,
 			pattern:  "bcd",
 			forward:  false,
 			expected: 1,
+		},
+		{
+			str:     "abcde" + strings.Repeat(" ", 10*1024*1024),
+			cursor:  10*1024*1024 + 2,
+			pattern: "cba",
+			forward: false,
+			err:     errNotFound("cba"),
 		},
 	}
 	for _, testCase := range testCases {

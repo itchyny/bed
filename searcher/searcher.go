@@ -51,13 +51,17 @@ func (s *Searcher) forward() (int64, error) {
 	target := []byte(s.pattern)
 	base := s.cursor + 1
 	n, bs, err := s.readBytes(base, loadSize)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return -1, err
 	}
 	if n == 0 {
 		return -1, errNotFound(s.pattern)
 	}
-	s.cursor += int64(n)
+	if err == io.EOF {
+		s.cursor += int64(n)
+	} else {
+		s.cursor += int64(n - len(target) + 1)
+	}
 	i := bytes.Index(bs, target)
 	if i >= 0 {
 		return base + int64(i), nil
@@ -70,14 +74,19 @@ func (s *Searcher) backward() (int64, error) {
 	defer s.mu.Unlock()
 	target := []byte(s.pattern)
 	base := mathutil.MaxInt64(0, s.cursor-int64(loadSize))
-	n, bs, err := s.readBytes(base, int(mathutil.MinInt64(int64(loadSize), s.cursor)))
-	if err != nil {
+	size := int(mathutil.MinInt64(int64(loadSize), s.cursor))
+	n, bs, err := s.readBytes(base, size)
+	if err != nil && err != io.EOF {
 		return -1, err
 	}
 	if n == 0 {
 		return -1, errNotFound(s.pattern)
 	}
-	s.cursor = base
+	if s.cursor == int64(n) {
+		s.cursor = 0
+	} else {
+		s.cursor = base + int64(len(target)-1)
+	}
 	i := bytes.LastIndex(bs, target)
 	if i >= 0 {
 		return base + int64(i), nil
@@ -115,8 +124,5 @@ func (s *Searcher) loop(f func() (int64, error), ch chan<- interface{}) {
 func (s *Searcher) readBytes(offset int64, len int) (int, []byte, error) {
 	bytes := make([]byte, len)
 	n, err := s.r.ReadAt(bytes, offset)
-	if err != nil && err != io.EOF {
-		return 0, bytes, err
-	}
-	return n, bytes, nil
+	return n, bytes, err
 }
