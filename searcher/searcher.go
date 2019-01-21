@@ -11,20 +11,15 @@ import (
 
 // Searcher represents a searcher.
 type Searcher struct {
-	r       readAtSeeker
+	r       io.ReaderAt
 	loopCh  chan struct{}
 	cursor  int64
 	pattern string
 	mu      *sync.Mutex
 }
 
-type readAtSeeker interface {
-	io.ReaderAt
-	io.Seeker
-}
-
 // NewSearcher creates a new searcher.
-func NewSearcher(r readAtSeeker) *Searcher {
+func NewSearcher(r io.ReaderAt) *Searcher {
 	return &Searcher{r: r, mu: new(sync.Mutex)}
 }
 
