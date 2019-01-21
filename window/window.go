@@ -997,12 +997,7 @@ func (w *window) paste(e event.Event) int64 {
 }
 
 func (w *window) search(str string, forward bool) {
-	var ch <-chan interface{}
-	if forward {
-		ch = w.searcher.Forward(w.cursor, str)
-	} else {
-		ch = w.searcher.Backward(w.cursor, str)
-	}
+	ch := w.searcher.Search(w.cursor, str, forward)
 	go func() {
 		select {
 		case x := <-ch:

@@ -36,13 +36,17 @@ func (err errNotFound) Error() string {
 
 const loadSize = 1024 * 1024
 
-// Forward searches the pattern forward.
-func (s *Searcher) Forward(cursor int64, pattern string) <-chan interface{} {
+// Search the pattern.
+func (s *Searcher) Search(cursor int64, pattern string, forward bool) <-chan interface{} {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cursor, s.pattern = cursor, pattern
 	ch := make(chan interface{})
-	s.loop(s.forward, ch)
+	if forward {
+		s.loop(s.forward, ch)
+	} else {
+		s.loop(s.backward, ch)
+	}
 	return ch
 }
 
@@ -64,16 +68,6 @@ func (s *Searcher) forward() (int64, error) {
 		return base + int64(i), nil
 	}
 	return -1, nil
-}
-
-// Backward searches the pattern forward.
-func (s *Searcher) Backward(cursor int64, pattern string) <-chan interface{} {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.cursor, s.pattern = cursor, pattern
-	ch := make(chan interface{})
-	s.loop(s.backward, ch)
-	return ch
 }
 
 func (s *Searcher) backward() (int64, error) {
