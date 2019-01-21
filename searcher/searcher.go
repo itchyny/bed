@@ -100,12 +100,13 @@ func (s *Searcher) loop(f func() (int64, error), ch chan<- interface{}) {
 	if s.loopCh != nil {
 		close(s.loopCh)
 	}
-	s.loopCh = make(chan struct{})
+	loopCh := make(chan struct{})
+	s.loopCh = loopCh
 	go func() {
 		defer close(ch)
 		for {
 			select {
-			case <-s.loopCh:
+			case <-loopCh:
 				return
 			case <-time.After(10 * time.Millisecond):
 				idx, err := f()
