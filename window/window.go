@@ -386,6 +386,7 @@ func (w *window) undo(count int64) {
 		w.buffer, w.offset, w.cursor = buffer, offset, cursor
 		w.length, _ = w.buffer.Len()
 	}
+	w.changedTick++
 }
 
 func (w *window) redo(count int64) {
@@ -397,6 +398,7 @@ func (w *window) redo(count int64) {
 		w.buffer, w.offset, w.cursor = buffer, offset, cursor
 		w.length, _ = w.buffer.Len()
 	}
+	w.changedTick++
 }
 
 func (w *window) cursorUp(count int64) {
