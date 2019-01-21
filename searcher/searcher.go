@@ -2,6 +2,7 @@ package searcher
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"sync"
 	"time"
@@ -125,4 +126,16 @@ func (s *Searcher) readBytes(offset int64, len int) (int, []byte, error) {
 	bytes := make([]byte, len)
 	n, err := s.r.ReadAt(bytes, offset)
 	return n, bytes, err
+}
+
+// Abort the searching.
+func (s *Searcher) Abort() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.loopCh != nil {
+		close(s.loopCh)
+		s.loopCh = nil
+		return errors.New("search is aborted")
+	}
+	return nil
 }

@@ -106,6 +106,7 @@ const (
 	ExecuteSearch
 	NextSearch
 	PreviousSearch
+	AbortSearch
 
 	Edit
 	Enew

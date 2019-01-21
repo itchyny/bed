@@ -183,6 +183,7 @@ func defaultNormalAndVisual() *key.Manager {
 	km.Register(event.StartCmdlineSearchBackward, "?")
 	km.Register(event.NextSearch, "n")
 	km.Register(event.PreviousSearch, "N")
+	km.Register(event.AbortSearch, "c-c")
 
 	km.Register(event.StartCmdlineCommand, ":")
 	km.Register(event.StartReplaceByte, "r")

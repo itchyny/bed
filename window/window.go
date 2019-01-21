@@ -229,6 +229,8 @@ func (w *window) emit(e event.Event) {
 		w.search(e.Arg, e.Rune == '/')
 	case event.PreviousSearch:
 		w.search(e.Arg, e.Rune != '/')
+	case event.AbortSearch:
+		w.abortSearch()
 	default:
 		w.mu.Unlock()
 		return
@@ -1012,4 +1014,10 @@ func (w *window) search(str string, forward bool) {
 			}
 		}
 	}()
+}
+
+func (w *window) abortSearch() {
+	if err := w.searcher.Abort(); err != nil {
+		w.eventCh <- event.Event{Type: event.Info, Error: err}
+	}
 }
