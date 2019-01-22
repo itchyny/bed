@@ -50,7 +50,10 @@ func (s *Searcher) Search(cursor int64, pattern string, forward bool) <-chan int
 func (s *Searcher) forward() (int64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	target := []byte(s.pattern)
+	target, err := patternToTarget([]byte(s.pattern))
+	if err != nil {
+		return -1, err
+	}
 	base := s.cursor + 1
 	n, err := s.r.ReadAt(s.bytes, base)
 	if err != nil && err != io.EOF {
@@ -74,7 +77,10 @@ func (s *Searcher) forward() (int64, error) {
 func (s *Searcher) backward() (int64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	target := []byte(s.pattern)
+	target, err := patternToTarget([]byte(s.pattern))
+	if err != nil {
+		return -1, err
+	}
 	base := mathutil.MaxInt64(0, s.cursor-int64(loadSize))
 	size := int(mathutil.MinInt64(int64(loadSize), s.cursor))
 	n, err := s.r.ReadAt(s.bytes[:size], base)
