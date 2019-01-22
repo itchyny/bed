@@ -135,6 +135,30 @@ func TestSearcher(t *testing.T) {
 			forward:  true,
 			expected: 8,
 		},
+		{
+			name:     "search hex literal",
+			str:      "\x16\x27\x38\x49\x50\x61",
+			cursor:   0,
+			pattern:  `0x38495`,
+			forward:  true,
+			expected: 2,
+		},
+		{
+			name:     "search bin literal",
+			str:      "\x16\x27\x38\x48\x50\x61",
+			cursor:   0,
+			pattern:  `0b0011100001001`,
+			forward:  true,
+			expected: 2,
+		},
+		{
+			name:     "search text starting with 0",
+			str:      "432101234",
+			cursor:   0,
+			pattern:  `0123`,
+			forward:  true,
+			expected: 4,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
