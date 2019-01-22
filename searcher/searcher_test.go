@@ -79,6 +79,38 @@ func TestSearcher(t *testing.T) {
 			forward: false,
 			err:     errNotFound("cba"),
 		},
+		{
+			name:     "search by hex",
+			str:      "\x13\x24\x35\x46\x57\x68",
+			cursor:   0,
+			pattern:  `\x35\x46\x57`,
+			forward:  true,
+			expected: 2,
+		},
+		{
+			name:     "search by bell and bs",
+			str:      "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x09\x0a",
+			cursor:   0,
+			pattern:  `\a\b\v`,
+			forward:  true,
+			expected: 7,
+		},
+		{
+			name:     "search by tab",
+			str:      "\x06\x07\x08\x09\x10\x11",
+			cursor:   0,
+			pattern:  `\t`,
+			forward:  true,
+			expected: 3,
+		},
+		{
+			name:     "search by escape character",
+			str:      `ab\cd\\e`,
+			cursor:   0,
+			pattern:  `\\\`,
+			forward:  true,
+			expected: 5,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
