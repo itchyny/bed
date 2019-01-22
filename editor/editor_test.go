@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -164,7 +163,7 @@ func TestEditorWritePartial(t *testing.T) {
 	if err := f.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	for i, testCase := range []struct {
+	for _, testCase := range []struct {
 		cmdRange string
 		count    int
 		expected string
@@ -183,8 +182,12 @@ func TestEditorWritePartial(t *testing.T) {
 		if err := editor.Open(f.Name()); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
-		name := "editor-partial-test-" + strconv.Itoa(i)
-		defer os.Remove(name)
+		fout, err := ioutil.TempFile("", "bed-test-editor-write-partial")
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		defer os.Remove(fout.Name())
+		fout.Close()
 		go func(name string) {
 			ui.Emit(event.Event{Type: event.StartCmdlineCommand})
 			for _, c := range testCase.cmdRange + "w " + name {
@@ -193,7 +196,7 @@ func TestEditorWritePartial(t *testing.T) {
 			ui.Emit(event.Event{Type: event.ExecuteCmdline})
 			time.Sleep(500 * time.Millisecond)
 			ui.Emit(event.Event{Type: event.Quit})
-		}(name)
+		}(fout.Name())
 		if err := editor.Run(); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
@@ -204,7 +207,7 @@ func TestEditorWritePartial(t *testing.T) {
 		if err := editor.Close(); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
-		bs, err := ioutil.ReadFile(name)
+		bs, err := ioutil.ReadFile(fout.Name())
 		if err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
