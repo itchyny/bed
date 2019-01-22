@@ -88,6 +88,14 @@ func TestSearcher(t *testing.T) {
 			expected: 2,
 		},
 		{
+			name:     "search by nul",
+			str:      "\x06\x07\x08\x00\x09\x10\x11",
+			cursor:   0,
+			pattern:  `\0`,
+			forward:  true,
+			expected: 3,
+		},
+		{
 			name:     "search by bell and bs",
 			str:      "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x09\x0a",
 			cursor:   0,

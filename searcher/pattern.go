@@ -9,6 +9,8 @@ func patternToTarget(pattern []byte) []byte {
 		b := pattern[i]
 		if escape {
 			switch b {
+			case '0':
+				bs = append(bs, 0)
 			case 'a':
 				bs = append(bs, '\a')
 			case 'b':
