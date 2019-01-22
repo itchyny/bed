@@ -80,7 +80,7 @@ func TestSearcher(t *testing.T) {
 			err:     errNotFound("cba"),
 		},
 		{
-			name:     "search by hex",
+			name:     "search hex",
 			str:      "\x13\x24\x35\x46\x57\x68",
 			cursor:   0,
 			pattern:  `\x35\x46\x57`,
@@ -88,7 +88,7 @@ func TestSearcher(t *testing.T) {
 			expected: 2,
 		},
 		{
-			name:     "search by nul",
+			name:     "search nul",
 			str:      "\x06\x07\x08\x00\x09\x10\x11",
 			cursor:   0,
 			pattern:  `\0`,
@@ -96,7 +96,7 @@ func TestSearcher(t *testing.T) {
 			expected: 3,
 		},
 		{
-			name:     "search by bell and bs",
+			name:     "search bell and bs",
 			str:      "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x09\x0a",
 			cursor:   0,
 			pattern:  `\a\b\v`,
@@ -104,7 +104,7 @@ func TestSearcher(t *testing.T) {
 			expected: 7,
 		},
 		{
-			name:     "search by tab",
+			name:     "search tab",
 			str:      "\x06\x07\x08\x09\x10\x11",
 			cursor:   0,
 			pattern:  `\t`,
@@ -112,7 +112,7 @@ func TestSearcher(t *testing.T) {
 			expected: 3,
 		},
 		{
-			name:     "search by escape character",
+			name:     "search escape character",
 			str:      `ab\cd\\e`,
 			cursor:   0,
 			pattern:  `\\\`,
@@ -120,7 +120,7 @@ func TestSearcher(t *testing.T) {
 			expected: 5,
 		},
 		{
-			name:     "search by unicode",
+			name:     "search unicode",
 			str:      "\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf",
 			cursor:   0,
 			pattern:  `\u3061\u306F`,
