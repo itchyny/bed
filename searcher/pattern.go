@@ -1,5 +1,7 @@
 package searcher
 
+import "unicode/utf8"
+
 func patternToTarget(pattern []byte) []byte {
 	var escape bool
 	bs := make([]byte, 0, len(pattern))
@@ -21,15 +23,40 @@ func patternToTarget(pattern []byte) []byte {
 				bs = append(bs, '\t')
 			case 'v':
 				bs = append(bs, '\v')
-			case 'x':
-				if i+2 < len(pattern) && isHex(pattern[i+1]) && isHex(pattern[i+2]) {
-					bs = append(bs, hexToDigit(pattern[i+1])<<4|hexToDigit(pattern[i+2]))
-					i += 2
-				} else {
+			case 'x', 'u', 'U':
+				var n int
+				switch b {
+				case 'x':
+					n = 2
+				case 'u':
+					n = 4
+				case 'U':
+					n = 8
+				}
+				appended := true
+				var c rune
+				if i+n < len(pattern) {
+					for k := 1; k <= n; k++ {
+						if !isHex(pattern[i+k]) {
+							appended = false
+							break
+						}
+						c = c<<4 | rune(hexToDigit(pattern[i+k]))
+					}
+					if appended {
+						if b == 'x' {
+							bs = append(bs, byte(c))
+						} else {
+							buf := make([]byte, 4)
+							n := utf8.EncodeRune(buf, c)
+							bs = append(bs, buf[:n]...)
+						}
+						i += n
+					}
+				}
+				if !appended {
 					bs = append(bs, b)
 				}
-			case 'v':
-				bs = append(bs, '\v')
 			default:
 				bs = append(bs, b)
 			}

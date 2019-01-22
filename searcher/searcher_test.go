@@ -111,6 +111,14 @@ func TestSearcher(t *testing.T) {
 			forward:  true,
 			expected: 5,
 		},
+		{
+			name:     "search by unicode",
+			str:      "\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf",
+			cursor:   0,
+			pattern:  `\u3061\u306F`,
+			forward:  true,
+			expected: 9,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
