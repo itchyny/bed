@@ -205,9 +205,9 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 		case event.ExecuteSearch:
 			e.searchTarget, e.searchMode = ev.Arg, ev.Rune
 		case event.NextSearch:
-			ev.Arg, ev.Rune = e.searchTarget, e.searchMode
+			ev.Arg, ev.Rune, e.err = e.searchTarget, e.searchMode, nil
 		case event.PreviousSearch:
-			ev.Arg, ev.Rune = e.searchTarget, e.searchMode
+			ev.Arg, ev.Rune, e.err = e.searchTarget, e.searchMode, nil
 		case event.Paste, event.PastePrev:
 			if e.buffer == nil {
 				e.mu.Unlock()
