@@ -127,6 +127,14 @@ func TestSearcher(t *testing.T) {
 			forward:  true,
 			expected: 9,
 		},
+		{
+			name:     "search unicode in supplementary multilingual plane",
+			str:      "\U0001F604\U0001F606\U0001F60E\U0001F60D\U0001F642",
+			cursor:   0,
+			pattern:  `\U0001F60E\U0001F60D`,
+			forward:  true,
+			expected: 8,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
