@@ -2,6 +2,7 @@ package tui
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -19,15 +20,18 @@ type Tui struct {
 	mode    mode.Mode
 	screen  tcell.Screen
 	waitCh  chan struct{}
+	mu      *sync.Mutex
 }
 
 // NewTui creates a new Tui.
 func NewTui() *Tui {
-	return &Tui{}
+	return &Tui{mu: new(sync.Mutex)}
 }
 
 // Init initializes the Tui.
 func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
 	ui.eventCh = eventCh
 	ui.mode = mode.Normal
 	if ui.screen, err = tcell.NewScreen(); err != nil {
@@ -41,9 +45,10 @@ func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 	for {
 		e := ui.screen.PollEvent()
+		// Be careful with data races here.
 		switch ev := e.(type) {
 		case *tcell.EventKey:
-			if e := kms[ui.mode].Press(eventToKey(ev)); e.Type != event.Nop {
+			if e := kms[ui.getMode()].Press(eventToKey(ev)); e.Type != event.Nop {
 				ui.eventCh <- e
 			} else {
 				ui.eventCh <- event.Event{Type: event.Rune, Rune: ev.Rune()}
@@ -59,9 +64,27 @@ func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 	}
 }
 
+func (ui *Tui) getMode() mode.Mode {
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
+	return ui.mode
+}
+
 // Size returns the size for the screen.
 func (ui *Tui) Size() (int, int) {
 	return ui.screen.Size()
+}
+
+// Redraw redraws the state.
+func (ui *Tui) Redraw(s state.State) error {
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
+	ui.mode = s.Mode
+	ui.screen.Clear()
+	ui.drawWindows(s.WindowStates, s.Layout)
+	ui.drawCmdline(s)
+	ui.screen.Show()
+	return nil
 }
 
 func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
@@ -69,16 +92,6 @@ func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
 		ui.screen.SetContent(offset, line, c, nil, style)
 		offset += runewidth.RuneWidth(c)
 	}
-}
-
-// Redraw redraws the state.
-func (ui *Tui) Redraw(s state.State) error {
-	ui.mode = s.Mode
-	ui.screen.Clear()
-	ui.drawWindows(s.WindowStates, s.Layout)
-	ui.drawCmdline(s)
-	ui.screen.Show()
-	return nil
 }
 
 func (ui *Tui) drawWindows(windowStates map[int]*state.WindowState, l layout.Layout) {
@@ -158,6 +171,8 @@ func (ui *Tui) drawCompletionResults(s state.State, width int, height int) {
 
 // Close terminates the Tui.
 func (ui *Tui) Close() error {
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
 	ui.eventCh = nil
 	ui.screen.Fini()
 	<-ui.waitCh
