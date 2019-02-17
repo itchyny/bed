@@ -1,4 +1,4 @@
-BIN = bed
+BIN := bed
 
 .PHONY: all
 all: clean build
@@ -17,17 +17,20 @@ deps:
 	dep ensure
 
 .PHONY: test
-test: build
+test: build testdeps
 	@! git grep tcell -- ':!tui/' ':!Gopkg.lock' ':!Gopkg.toml' ':!Makefile'
 	go test -v ./...
+
+.PHONY: testdeps
+testdeps:
+	go get -d -v -t ./...
 
 .PHONY: lint
 lint: lintdeps build
 	golint -set_exit_status $$(go list ./... | grep -v /vendor/)
 
-.PHONY: lintdeps
+.PHONY: testdeps
 lintdeps:
-	go get -d -v -t ./...
 	command -v golint >/dev/null || go get -u golang.org/x/lint/golint
 
 .PHONY: clean
