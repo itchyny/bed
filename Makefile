@@ -1,11 +1,12 @@
 BIN := bed
+export GO111MODULE=on
 
 .PHONY: all
 all: clean build
 
 .PHONY: build
 build: deps
-	go build -o build/$(BIN) ./cmd/...
+	go build -o build/$(BIN) ./cmd/$(BIN)
 
 .PHONY: install
 install: deps
@@ -13,28 +14,22 @@ install: deps
 
 .PHONY: deps
 deps:
-	command -v dep >/dev/null || go get -u github.com/golang/dep/cmd/dep
-	dep ensure
+	go get -d -v ./...
 
 .PHONY: test
-test: build testdeps
-	@! git grep tcell -- ':!tui/' ':!Gopkg.lock' ':!Gopkg.toml' ':!Makefile'
+test: build
+	@! git grep tcell -- ':!tui/' ':!Makefile'
 	go test -v ./...
 
-.PHONY: testdeps
-testdeps:
-	go get -d -v -t ./...
-
 .PHONY: lint
-lint: lintdeps build
-	golint -set_exit_status $$(go list ./... | grep -v /vendor/)
+lint: lintdeps
+	golint -set_exit_status ./...
 
 .PHONY: lintdeps
 lintdeps:
-	command -v golint >/dev/null || go get -u golang.org/x/lint/golint
+	GO111MODULE=off go get -u golang.org/x/lint/golint
 
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf vendor
-	go clean
+	go clean ./...
