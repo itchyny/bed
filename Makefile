@@ -18,7 +18,7 @@ deps:
 
 .PHONY: test
 test: build
-	@! git grep tcell -- ':!tui/' ':!Makefile'
+	@! git grep tcell -- ':!tui/' ':!Makefile' ':!go.sum' ':!go.mod'
 	go test -v ./...
 
 .PHONY: lint
