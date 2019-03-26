@@ -4,17 +4,17 @@ clone_folder: c:\gopath\src\github.com\itchyny\bed
 
 environment:
   GOPATH: c:\gopath
+  GO111MODULE: on
 
 install:
   - go version
   - go env
-  - go get -u github.com/golang/dep/cmd/dep
-  - c:\gopath\bin\dep ensure
 
 build_script:
   - go build ./cmd/...
 
 test_script:
   - go test -v ./...
+  - go vet ./...
 
 deploy: false
