@@ -11,7 +11,7 @@ func TestHistoryUndo(t *testing.T) {
 	history := NewHistory()
 	b, index, offset, cursor := history.Undo()
 	if b != nil {
-		t.Errorf("history.Undo should return nil buffer but got %q", b)
+		t.Errorf("history.Undo should return nil buffer but got %v", b)
 	}
 	if index != -1 {
 		t.Errorf("history.Undo should return index -1 but got %d", index)
@@ -64,7 +64,7 @@ func TestHistoryUndo(t *testing.T) {
 
 	b, offset, cursor = history.Redo()
 	if b != nil {
-		t.Errorf("history.Redo should return nil buffer but got %q", b)
+		t.Errorf("history.Redo should return nil buffer but got %v", b)
 	}
 	if offset != 0 {
 		t.Errorf("history.Redo should return offset 0 but got %d", offset)

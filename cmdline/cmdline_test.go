@@ -405,13 +405,13 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		typ event.Type
 	}{
 		{"  :  :  $  ", event.End{}, event.CursorGoto},
-		{"  :123456789  ", event.Absolute{123456789}, event.CursorGoto},
-		{"  +16777216 ", event.Relative{16777216}, event.CursorGoto},
-		{"  -256 ", event.Relative{-256}, event.CursorGoto},
-		{"  :  0x123456789abcdef  ", event.Absolute{0x123456789abcdef}, event.CursorGoto},
-		{"  0xfedcba  ", event.Absolute{0xfedcba}, event.CursorGoto},
-		{"  +0x44ef ", event.Relative{0x44ef}, event.CursorGoto},
-		{"  -0xff ", event.Relative{-0xff}, event.CursorGoto},
+		{"  :123456789  ", event.Absolute{Offset: 123456789}, event.CursorGoto},
+		{"  +16777216 ", event.Relative{Offset: 16777216}, event.CursorGoto},
+		{"  -256 ", event.Relative{Offset: -256}, event.CursorGoto},
+		{"  :  0x123456789abcdef  ", event.Absolute{Offset: 0x123456789abcdef}, event.CursorGoto},
+		{"  0xfedcba  ", event.Absolute{Offset: 0xfedcba}, event.CursorGoto},
+		{"  +0x44ef ", event.Relative{Offset: 0x44ef}, event.CursorGoto},
+		{"  -0xff ", event.Relative{Offset: -0xff}, event.CursorGoto},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
@@ -510,7 +510,7 @@ func TestCmdlineComplete(t *testing.T) {
 		t.Errorf("cmdline should emit Edit event but got %v", e)
 	}
 	if e.Arg != "/bin/echo" {
-		t.Errorf("cmdline should emit event with arg %q but got %q", "/bin/echo", e)
+		t.Errorf("cmdline should emit event with arg %q but got %v", "/bin/echo", e)
 	}
 }
 
