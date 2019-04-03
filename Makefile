@@ -5,16 +5,12 @@ export GO111MODULE=on
 all: clean build
 
 .PHONY: build
-build: deps
+build:
 	go build -o build/$(BIN) ./cmd/$(BIN)
 
 .PHONY: install
-install: deps
+install:
 	go install ./...
-
-.PHONY: deps
-deps:
-	go get -d -v ./...
 
 .PHONY: test
 test: build
