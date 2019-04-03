@@ -24,7 +24,7 @@ lint: lintdeps
 
 .PHONY: lintdeps
 lintdeps:
-	GO111MODULE=off go get -u golang.org/x/lint/golint
+	GO111MODULE=off go get golang.org/x/lint/golint
 
 .PHONY: clean
 clean:
