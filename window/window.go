@@ -36,6 +36,7 @@ type window struct {
 	replaceByte bool
 	extending   bool
 	pending     bool
+	unsavedChanges bool
 	pendingByte byte
 	visualStart int64
 	focusText   bool
@@ -747,6 +748,7 @@ func (w *window) shiftLeft(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
+	w.unsavedChanges = true
 }
 
 func (w *window) shiftRight(count int64) {
@@ -758,6 +760,7 @@ func (w *window) shiftRight(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
+	w.unsavedChanges = true
 }
 
 func (w *window) showBinary() string {
@@ -889,6 +892,7 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 			}
 			if w.replaceByte {
 				w.exitInsert()
+				w.unsavedChanges = true
 				return true
 			}
 			w.cursor++
@@ -904,6 +908,7 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 		w.pending = true
 		w.pendingByte = b << 4
 	}
+	w.unsavedChanges = true
 	return false
 }
 

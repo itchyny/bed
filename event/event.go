@@ -130,6 +130,7 @@ const (
 	QuitAll
 	Write
 	WriteQuit
+	ForceQuit
 	Info
 	Error
 )

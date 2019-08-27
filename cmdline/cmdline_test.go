@@ -316,6 +316,30 @@ func TestCmdlineQuit(t *testing.T) {
 	}
 }
 
+func TestCmdlineForceQuit(t *testing.T) {
+	c := NewCmdline()
+	ch := make(chan event.Event, 1)
+	c.Init(ch, make(chan event.Event), make(chan struct{}))
+	for _, cmd := range []struct {
+		cmd  string
+		name string
+	}{
+		{"q!", "q!"},
+	} {
+		c.clear()
+		c.cmdline = []rune(cmd.cmd)
+		c.typ = ':'
+		c.execute()
+		e := <-ch
+		if e.CmdName != cmd.name {
+			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
+		}
+		if e.Type != event.ForceQuit {
+			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
+		}
+	}
+}
+
 func TestCmdlineExecuteQuitAll(t *testing.T) {
 	c := NewCmdline()
 	ch := make(chan event.Event, 1)
