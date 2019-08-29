@@ -36,7 +36,7 @@ type window struct {
 	replaceByte bool
 	extending   bool
 	pending     bool
-	unsavedChanges bool
+	modified    bool
 	pendingByte byte
 	visualStart int64
 	focusText   bool
@@ -356,11 +356,13 @@ func (w *window) state(width, height int) (*state.WindowState, error) {
 func (w *window) insert(offset int64, c byte) {
 	w.buffer.Insert(offset, c)
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) replace(offset int64, c byte) {
 	w.buffer.Replace(offset, c)
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) undoReplace(offset int64) {
@@ -371,11 +373,13 @@ func (w *window) undoReplace(offset int64) {
 func (w *window) replaceIn(start, end int64, c byte) {
 	w.buffer.ReplaceIn(start, end, c)
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) delete(offset int64) {
 	w.buffer.Delete(offset)
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) undo(count int64) {
@@ -701,6 +705,7 @@ func (w *window) deleteBytes(count int64) *buffer.Buffer {
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(w.cursor, mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
+	w.modified = true
 	return b
 }
 
@@ -714,6 +719,7 @@ func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
 	w.length, _ = w.buffer.Len()
 	w.cursor -= count
 	w.changedTick++
+	w.modified = true
 	return b
 }
 
@@ -726,6 +732,7 @@ func (w *window) increment(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
+	w.modified = true
 }
 
 func (w *window) decrement(count int64) {
@@ -737,6 +744,7 @@ func (w *window) decrement(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
+	w.modified = true
 }
 
 func (w *window) shiftLeft(count int64) {
@@ -748,7 +756,7 @@ func (w *window) shiftLeft(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
-	w.unsavedChanges = true
+	w.modified = true
 }
 
 func (w *window) shiftRight(count int64) {
@@ -760,7 +768,7 @@ func (w *window) shiftRight(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
-	w.unsavedChanges = true
+	w.modified = true
 }
 
 func (w *window) showBinary() string {
@@ -892,7 +900,7 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 			}
 			if w.replaceByte {
 				w.exitInsert()
-				w.unsavedChanges = true
+				w.modified = true
 				return true
 			}
 			w.cursor++
@@ -908,7 +916,7 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 		w.pending = true
 		w.pendingByte = b << 4
 	}
-	w.unsavedChanges = true
+	w.modified = true
 	return false
 }
 
@@ -987,6 +995,7 @@ func (w *window) cut() *buffer.Buffer {
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(start, mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
+	w.modified = true
 	return b
 }
 
@@ -1003,6 +1012,7 @@ func (w *window) paste(e event.Event) int64 {
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(mathutil.MaxInt64(pos+l*count-1, 0), mathutil.MaxInt64(w.length, 1)-1)
 	w.changedTick++
+	w.modified = true
 	return l * count
 }
 
