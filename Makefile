@@ -7,7 +7,7 @@ all: clean build
 
 .PHONY: build
 build:
-	go build -o build/$(BIN) ./cmd/$(BIN)
+	go build -o $(BIN) ./cmd/$(BIN)
 
 .PHONY: install
 install:
@@ -28,5 +28,5 @@ $(GOBIN)/golint:
 
 .PHONY: clean
 clean:
-	rm -rf build
+	rm -rf $(BIN)
 	go clean ./...
