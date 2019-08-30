@@ -368,6 +368,7 @@ func (w *window) replace(offset int64, c byte) {
 func (w *window) undoReplace(offset int64) {
 	w.buffer.UndoReplace(offset)
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) replaceIn(start, end int64, c byte) {
@@ -392,6 +393,7 @@ func (w *window) undo(count int64) {
 		w.length, _ = w.buffer.Len()
 	}
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) redo(count int64) {
@@ -404,6 +406,7 @@ func (w *window) redo(count int64) {
 		w.length, _ = w.buffer.Len()
 	}
 	w.changedTick++
+	w.modified = true
 }
 
 func (w *window) cursorUp(count int64) {
@@ -900,7 +903,6 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 			}
 			if w.replaceByte {
 				w.exitInsert()
-				w.modified = true
 				return true
 			}
 			w.cursor++
@@ -916,7 +918,6 @@ func (w *window) insertByte(m mode.Mode, b byte) bool {
 		w.pending = true
 		w.pendingByte = b << 4
 	}
-	w.modified = true
 	return false
 }
 
