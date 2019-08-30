@@ -265,6 +265,8 @@ func (m *Manager) Emit(e event.Event) {
 		} else {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
+	case event.ForceQuit:
+		fallthrough
 	case event.Quit:
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -430,6 +432,10 @@ func (m *Manager) quit(e event.Event) error {
 	if len(e.Arg) > 0 {
 		return fmt.Errorf("too many arguments for %s", e.CmdName)
 	}
+	window := m.windows[m.windowIndex]
+	if window.modified && e.Type != event.ForceQuit {
+		return fmt.Errorf("You have unsaved changes, use q! to force quit")
+	}
 	w, h := m.layout.Count()
 	if w == 1 && h == 1 {
 		m.eventCh <- event.Event{Type: event.QuitAll}
@@ -536,6 +542,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	if err != nil {
 		return name, 0, err
 	}
+	window.modified = false
 	return name, n, os.Rename(tmpf.Name(), name)
 }
 
