@@ -146,6 +146,38 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	}
 }
 
+func TestEditorOpenForceQuit(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.OpenEmpty(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ event.Type
+			ch  rune
+		}{
+			{event.StartInsert, '-'}, {event.Rune, '4'}, {event.Rune, '8'}, {event.ExitInsert, '-'},
+		} {
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
+		}
+		ui.Emit(event.Event{Type: event.Quit})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; err == nil || !strings.HasSuffix(err.Error(), "You have unsaved changes, use q! to force quit") {
+		t.Errorf("err should be ends with %q but got: %v", "You have unsaved changes, use q! to force quit", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+}
+
 func TestEditorWritePartial(t *testing.T) {
 	f, err := ioutil.TempFile("", "bed-test-editor-write-partial")
 	defer os.Remove(f.Name())
