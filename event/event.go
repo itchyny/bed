@@ -12,6 +12,7 @@ type Event struct {
 	Count   int64
 	Rune    rune
 	CmdName string
+	Bang    bool
 	Arg     string
 	Error   error
 	Mode    mode.Mode
@@ -130,7 +131,6 @@ const (
 	QuitAll
 	Write
 	WriteQuit
-	ForceQuit
 	Info
 	Error
 )

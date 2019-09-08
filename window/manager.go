@@ -265,8 +265,6 @@ func (m *Manager) Emit(e event.Event) {
 		} else {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
-	case event.ForceQuit:
-		fallthrough
 	case event.Quit:
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -433,7 +431,7 @@ func (m *Manager) quit(e event.Event) error {
 		return fmt.Errorf("too many arguments for %s", e.CmdName)
 	}
 	window := m.windows[m.windowIndex]
-	if window.modified && e.Type != event.ForceQuit {
+	if window.modified && !e.Bang {
 		return fmt.Errorf("You have unsaved changes, use q! to force quit")
 	}
 	w, h := m.layout.Count()

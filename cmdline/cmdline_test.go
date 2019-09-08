@@ -313,6 +313,9 @@ func TestCmdlineQuit(t *testing.T) {
 		if e.Type != event.Quit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
+		if e.Bang {
+			t.Errorf("cmdline should emit quit event without bang")
+		}
 	}
 }
 
@@ -324,7 +327,9 @@ func TestCmdlineForceQuit(t *testing.T) {
 		cmd  string
 		name string
 	}{
-		{"q!", "q!"},
+		{"exit!", "exi[t]"},
+		{"q!", "q[uit]"},
+		{"quit!", "q[uit]"},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
@@ -334,8 +339,11 @@ func TestCmdlineForceQuit(t *testing.T) {
 		if e.CmdName != cmd.name {
 			t.Errorf("cmdline should report command name %q but got %q", cmd.name, e.CmdName)
 		}
-		if e.Type != event.ForceQuit {
+		if e.Type != event.Quit {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
+		}
+		if !e.Bang {
+			t.Errorf("cmdline should emit quit event with bang")
 		}
 	}
 }

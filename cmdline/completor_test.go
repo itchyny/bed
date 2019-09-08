@@ -9,7 +9,7 @@ import (
 func TestCompletorCompleteFilepath(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "new "
-	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "new Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "new Gopkg.toml", cmdline)
@@ -83,7 +83,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 
 	c.clear()
 	cmdline = "new Gopkg.to"
-	cmd, _, prefix, arg, _ = parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "new Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "new Gopkg.toml", cmdline)
@@ -97,7 +97,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 
 	c.clear()
 	cmdline = "edit"
-	cmd, _, prefix, arg, _ = parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "edit Gopkg.toml" {
 		t.Errorf("cmdline should be %q but got %q", "edit Gopkg.toml", cmdline)
@@ -113,7 +113,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := " : : :  new   B"
-	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != " : : :  new   buffer"+string(filepath.Separator) {
 		t.Errorf("cmdline should be %q but got %q", " : : :  new   buffer"+string(filepath.Separator), cmdline)
@@ -149,7 +149,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	}
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "vnew ~/"
-	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "vnew ~/example.txt" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/example.txt", cmdline)
@@ -196,7 +196,7 @@ func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {
 	}
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "vnew ~/."
-	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
 	if cmdline != "vnew ~/.zshrc" {
 		t.Errorf("cmdline should be %q but got %q", "vnew ~/.zshrc", cmdline)
@@ -223,7 +223,7 @@ func TestCompletorCompleteFilepathRoot(t *testing.T) {
 	}
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "e /"
-	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "e /bin/" {
 		t.Errorf("cmdline should be %q but got %q", "e /bin/", cmdline)
@@ -245,7 +245,7 @@ func TestCompletorCompleteFilepathRoot(t *testing.T) {
 
 	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
 	c.clear()
-	cmd, _, prefix, arg, _ = parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "e /bin/cp" {
 		t.Errorf("cmdline should be %q but got %q", "e /bin/cp", cmdline)
@@ -258,7 +258,7 @@ func TestCompletorCompleteFilepathRoot(t *testing.T) {
 func TestCompletorCompleteWincmd(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := "winc"
-	cmd, _, prefix, arg, _ := parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "winc" {
 		t.Errorf("cmdline should be %q but got %q", "winc", cmdline)
@@ -288,7 +288,7 @@ func TestCompletorCompleteWincmd(t *testing.T) {
 	}
 
 	c.clear()
-	cmd, _, prefix, arg, _ = parse([]rune(cmdline))
+	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
 	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	if cmdline != "winc J" {
 		t.Errorf("cmdline should be %q but got %q", "winc J", cmdline)

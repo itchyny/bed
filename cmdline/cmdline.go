@@ -168,7 +168,7 @@ func (c *Cmdline) insert(ch rune) {
 }
 
 func (c *Cmdline) complete(forward bool) {
-	cmd, _, prefix, arg, err := parse(c.cmdline)
+	cmd, _, prefix, _, arg, err := parse(c.cmdline)
 	if err != nil {
 		c.completor.clear()
 		return
@@ -181,13 +181,13 @@ func (c *Cmdline) complete(forward bool) {
 func (c *Cmdline) execute() {
 	switch c.typ {
 	case ':':
-		cmd, r, _, arg, err := parse(c.cmdline)
+		cmd, r, _, bang, arg, err := parse(c.cmdline)
 		if err != nil {
 			c.eventCh <- event.Event{Type: event.Error, Error: err}
 			return
 		}
 		if cmd.name != "" {
-			c.eventCh <- event.Event{Type: cmd.eventType, Range: r, CmdName: cmd.name, Arg: arg}
+			c.eventCh <- event.Event{Type: cmd.eventType, Range: r, CmdName: cmd.name, Bang: bang, Arg: arg}
 		}
 	case '/':
 		c.eventCh <- event.Event{Type: event.ExecuteSearch, Arg: string(c.cmdline), Rune: '/'}
