@@ -30,6 +30,23 @@ I think I started coding for what I want before doing research on existing edito
 Note that this software is still in its early stage of development.
 Please refer to https://github.com/itchyny/bed/issues/1 for roadmap.
 
+### Commands and keyboard shortcuts
+This binary editor is influenced by the Vim editor.
+So if you have experience with Vim, you will notice most of basic operations of Vim are supported with this binary editor too.
+
+- File operations
+  - `:edit`, `:enew`, `:new`, `:vnew`
+- Quit and save
+  - `:quit`, `:qall`, `:write`, `:wq`, `:xit`, `:xall`
+- Window operations
+  - `:wincmd [nlhkjtbpKJHL]`, `<C-w>[nlhkjtbpKJHL]`
+- Mode operations
+  - `i`, `I`, `a`, `A`, `R`, `<ESC>`, `v`
+- Undo and redo
+  - `:undo`, `u`, `:redo`, `<C-r>`
+- Searching
+  - `/`, `?`, `n`, `N`, `<C-c>` (to abort)
+
 ## Bug Tracker
 Report bug at [Issues・itchyny/bed - GitHub](https://github.com/itchyny/bed/issues).
 
