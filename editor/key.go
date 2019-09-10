@@ -13,6 +13,7 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	km.Register(event.Quit, "c-w", "q")
 	km.Register(event.Quit, "c-w", "c-q")
 	km.Register(event.Quit, "c-w", "c")
+	km.Register(event.WriteQuit, "Z", "Z")
 	km.Register(event.Suspend, "c-z")
 
 	km.Register(event.JumpTo, "\x1d")
