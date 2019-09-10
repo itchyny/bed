@@ -9,10 +9,10 @@ import (
 func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	kms := make(map[mode.Mode]*key.Manager)
 	km := defaultNormalAndVisual()
-	km.Register(event.Quit, "Z", "Q")
 	km.Register(event.Quit, "c-w", "q")
 	km.Register(event.Quit, "c-w", "c-q")
 	km.Register(event.Quit, "c-w", "c")
+	km.RegisterBang(event.Quit, "Z", "Q")
 	km.Register(event.WriteQuit, "Z", "Z")
 	km.Register(event.Suspend, "c-z")
 

@@ -12,6 +12,7 @@ type Key string
 type keyEvent struct {
 	keys  []Key
 	event event.Type
+	bang  bool
 }
 
 const (
@@ -49,7 +50,12 @@ func NewManager(count bool) *Manager {
 
 // Register adds a new key mapping.
 func (km *Manager) Register(eventType event.Type, keys ...Key) {
-	km.events = append(km.events, keyEvent{keys, eventType})
+	km.events = append(km.events, keyEvent{keys, eventType, false})
+}
+
+// RegisterBang adds a new key mapping with bang.
+func (km *Manager) RegisterBang(eventType event.Type, keys ...Key) {
+	km.events = append(km.events, keyEvent{keys, eventType, true})
 }
 
 // Press checks the new key down event.
@@ -76,7 +82,7 @@ func (km *Manager) Press(k Key) event.Event {
 				return event.Event{Type: event.Nop}
 			case keysEq:
 				km.keys = nil
-				return event.Event{Type: ke.event, Count: count}
+				return event.Event{Type: ke.event, Count: count, Bang: ke.bang}
 			}
 		}
 	}
