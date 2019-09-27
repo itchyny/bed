@@ -1,4 +1,4 @@
-# bed
+# bed [![CI Status](https://github.com/itchyny/bed/workflows/CI/badge.svg)](https://github.com/itchyny/bed/actions)
 Binary editor written in Go
 
 ## Screenshot
