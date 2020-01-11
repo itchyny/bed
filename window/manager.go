@@ -432,7 +432,7 @@ func (m *Manager) quit(e event.Event) error {
 	}
 	window := m.windows[m.windowIndex]
 	if window.modified && !e.Bang {
-		return fmt.Errorf("You have unsaved changes, use q! to force quit")
+		return fmt.Errorf("you have unsaved changes, use q! to force quit")
 	}
 	w, h := m.layout.Count()
 	if w == 1 && h == 1 {
