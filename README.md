@@ -28,7 +28,7 @@ I think I started coding for what I want before doing research on existing edito
 - Text searching
 
 Note that this software is still in its early stage of development.
-Please refer to https://github.com/itchyny/bed/issues/1 for roadmap.
+Please refer to [#1](https://github.com/itchyny/bed/issues/1) for roadmap.
 
 ### Commands and keyboard shortcuts
 This binary editor is influenced by the Vim editor.
