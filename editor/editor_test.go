@@ -76,7 +76,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 		}
 		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
 		time.Sleep(500 * time.Millisecond)
-		ui.Emit(event.Event{Type: event.Quit})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -230,7 +230,7 @@ func TestEditorWritePartial(t *testing.T) {
 			}
 			ui.Emit(event.Event{Type: event.ExecuteCmdline})
 			time.Sleep(500 * time.Millisecond)
-			ui.Emit(event.Event{Type: event.Quit})
+			ui.Emit(event.Event{Type: event.Quit, Bang: true})
 		}(fout.Name())
 		if err := editor.Run(); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
@@ -398,7 +398,7 @@ func TestEditorReplace(t *testing.T) {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
 		}
 		time.Sleep(500 * time.Millisecond)
-		ui.Emit(event.Event{Type: event.Quit})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -452,7 +452,7 @@ func TestEditorCopyCutPaste(t *testing.T) {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
 		}
 		time.Sleep(500 * time.Millisecond)
-		ui.Emit(event.Event{Type: event.Quit})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -582,7 +582,7 @@ func TestEditorShift(t *testing.T) {
 		}
 		ui.Emit(event.Event{Type: event.Write, Arg: f2.Name()})
 		time.Sleep(500 * time.Millisecond)
-		ui.Emit(event.Event{Type: event.Quit})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
