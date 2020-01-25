@@ -1,4 +1,6 @@
 BIN := bed
+CURRENT_REVISION := $(shell git rev-parse --short HEAD)
+BUILD_LDFLAGS := "-s -w -X main.revision=$(CURRENT_REVISION)"
 GOBIN ?= $(shell go env GOPATH)/bin
 export GO111MODULE=on
 
@@ -7,11 +9,11 @@ all: clean build
 
 .PHONY: build
 build:
-	go build -o $(BIN) ./cmd/$(BIN)
+	go build -ldflags=$(BUILD_LDFLAGS) -o $(BIN) ./cmd/$(BIN)
 
 .PHONY: install
 install:
-	go install ./...
+	go install -ldflags=$(BUILD_LDFLAGS) ./...
 
 .PHONY: test
 test: build
