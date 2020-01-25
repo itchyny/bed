@@ -339,6 +339,7 @@ func (w *window) state(width, height int) (*state.WindowState, error) {
 	}
 	return &state.WindowState{
 		Name:          w.name,
+		Modified:      w.changedTick != w.savedChangedTick,
 		Width:         int(w.width),
 		Offset:        w.offset,
 		Cursor:        w.cursor,

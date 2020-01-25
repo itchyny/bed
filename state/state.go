@@ -23,6 +23,7 @@ type State struct {
 // WindowState holds the state of one window.
 type WindowState struct {
 	Name          string
+	Modified      bool
 	Width         int
 	Offset        int64
 	Cursor        int64

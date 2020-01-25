@@ -180,8 +180,12 @@ func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
 	if name == "" {
 		name = "[No name]"
 	}
-	left := fmt.Sprintf(" %s%s : 0x%02x : '%s'",
-		prettyMode(s.Mode), name, s.Bytes[j], prettyRune(s.Bytes[j]))
+	var modified string
+	if s.Modified {
+		modified = " : +"
+	}
+	left := fmt.Sprintf(" %s%s%s : 0x%02x : '%s'",
+		prettyMode(s.Mode), name, modified, s.Bytes[j], prettyRune(s.Bytes[j]))
 	right := fmt.Sprintf("%d/%d : "+offsetStyle+"/"+offsetStyle+" : %.2f%% ",
 		s.Cursor, s.Length, s.Cursor, s.Length,
 		float64(s.Cursor*100)/float64(mathutil.MaxInt64(s.Length, 1)))
