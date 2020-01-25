@@ -16,8 +16,14 @@ I actually want a binary editor with Vim-like user interface, which runs in term
 I think I started coding for what I want before doing research on existing editors.
 
 ## Installation
+### Homebrew
 ```sh
- $ go get -u github.com/itchyny/bed/cmd/bed
+brew install itchyny/tap/bed
+```
+
+### Build from source
+```bash
+go get github.com/itchyny/bed/cmd/bed
 ```
 
 ## Features
