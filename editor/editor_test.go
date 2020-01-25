@@ -20,14 +20,16 @@ import (
 
 type testUI struct {
 	eventCh chan<- event.Event
+	initCh  chan struct{}
 	mu      *sync.Mutex
 }
 
 func newTestUI() *testUI {
-	return &testUI{mu: new(sync.Mutex)}
+	return &testUI{initCh: make(chan struct{}), mu: new(sync.Mutex)}
 }
 
 func (ui *testUI) Init(eventCh chan<- event.Event) error {
+	defer close(ui.initCh)
 	ui.mu.Lock()
 	defer ui.mu.Unlock()
 	ui.eventCh = eventCh
@@ -45,6 +47,7 @@ func (ui *testUI) Redraw(_ state.State) error { return nil }
 func (ui *testUI) Close() error { return nil }
 
 func (ui *testUI) Emit(e event.Event) {
+	<-ui.initCh
 	ui.mu.Lock()
 	defer ui.mu.Unlock()
 	ui.eventCh <- e
