@@ -208,7 +208,6 @@ func (w *window) emit(e event.Event) {
 			w.pending = false
 			w.pendingByte = '\x00'
 		}
-		w.changedTick++
 	case event.Undo:
 		if e.Mode != mode.Normal {
 			panic("event.Undo should be emitted under normal mode")
