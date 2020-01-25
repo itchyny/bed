@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/itchyny/bed/event"
 )
@@ -38,6 +39,7 @@ func TestCmdlineRun(t *testing.T) {
 	go func() {
 		for _, e := range events {
 			cmdlineCh <- e
+			time.Sleep(10 * time.Millisecond)
 		}
 	}()
 	for i := 0; i < len(events)-4; i++ {
