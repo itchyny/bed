@@ -6,8 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mitchellh/go-homedir"
-
 	"github.com/itchyny/bed/event"
 )
 
@@ -114,11 +112,11 @@ func (c *completor) listFileNames(arg string) (string, []string) {
 			targets = append(targets, name)
 		}
 	} else {
-		path, err := homedir.Expand(arg)
+		path, err := homedirExpand(arg)
 		if err != nil {
 			return arg, nil
 		}
-		homeDir, err := homedir.Dir()
+		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return arg, nil
 		}
@@ -221,4 +219,15 @@ func (c *completor) completeWincmd(cmdline string, prefix string, arg string, fo
 	c.results = []string{"n", "h", "l", "k", "j", "H", "L", "K", "J", "t", "b", "p"}
 	c.index = -1
 	return cmdline
+}
+
+func homedirExpand(path string) (string, error) {
+	if !strings.HasPrefix(path, "~") {
+		return path, nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, path[1:]), nil
 }

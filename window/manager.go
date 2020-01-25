@@ -13,8 +13,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mitchellh/go-homedir"
-
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/mathutil"
@@ -98,7 +96,7 @@ func (m *Manager) open(filename string) (*window, error) {
 	if err != nil {
 		return nil, err
 	}
-	name, err = homedir.Expand(name)
+	name, err = homedirExpand(name)
 	if err != nil {
 		return nil, err
 	}
@@ -518,7 +516,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		return name, 0, errors.New("cannot overwrite the original file on Windows")
 	}
 	var err error
-	if name, err = homedir.Expand(name); err != nil {
+	if name, err = homedirExpand(name); err != nil {
 		return name, 0, err
 	}
 	if window.filename == "" && window.name == "" {
@@ -569,4 +567,15 @@ func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
 	}
+}
+
+func homedirExpand(path string) (string, error) {
+	if !strings.HasPrefix(path, "~") {
+		return path, nil
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(homeDir, path[1:]), nil
 }
