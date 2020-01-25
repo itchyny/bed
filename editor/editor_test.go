@@ -51,6 +51,13 @@ func (ui *testUI) Emit(e event.Event) {
 	ui.mu.Lock()
 	defer ui.mu.Unlock()
 	ui.eventCh <- e
+	switch e.Type {
+	case event.Write, event.WriteQuit, event.StartCmdlineCommand, event.ExecuteCmdline:
+		time.Sleep(500 * time.Millisecond)
+	case event.Rune:
+	default:
+		time.Sleep(10 * time.Millisecond)
+	}
 }
 
 func TestEditorOpenEmptyWriteQuit(t *testing.T) {
@@ -75,7 +82,6 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 			ui.Emit(event.Event{Type: t})
 		}
 		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
-		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
@@ -128,7 +134,6 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
 		}
-		time.Sleep(100 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.WriteQuit})
 	}()
 	if err := editor.Run(); err != nil {
@@ -229,7 +234,6 @@ func TestEditorWritePartial(t *testing.T) {
 				ui.Emit(event.Event{Type: event.Rune, Rune: c})
 			}
 			ui.Emit(event.Event{Type: event.ExecuteCmdline})
-			time.Sleep(500 * time.Millisecond)
 			ui.Emit(event.Event{Type: event.Quit, Bang: true})
 		}(fout.Name())
 		if err := editor.Run(); err != nil {
@@ -298,7 +302,6 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 			ui.Emit(event.Event{Type: event.Rune, Rune: ch})
 		}
 		ui.Emit(event.Event{Type: event.ExecuteCmdline})
-		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit})
 	}()
 	if err := editor.Run(); err != nil {
@@ -338,7 +341,6 @@ func TestEditorCmdlineQuit(t *testing.T) {
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
 		}
-		time.Sleep(100 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.ExecuteCmdline})
 	}()
 	if err := editor.Run(); err != nil {
@@ -394,10 +396,8 @@ func TestEditorReplace(t *testing.T) {
 			{event.CursorHead, '\x00', 0, ""}, {event.DeleteByte, '\x00', 0, ""},
 			{event.Write, 'w', 0, f2.Name()},
 		} {
-			time.Sleep(50 * time.Millisecond)
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
 		}
-		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
@@ -448,10 +448,8 @@ func TestEditorCopyCutPaste(t *testing.T) {
 			{event.CursorNext, 'w', 5, ""}, {event.PastePrev, 'P', 0, ""},
 			{event.Write, 'w', 0, f2.Name()},
 		} {
-			time.Sleep(50 * time.Millisecond)
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
 		}
-		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
@@ -581,7 +579,6 @@ func TestEditorShift(t *testing.T) {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
 		ui.Emit(event.Event{Type: event.Write, Arg: f2.Name()})
-		time.Sleep(500 * time.Millisecond)
 		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
