@@ -431,7 +431,7 @@ func (m *Manager) quit(e event.Event) error {
 		return fmt.Errorf("too many arguments for %s", e.CmdName)
 	}
 	window := m.windows[m.windowIndex]
-	if window.modified && !e.Bang {
+	if window.changedTick != window.savedChangedTick && !e.Bang {
 		return fmt.Errorf("you have unsaved changes, use q! to force quit")
 	}
 	w, h := m.layout.Count()
@@ -540,7 +540,9 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	if err != nil {
 		return name, 0, err
 	}
-	window.modified = false
+	if window.filename == name {
+		window.savedChangedTick = window.changedTick
+	}
 	return name, n, os.Rename(tmpf.Name(), name)
 }
 

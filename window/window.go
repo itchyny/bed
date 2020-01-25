@@ -18,31 +18,32 @@ import (
 )
 
 type window struct {
-	buffer      *buffer.Buffer
-	changedTick uint64
-	prevChanged bool
-	history     *history.History
-	searcher    *searcher.Searcher
-	searchTick  uint64
-	filename    string
-	name        string
-	height      int64
-	width       int64
-	offset      int64
-	cursor      int64
-	length      int64
-	stack       []position
-	append      bool
-	replaceByte bool
-	extending   bool
-	pending     bool
-	modified    bool
-	pendingByte byte
-	visualStart int64
-	focusText   bool
-	redrawCh    chan<- struct{}
-	eventCh     chan<- event.Event
-	mu          *sync.Mutex
+	buffer           *buffer.Buffer
+	changedTick      uint64
+	prevChanged      bool
+	maxChangedTick   uint64
+	savedChangedTick uint64
+	history          *history.History
+	searcher         *searcher.Searcher
+	searchTick       uint64
+	filename         string
+	name             string
+	height           int64
+	width            int64
+	offset           int64
+	cursor           int64
+	length           int64
+	stack            []position
+	append           bool
+	replaceByte      bool
+	extending        bool
+	pending          bool
+	pendingByte      byte
+	visualStart      int64
+	focusText        bool
+	redrawCh         chan<- struct{}
+	eventCh          chan<- event.Event
+	mu               *sync.Mutex
 }
 
 type position struct {
@@ -62,7 +63,7 @@ func newWindow(r readAtSeeker, filename string, name string, eventCh chan<- even
 		return nil, err
 	}
 	history := history.NewHistory()
-	history.Push(buffer, 0, 0)
+	history.Push(buffer, 0, 0, 0)
 	return &window{
 		buffer:      buffer,
 		history:     history,
@@ -239,10 +240,10 @@ func (w *window) emit(e event.Event) {
 	changed := changedTick != w.changedTick
 	if e.Type != event.Undo && e.Type != event.Redo {
 		if (e.Mode == mode.Normal || e.Mode == mode.Visual) && changed || e.Type == event.ExitInsert && w.prevChanged {
-			w.history.Push(w.buffer, w.offset, w.cursor)
+			w.history.Push(w.buffer, w.offset, w.cursor, w.changedTick)
 		} else if e.Mode != mode.Normal && e.Mode != mode.Visual && w.prevChanged && !changed &&
 			event.CursorUp <= e.Type && e.Type <= event.JumpBack {
-			w.history.Push(w.buffer, offset, cursor)
+			w.history.Push(w.buffer, offset, cursor, w.changedTick)
 		}
 	}
 	w.prevChanged = changed
@@ -352,60 +353,56 @@ func (w *window) state(width, height int) (*state.WindowState, error) {
 	}, nil
 }
 
+func (w *window) updateTick() {
+	w.maxChangedTick++
+	w.changedTick = w.maxChangedTick
+}
+
 func (w *window) insert(offset int64, c byte) {
 	w.buffer.Insert(offset, c)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 }
 
 func (w *window) replace(offset int64, c byte) {
 	w.buffer.Replace(offset, c)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 }
 
 func (w *window) undoReplace(offset int64) {
 	w.buffer.UndoReplace(offset)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 }
 
 func (w *window) replaceIn(start, end int64, c byte) {
 	w.buffer.ReplaceIn(start, end, c)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 }
 
 func (w *window) delete(offset int64) {
 	w.buffer.Delete(offset)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 }
 
 func (w *window) undo(count int64) {
 	for i := int64(0); i < mathutil.MaxInt64(count, 1); i++ {
-		buffer, _, offset, cursor := w.history.Undo()
+		buffer, _, offset, cursor, tick := w.history.Undo()
 		if buffer == nil {
 			return
 		}
-		w.buffer, w.offset, w.cursor = buffer, offset, cursor
+		w.buffer, w.offset, w.cursor, w.changedTick = buffer, offset, cursor, tick
 		w.length, _ = w.buffer.Len()
 	}
-	w.changedTick++
-	w.modified = true
 }
 
 func (w *window) redo(count int64) {
 	for i := int64(0); i < mathutil.MaxInt64(count, 1); i++ {
-		buffer, offset, cursor := w.history.Redo()
+		buffer, offset, cursor, tick := w.history.Redo()
 		if buffer == nil {
 			return
 		}
-		w.buffer, w.offset, w.cursor = buffer, offset, cursor
+		w.buffer, w.offset, w.cursor, w.changedTick = buffer, offset, cursor, tick
 		w.length, _ = w.buffer.Len()
 	}
-	w.changedTick++
-	w.modified = true
 }
 
 func (w *window) cursorUp(count int64) {
@@ -706,8 +703,7 @@ func (w *window) deleteBytes(count int64) *buffer.Buffer {
 	w.buffer.Cut(w.cursor, w.cursor+count)
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(w.cursor, mathutil.MaxInt64(w.length, 1)-1)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 	return b
 }
 
@@ -720,8 +716,7 @@ func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
 	w.buffer.Cut(w.cursor-count, w.cursor)
 	w.length, _ = w.buffer.Len()
 	w.cursor -= count
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 	return b
 }
 
@@ -734,7 +729,6 @@ func (w *window) increment(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
-	w.modified = true
 }
 
 func (w *window) decrement(count int64) {
@@ -746,7 +740,6 @@ func (w *window) decrement(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
-	w.modified = true
 }
 
 func (w *window) shiftLeft(count int64) {
@@ -758,7 +751,6 @@ func (w *window) shiftLeft(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
-	w.modified = true
 }
 
 func (w *window) shiftRight(count int64) {
@@ -770,7 +762,6 @@ func (w *window) shiftRight(count int64) {
 	if w.length == 0 {
 		w.length++
 	}
-	w.modified = true
 }
 
 func (w *window) showBinary() string {
@@ -994,8 +985,7 @@ func (w *window) cut() *buffer.Buffer {
 	w.buffer.Cut(start, end+1)
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(start, mathutil.MaxInt64(w.length, 1)-1)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 	return b
 }
 
@@ -1011,8 +1001,7 @@ func (w *window) paste(e event.Event) int64 {
 	l, _ := e.Buffer.Len()
 	w.length, _ = w.buffer.Len()
 	w.cursor = mathutil.MinInt64(mathutil.MaxInt64(pos+l*count-1, 0), mathutil.MaxInt64(w.length, 1)-1)
-	w.changedTick++
-	w.modified = true
+	w.updateTick()
 	return l * count
 }
 

@@ -12,6 +12,7 @@ type historyEntry struct {
 	buffer *buffer.Buffer
 	offset int64
 	cursor int64
+	tick   uint64
 }
 
 // NewHistory creates a new history manager.
@@ -20,8 +21,8 @@ func NewHistory() *History {
 }
 
 // Push a new buffer to the history.
-func (h *History) Push(buffer *buffer.Buffer, offset int64, cursor int64) {
-	newEntry := &historyEntry{buffer.Clone(), offset, cursor}
+func (h *History) Push(buffer *buffer.Buffer, offset int64, cursor int64, tick uint64) {
+	newEntry := &historyEntry{buffer.Clone(), offset, cursor, tick}
 	if len(h.entries)-1 > h.index {
 		h.index++
 		h.entries[h.index] = newEntry
@@ -33,23 +34,23 @@ func (h *History) Push(buffer *buffer.Buffer, offset int64, cursor int64) {
 }
 
 // Undo the history.
-func (h *History) Undo() (*buffer.Buffer, int, int64, int64) {
+func (h *History) Undo() (*buffer.Buffer, int, int64, int64, uint64) {
 	if h.index < 0 {
-		return nil, h.index, 0, 0
+		return nil, h.index, 0, 0, 0
 	}
 	if h.index > 0 {
 		h.index--
 	}
 	e := h.entries[h.index]
-	return e.buffer.Clone(), h.index, e.offset, e.cursor
+	return e.buffer.Clone(), h.index, e.offset, e.cursor, e.tick
 }
 
 // Redo the history.
-func (h *History) Redo() (*buffer.Buffer, int64, int64) {
+func (h *History) Redo() (*buffer.Buffer, int64, int64, uint64) {
 	if h.index == len(h.entries)-1 || h.index < 0 {
-		return nil, 0, 0
+		return nil, 0, 0, 0
 	}
 	h.index++
 	e := h.entries[h.index]
-	return e.buffer.Clone(), e.offset, e.cursor
+	return e.buffer.Clone(), e.offset, e.cursor, e.tick
 }
