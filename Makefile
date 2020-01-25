@@ -15,7 +15,7 @@ install:
 
 .PHONY: test
 test: build
-	go test -v ./...
+	go test -v -race -timeout 10s ./...
 
 .PHONY: lint
 lint: $(GOBIN)/golint
