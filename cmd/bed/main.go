@@ -81,11 +81,6 @@ func start(args []string) error {
 			return err
 		}
 	}
-	if err := editor.Run(); err != nil {
-		return err
-	}
-	if err := editor.Close(); err != nil {
-		return err
-	}
-	return nil
+	defer editor.Close()
+	return editor.Run()
 }
