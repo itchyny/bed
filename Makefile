@@ -33,7 +33,7 @@ $(GOBIN)/goxz:
 
 .PHONY: test
 test: build
-	go test -v -race -timeout 10s ./...
+	go test -v -race -timeout 30s ./...
 
 .PHONY: lint
 lint: $(GOBIN)/golint
