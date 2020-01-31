@@ -56,6 +56,9 @@ Options:
 		return exitCodeOK
 	}
 	if err := start(fs.Args()); err != nil {
+		if err, ok := err.(interface{ ExitCode() int }); ok {
+			return err.ExitCode()
+		}
 		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
 		return exitCodeErr
 	}

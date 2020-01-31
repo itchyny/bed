@@ -129,6 +129,7 @@ const (
 	Suspend
 	Quit
 	QuitAll
+	QuitErr
 	Write
 	WriteQuit
 	Info

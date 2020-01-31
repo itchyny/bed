@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -596,5 +597,38 @@ func TestEditorShift(t *testing.T) {
 	}
 	if expected := "\x90ello, \x0eorld!"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+}
+
+func TestEditorCmdlineQuitErr(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.OpenEmpty(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		for _, e := range []struct {
+			typ event.Type
+			ch  rune
+		}{
+			{event.StartCmdlineCommand, ':'},
+			{event.Rune, 'c'}, {event.Rune, 'q'}, {event.Rune, ' '}, {event.Rune, '4'}, {event.Rune, '2'},
+		} {
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
+		}
+		ui.Emit(event.Event{Type: event.ExecuteCmdline})
+	}()
+
+	if err, expected := editor.Run(), (&quitErr{42}); !reflect.DeepEqual(expected, err) {
+		t.Errorf("err should be %v but got: %v", expected, err)
+	}
+	if err := editor.err; err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
 	}
 }

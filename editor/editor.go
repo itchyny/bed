@@ -3,6 +3,8 @@ package editor
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/itchyny/bed/buffer"
@@ -58,8 +60,9 @@ func (e *Editor) Init() error {
 	return nil
 }
 
-func (e *Editor) listen() {
+func (e *Editor) listen() error {
 	var wg sync.WaitGroup
+	errCh := make(chan error, 1)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -78,10 +81,11 @@ func (e *Editor) listen() {
 		for {
 			select {
 			case ev := <-e.wmEventCh:
-				if redraw, finish := e.emit(ev); redraw {
+				if redraw, finish, err := e.emit(ev); redraw {
 					e.redrawCh <- struct{}{}
 				} else if finish {
 					close(e.quitCh)
+					errCh <- err
 				}
 			case <-e.quitCh:
 				return
@@ -94,17 +98,19 @@ func (e *Editor) listen() {
 		for {
 			select {
 			case ev := <-e.cmdEventCh:
-				if redraw, finish := e.emit(ev); redraw {
+				if redraw, finish, err := e.emit(ev); redraw {
 					e.redrawCh <- struct{}{}
 				} else if finish {
 					close(e.quitCh)
+					errCh <- err
 					return
 				}
 			case ev := <-e.uiEventCh:
-				if redraw, finish := e.emit(ev); redraw {
+				if redraw, finish, err := e.emit(ev); redraw {
 					e.redrawCh <- struct{}{}
 				} else if finish {
 					close(e.quitCh)
+					errCh <- err
 					return
 				}
 			case <-e.quitCh:
@@ -113,9 +119,27 @@ func (e *Editor) listen() {
 		}
 	}()
 	wg.Wait()
+	select {
+	case err := <-errCh:
+		return err
+	default:
+		return nil
+	}
 }
 
-func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
+type quitErr struct {
+	code int
+}
+
+func (err *quitErr) Error() string {
+	return fmt.Sprintf("exit with %d", err.code)
+}
+
+func (err *quitErr) ExitCode() int {
+	return err.code
+}
+
+func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 	e.mu.Lock()
 	if ev.Type != event.Redraw {
 		e.prevEventType = ev.Type
@@ -126,6 +150,24 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool) {
 			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
 			redraw = true
 		} else {
+			finish = true
+		}
+	case event.QuitErr:
+		args := strings.Fields(ev.Arg)
+		if len(args) > 1 {
+			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+			redraw = true
+		} else if len(args) > 0 {
+			n, er := strconv.Atoi(args[0])
+			if er != nil {
+				e.err, e.errtyp = fmt.Errorf("invalid argument for %s: %s", ev.CmdName, er), state.MessageError
+				redraw = true
+			} else {
+				err = &quitErr{n}
+				finish = true
+			}
+		} else {
+			err = &quitErr{1}
 			finish = true
 		}
 	case event.Suspend:
@@ -255,8 +297,7 @@ func (e *Editor) Run() error {
 	}
 	go e.ui.Run(defaultKeyManagers())
 	go e.cmdline.Run()
-	e.listen()
-	return nil
+	return e.listen()
 }
 
 func (e *Editor) redraw() (err error) {

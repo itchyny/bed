@@ -21,6 +21,7 @@ var commands = []command{
 	{"q[uit]", event.Quit},
 	{"qa[ll]", event.QuitAll},
 	{"quita[ll]", event.QuitAll},
+	{"cq[uit]", event.QuitErr},
 	{"w[rite]", event.Write},
 	{"wq", event.WriteQuit},
 	{"x[it]", event.WriteQuit},
