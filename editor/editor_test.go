@@ -51,6 +51,9 @@ func (ui *testUI) Emit(e event.Event) {
 	<-ui.initCh
 	ui.mu.Lock()
 	defer ui.mu.Unlock()
+	if e.Type == event.ExecuteCmdline {
+		time.Sleep(100 * time.Millisecond)
+	}
 	ui.eventCh <- e
 	switch e.Type {
 	case event.Write, event.WriteQuit, event.StartCmdlineCommand, event.ExecuteCmdline:
