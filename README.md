@@ -43,7 +43,7 @@ So if you have experience with Vim, you will notice most of basic operations of 
 - File operations
   - `:edit`, `:enew`, `:new`, `:vnew`
 - Quit and save
-  - `:quit`, `:qall`, `:write`, `:wq`, `:xit`, `:xall`
+  - `:quit`, `:qall`, `:write`, `:wq`, `:xit`, `:xall`, `:cquit`
 - Window operations
   - `:wincmd [nlhkjtbpKJHL]`, `<C-w>[nlhkjtbpKJHL]`
 - Mode operations
