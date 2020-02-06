@@ -765,10 +765,9 @@ func TestWindowInsertByte(t *testing.T) {
 
 	window.cursorNext(mode.Normal, 7)
 	window.startInsert()
-	s, _ := window.state(width, height)
 
 	window.insertByte(mode.Insert, 0x04)
-	s, _ = window.state(width, height)
+	s, _ := window.state(width, height)
 	if s.Pending != true {
 		t.Errorf("s.Pending should be %v but got %v", true, s.Pending)
 	}
