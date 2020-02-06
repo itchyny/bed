@@ -329,6 +329,9 @@ func TestManagerCopyCutPaste(t *testing.T) {
 	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	f, err := ioutil.TempFile("", "bed-test-manager-copy-cut-paste")
+	if err != nil {
+		t.Errorf("err should be nil but got %v", err)
+	}
 	str := "Hello, world!"
 	_, err = f.WriteString(str)
 	if err != nil {
