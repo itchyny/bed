@@ -55,6 +55,9 @@ func TestManagerOpenStates(t *testing.T) {
 	wm.Init(eventCh, redrawCh)
 	wm.SetSize(110, 20)
 	f, err := ioutil.TempFile("", "bed-test-manager-open")
+	if err != nil {
+		t.Errorf("err should be nil but got %v", err)
+	}
 	str := "Hello, world! こんにちは、世界！"
 	n, err := f.WriteString(str)
 	if n != 41 {
