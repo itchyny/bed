@@ -262,12 +262,15 @@ func TestEditorWritePartial(t *testing.T) {
 
 func TestEditorWriteVisualSelection(t *testing.T) {
 	f1, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection1")
-	f2, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection2")
-	defer os.Remove(f1.Name())
-	defer os.Remove(f2.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
+	defer os.Remove(f1.Name())
+	f2, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection2")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	defer os.Remove(f2.Name())
 	str := "Hello, world!"
 	n, err := f1.WriteString(str)
 	if n != 13 {
