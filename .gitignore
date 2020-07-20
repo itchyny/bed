@@ -1,3 +1,6 @@
 /bed
 /goxz
 /CREDITS
+*.exe
+*.test
+*.out
