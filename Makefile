@@ -25,11 +25,18 @@ $(GOBIN)/gobump:
 	@cd && go get github.com/x-motemen/gobump/cmd/gobump
 
 .PHONY: cross
-cross: $(GOBIN)/goxz
+cross: $(GOBIN)/goxz CREDITS
 	goxz -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) ./cmd/$(BIN)
 
 $(GOBIN)/goxz:
 	cd && go get github.com/Songmu/goxz/cmd/goxz
+
+CREDITS: $(GOBIN)/gocredits go.sum
+	go mod tidy
+	gocredits . > $@
+
+$(GOBIN)/gocredits:
+	cd && go get github.com/Songmu/gocredits/cmd/gocredits
 
 .PHONY: test
 test: build
@@ -45,7 +52,7 @@ $(GOBIN)/golint:
 
 .PHONY: clean
 clean:
-	rm -rf $(BIN)
+	rm -rf $(BIN) goxz CREDITS
 	go clean ./...
 
 .PHONY: bump
