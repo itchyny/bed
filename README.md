@@ -1,4 +1,4 @@
-# bed [![CI Status](https://github.com/itchyny/bed/workflows/CI/badge.svg)](https://github.com/itchyny/bed/actions)
+# bed [![CI Status][ci-badge]][ci-url] [![Go Report Card][goreportcard-badge]][goreportcard-url] [![MIT License][license-badge]][license-url]
 Binary editor written in Go
 
 ## Screenshot
@@ -61,3 +61,10 @@ itchyny (https://github.com/itchyny)
 
 ## License
 This software is released under the MIT License, see LICENSE.
+
+[ci-url]: https://github.com/itchyny/bed/actions
+[ci-badge]: https://github.com/itchyny/bed/workflows/CI/badge.svg
+[goreportcard-url]: https://goreportcard.com/report/github.com/itchyny/bed
+[goreportcard-badge]: https://goreportcard.com/badge/github.com/itchyny/bed
+[license-url]: https://github.com/itchyny/bed/blob/master/LICENSE
+[license-badge]: http://img.shields.io/badge/license-MIT-blue.svg
