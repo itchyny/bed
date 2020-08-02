@@ -127,11 +127,11 @@ func TestLayout(t *testing.T) {
 	}
 
 	expectedMap := map[int]Window{
-		0: Window{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
-		1: Window{Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10},
-		2: Window{Index: 2, Active: false, left: 0, top: 0, width: 10, height: 5},
-		3: Window{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5},
-		4: Window{Index: 4, Active: true, left: 6, top: 5, width: 4, height: 5},
+		0: {Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		1: {Index: 1, Active: false, left: 11, top: 0, width: 4, height: 10},
+		2: {Index: 2, Active: false, left: 0, top: 0, width: 10, height: 5},
+		3: {Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5},
+		4: {Index: 4, Active: true, left: 6, top: 5, width: 4, height: 5},
 	}
 
 	if !reflect.DeepEqual(layout.Collect(), expectedMap) {
@@ -181,10 +181,10 @@ func TestLayout(t *testing.T) {
 	}
 
 	expectedMap = map[int]Window{
-		0: Window{Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
-		1: Window{Index: 1, Active: false, left: 8, top: 0, width: 7, height: 10},
-		2: Window{Index: 2, Active: false, left: 0, top: 0, width: 7, height: 5},
-		3: Window{Index: 3, Active: true, left: 0, top: 5, width: 7, height: 5},
+		0: {Index: 0, Active: false, left: 0, top: 10, width: 15, height: 5},
+		1: {Index: 1, Active: false, left: 8, top: 0, width: 7, height: 10},
+		2: {Index: 2, Active: false, left: 0, top: 0, width: 7, height: 5},
+		3: {Index: 3, Active: true, left: 0, top: 5, width: 7, height: 5},
 	}
 
 	if !reflect.DeepEqual(layout.Collect(), expectedMap) {

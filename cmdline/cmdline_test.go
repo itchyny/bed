@@ -26,15 +26,15 @@ func TestCmdlineRun(t *testing.T) {
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	go c.Run()
 	events := []event.Event{
-		event.Event{Type: event.StartCmdlineCommand}, event.Event{Type: event.Nop},
-		event.Event{Type: event.Rune, Rune: 't'}, event.Event{Type: event.Rune, Rune: 'e'},
-		event.Event{Type: event.CursorLeft}, event.Event{Type: event.CursorRight},
-		event.Event{Type: event.CursorHead}, event.Event{Type: event.CursorEnd},
-		event.Event{Type: event.BackspaceCmdline}, event.Event{Type: event.DeleteCmdline},
-		event.Event{Type: event.DeleteWordCmdline}, event.Event{Type: event.ClearToHeadCmdline},
-		event.Event{Type: event.ClearCmdline}, event.Event{Type: event.Rune, Rune: 't'},
-		event.Event{Type: event.Rune, Rune: 'e'}, event.Event{Type: event.ExecuteCmdline},
-		event.Event{Type: event.StartCmdlineCommand}, event.Event{Type: event.ExecuteCmdline},
+		{Type: event.StartCmdlineCommand}, {Type: event.Nop},
+		{Type: event.Rune, Rune: 't'}, {Type: event.Rune, Rune: 'e'},
+		{Type: event.CursorLeft}, {Type: event.CursorRight},
+		{Type: event.CursorHead}, {Type: event.CursorEnd},
+		{Type: event.BackspaceCmdline}, {Type: event.DeleteCmdline},
+		{Type: event.DeleteWordCmdline}, {Type: event.ClearToHeadCmdline},
+		{Type: event.ClearCmdline}, {Type: event.Rune, Rune: 't'},
+		{Type: event.Rune, Rune: 'e'}, {Type: event.ExecuteCmdline},
+		{Type: event.StartCmdlineCommand}, {Type: event.ExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events {
@@ -585,15 +585,15 @@ func TestCmdlineSearch(t *testing.T) {
 	}()
 	go c.Run()
 	events1 := []event.Event{
-		event.Event{Type: event.StartCmdlineSearchForward},
-		event.Event{Type: event.Rune, Rune: 't'}, event.Event{Type: event.Rune, Rune: 't'},
-		event.Event{Type: event.CursorLeft}, event.Event{Type: event.Rune, Rune: 'e'},
-		event.Event{Type: event.Rune, Rune: 's'}, event.Event{Type: event.ExecuteCmdline},
+		{Type: event.StartCmdlineSearchForward},
+		{Type: event.Rune, Rune: 't'}, {Type: event.Rune, Rune: 't'},
+		{Type: event.CursorLeft}, {Type: event.Rune, Rune: 'e'},
+		{Type: event.Rune, Rune: 's'}, {Type: event.ExecuteCmdline},
 	}
 	events2 := []event.Event{
-		event.Event{Type: event.StartCmdlineSearchBackward},
-		event.Event{Type: event.Rune, Rune: 'x'}, event.Event{Type: event.Rune, Rune: 'y'},
-		event.Event{Type: event.Rune, Rune: 'z'}, event.Event{Type: event.ExecuteCmdline},
+		{Type: event.StartCmdlineSearchBackward},
+		{Type: event.Rune, Rune: 'x'}, {Type: event.Rune, Rune: 'y'},
+		{Type: event.Rune, Rune: 'z'}, {Type: event.ExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events1 {

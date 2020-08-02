@@ -35,14 +35,14 @@ func createFileInfoList(infos []*fileInfo) []os.FileInfo {
 func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 	if f.path == "." {
 		return createFileInfoList([]*fileInfo{
-			&fileInfo{"README.md", false},
-			&fileInfo{"Makefile", false},
-			&fileInfo{".gitignore", false},
-			&fileInfo{"Gopkg.toml", false},
-			&fileInfo{"editor", true},
-			&fileInfo{"cmdline", true},
-			&fileInfo{"buffer", true},
-			&fileInfo{"build", true},
+			{"README.md", false},
+			{"Makefile", false},
+			{".gitignore", false},
+			{"Gopkg.toml", false},
+			{"editor", true},
+			{"cmdline", true},
+			{"buffer", true},
+			{"build", true},
 		}), nil
 	}
 	homeDir, err := os.UserHomeDir()
@@ -51,29 +51,29 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 	}
 	if f.path == homeDir {
 		return createFileInfoList([]*fileInfo{
-			&fileInfo{"Documents", true},
-			&fileInfo{"Pictures", true},
-			&fileInfo{"Library", true},
-			&fileInfo{".vimrc", false},
-			&fileInfo{".zshrc", false},
-			&fileInfo{"example.txt", false},
+			{"Documents", true},
+			{"Pictures", true},
+			{"Library", true},
+			{".vimrc", false},
+			{".zshrc", false},
+			{"example.txt", false},
 		}), nil
 	}
 	if f.path == "/" {
 		return createFileInfoList([]*fileInfo{
-			&fileInfo{"bin", true},
-			&fileInfo{"tmp", true},
-			&fileInfo{"var", true},
-			&fileInfo{"usr", true},
+			{"bin", true},
+			{"tmp", true},
+			{"var", true},
+			{"usr", true},
 		}), nil
 	}
 	if f.path == "/bin" {
 		return createFileInfoList([]*fileInfo{
-			&fileInfo{"cp", false},
-			&fileInfo{"echo", false},
-			&fileInfo{"rm", false},
-			&fileInfo{"ls", false},
-			&fileInfo{"kill", false},
+			{"cp", false},
+			{"echo", false},
+			{"rm", false},
+			{"ls", false},
+			{"kill", false},
 		}), nil
 	}
 	return nil, nil
