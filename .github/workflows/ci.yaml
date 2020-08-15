@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - name: Checkout code
-      uses: actions/checkout@master
+      uses: actions/checkout@main
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
