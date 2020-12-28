@@ -14,6 +14,8 @@ var commands = []command{
 	{"vne[w]", event.Vnew},
 	{"winc[md]", event.Wincmd},
 
+	{"%", event.CursorGoto},
+
 	{"u[ndo]", event.Undo},
 	{"red[o]", event.Redo},
 

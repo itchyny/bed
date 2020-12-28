@@ -493,15 +493,30 @@ func (w *window) cursorEnd(count int64) {
 
 func (w *window) cursorGoto(e event.Event) {
 	if e.Range != nil {
+		percentage := e.CmdName == "%"
 		if e.Range.To != nil {
-			w.cursorGotoPos(e.Range.To)
+			w.cursorGotoPos(e.Range.To, percentage)
 		} else if e.Range.From != nil {
-			w.cursorGotoPos(e.Range.From)
+			w.cursorGotoPos(e.Range.From, percentage)
 		}
 	}
 }
 
-func (w *window) cursorGotoPos(pos event.Position) {
+func (w *window) cursorGotoPos(pos event.Position, percentage bool) {
+	if percentage {
+		switch p := pos.(type) {
+		case event.Absolute:
+			pos = event.Absolute{Offset: p.Offset * w.length / 100}
+		case event.Relative:
+			pos = event.Relative{Offset: p.Offset * w.length / 100}
+		case event.End:
+			pos = event.End{Offset: p.Offset * w.length / 100}
+		case event.VisualStart:
+			pos = event.VisualStart{Offset: p.Offset * w.length / 100}
+		case event.VisualEnd:
+			pos = event.VisualEnd{Offset: p.Offset * w.length / 100}
+		}
+	}
 	if offset, err := w.positionToOffset(pos); err == nil {
 		w.cursor = mathutil.MaxInt64(mathutil.MinInt64(offset, mathutil.MaxInt64(w.length, 1)-1), 0)
 		if w.cursor < w.offset {

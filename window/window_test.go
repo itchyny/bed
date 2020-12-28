@@ -372,6 +372,48 @@ func TestWindowCursorMotions(t *testing.T) {
 	if s.Offset != 0 {
 		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
+
+	window.cursorGotoPos(event.Absolute{Offset: 0}, false)
+	s, _ = window.state(width, height)
+	if s.Cursor != 0 {
+		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Absolute{Offset: 50}, false)
+	s, _ = window.state(width, height)
+	if s.Cursor != 50 {
+		t.Errorf("s.Cursor should be %d but got %d", 50, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Absolute{Offset: 100}, false)
+	s, _ = window.state(width, height)
+	if s.Cursor != 100 {
+		t.Errorf("s.Cursor should be %d but got %d", 100, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Relative{Offset: -10}, false)
+	s, _ = window.state(width, height)
+	if s.Cursor != 90 {
+		t.Errorf("s.Cursor should be %d but got %d", 90, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Absolute{Offset: 30}, true)
+	s, _ = window.state(width, height)
+	if s.Cursor != 390 {
+		t.Errorf("s.Cursor should be %d but got %d", 390, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Relative{Offset: 30}, true)
+	s, _ = window.state(width, height)
+	if s.Cursor != 780 {
+		t.Errorf("s.Cursor should be %d but got %d", 780, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.End{Offset: -30}, true)
+	s, _ = window.state(width, height)
+	if s.Cursor != 909 {
+		t.Errorf("s.Cursor should be %d but got %d", 909, s.Cursor)
+	}
 }
 
 func TestWindowScreenMotions(t *testing.T) {

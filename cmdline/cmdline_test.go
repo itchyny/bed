@@ -3,6 +3,7 @@ package cmdline
 import (
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -471,14 +472,21 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		{"  0xfedcba  ", event.Absolute{Offset: 0xfedcba}, event.CursorGoto},
 		{"  +0x44ef ", event.Relative{Offset: 0x44ef}, event.CursorGoto},
 		{"  -0xff ", event.Relative{Offset: -0xff}, event.CursorGoto},
+		{"10%", event.Absolute{Offset: 10}, event.CursorGoto},
+		{"+10%", event.Relative{Offset: 10}, event.CursorGoto},
+		{"$-10%", event.End{Offset: -10}, event.CursorGoto},
 	} {
 		c.clear()
 		c.cmdline = []rune(cmd.cmd)
 		c.typ = ':'
 		c.execute()
 		e := <-ch
-		if e.CmdName != "goto" {
-			t.Errorf("cmdline should report command name %q but got %q", "goto", e.CmdName)
+		expected := "goto"
+		if strings.HasSuffix(cmd.cmd, "%") {
+			expected = "%"
+		}
+		if e.CmdName != expected {
+			t.Errorf("cmdline should report command name %q but got %q", expected, e.CmdName)
 		}
 		if !reflect.DeepEqual(e.Range.From, cmd.pos) {
 			t.Errorf("cmdline should report command with position %#v but got %#v", cmd.pos, e.Range.From)
