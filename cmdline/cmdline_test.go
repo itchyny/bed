@@ -472,6 +472,9 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		{"  0xfedcba  ", event.Absolute{Offset: 0xfedcba}, event.CursorGoto},
 		{"  +0x44ef ", event.Relative{Offset: 0x44ef}, event.CursorGoto},
 		{"  -0xff ", event.Relative{Offset: -0xff}, event.CursorGoto},
+		{"10go", event.Absolute{Offset: 10}, event.CursorGoto},
+		{"+10 got", event.Relative{Offset: 10}, event.CursorGoto},
+		{"$-10 goto", event.End{Offset: -10}, event.CursorGoto},
 		{"10%", event.Absolute{Offset: 10}, event.CursorGoto},
 		{"+10%", event.Relative{Offset: 10}, event.CursorGoto},
 		{"$-10%", event.End{Offset: -10}, event.CursorGoto},
@@ -484,6 +487,8 @@ func TestCmdlineExecuteGoto(t *testing.T) {
 		expected := "goto"
 		if strings.HasSuffix(cmd.cmd, "%") {
 			expected = "%"
+		} else if strings.Contains(cmd.cmd, "go") {
+			expected = "go[to]"
 		}
 		if e.CmdName != expected {
 			t.Errorf("cmdline should report command name %q but got %q", expected, e.CmdName)

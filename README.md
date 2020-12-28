@@ -50,6 +50,8 @@ So if you have experience with Vim, you will notice most of basic operations of 
   - `i`, `I`, `a`, `A`, `R`, `<ESC>`, `v`
 - Undo and redo
   - `:undo`, `u`, `:redo`, `<C-r>`
+- Moving cursor
+  - `:{count}`, `:{count}goto`, `:{count}%`
 - Searching
   - `/`, `?`, `n`, `N`, `<C-c>` (to abort)
 

@@ -493,17 +493,30 @@ func (w *window) cursorEnd(count int64) {
 
 func (w *window) cursorGoto(e event.Event) {
 	if e.Range != nil {
-		percentage := e.CmdName == "%"
 		if e.Range.To != nil {
-			w.cursorGotoPos(e.Range.To, percentage)
+			w.cursorGotoPos(e.Range.To, e.CmdName)
 		} else if e.Range.From != nil {
-			w.cursorGotoPos(e.Range.From, percentage)
+			w.cursorGotoPos(e.Range.From, e.CmdName)
 		}
 	}
 }
 
-func (w *window) cursorGotoPos(pos event.Position, percentage bool) {
-	if percentage {
+func (w *window) cursorGotoPos(pos event.Position, cmdName string) {
+	switch cmdName {
+	case "go[to]":
+		switch p := pos.(type) {
+		case event.Absolute:
+			pos = event.Absolute{Offset: p.Offset * w.width}
+		case event.Relative:
+			pos = event.Relative{Offset: p.Offset * w.width}
+		case event.End:
+			pos = event.End{Offset: p.Offset * w.width}
+		case event.VisualStart:
+			pos = event.VisualStart{Offset: p.Offset * w.width}
+		case event.VisualEnd:
+			pos = event.VisualEnd{Offset: p.Offset * w.width}
+		}
+	case "%":
 		switch p := pos.(type) {
 		case event.Absolute:
 			pos = event.Absolute{Offset: p.Offset * w.length / 100}

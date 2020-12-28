@@ -373,46 +373,64 @@ func TestWindowCursorMotions(t *testing.T) {
 		t.Errorf("s.Offset should be %d but got %d", 0, s.Offset)
 	}
 
-	window.cursorGotoPos(event.Absolute{Offset: 0}, false)
+	window.cursorGotoPos(event.Absolute{Offset: 0}, "goto")
 	s, _ = window.state(width, height)
 	if s.Cursor != 0 {
 		t.Errorf("s.Cursor should be %d but got %d", 0, s.Cursor)
 	}
 
-	window.cursorGotoPos(event.Absolute{Offset: 50}, false)
+	window.cursorGotoPos(event.Absolute{Offset: 50}, "goto")
 	s, _ = window.state(width, height)
 	if s.Cursor != 50 {
 		t.Errorf("s.Cursor should be %d but got %d", 50, s.Cursor)
 	}
 
-	window.cursorGotoPos(event.Absolute{Offset: 100}, false)
+	window.cursorGotoPos(event.Absolute{Offset: 100}, "goto")
 	s, _ = window.state(width, height)
 	if s.Cursor != 100 {
 		t.Errorf("s.Cursor should be %d but got %d", 100, s.Cursor)
 	}
 
-	window.cursorGotoPos(event.Relative{Offset: -10}, false)
+	window.cursorGotoPos(event.Relative{Offset: -10}, "goto")
 	s, _ = window.state(width, height)
 	if s.Cursor != 90 {
 		t.Errorf("s.Cursor should be %d but got %d", 90, s.Cursor)
 	}
 
-	window.cursorGotoPos(event.Absolute{Offset: 30}, true)
+	window.cursorGotoPos(event.Absolute{Offset: 30}, "%")
 	s, _ = window.state(width, height)
 	if s.Cursor != 390 {
 		t.Errorf("s.Cursor should be %d but got %d", 390, s.Cursor)
 	}
 
-	window.cursorGotoPos(event.Relative{Offset: 30}, true)
+	window.cursorGotoPos(event.Relative{Offset: 30}, "%")
 	s, _ = window.state(width, height)
 	if s.Cursor != 780 {
 		t.Errorf("s.Cursor should be %d but got %d", 780, s.Cursor)
 	}
 
-	window.cursorGotoPos(event.End{Offset: -30}, true)
+	window.cursorGotoPos(event.End{Offset: -30}, "%")
 	s, _ = window.state(width, height)
 	if s.Cursor != 909 {
 		t.Errorf("s.Cursor should be %d but got %d", 909, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Absolute{Offset: 30}, "go[to]")
+	s, _ = window.state(width, height)
+	if s.Cursor != 480 {
+		t.Errorf("s.Cursor should be %d but got %d", 480, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.Relative{Offset: 30}, "go[to]")
+	s, _ = window.state(width, height)
+	if s.Cursor != 960 {
+		t.Errorf("s.Cursor should be %d but got %d", 960, s.Cursor)
+	}
+
+	window.cursorGotoPos(event.End{Offset: -30}, "go[to]")
+	s, _ = window.state(width, height)
+	if s.Cursor != 819 {
+		t.Errorf("s.Cursor should be %d but got %d", 819, s.Cursor)
 	}
 }
 
