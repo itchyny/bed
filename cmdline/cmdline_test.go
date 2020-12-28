@@ -27,15 +27,24 @@ func TestCmdlineRun(t *testing.T) {
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	go c.Run()
 	events := []event.Event{
-		{Type: event.StartCmdlineCommand}, {Type: event.Nop},
-		{Type: event.Rune, Rune: 't'}, {Type: event.Rune, Rune: 'e'},
-		{Type: event.CursorLeft}, {Type: event.CursorRight},
-		{Type: event.CursorHead}, {Type: event.CursorEnd},
-		{Type: event.BackspaceCmdline}, {Type: event.DeleteCmdline},
-		{Type: event.DeleteWordCmdline}, {Type: event.ClearToHeadCmdline},
-		{Type: event.ClearCmdline}, {Type: event.Rune, Rune: 't'},
-		{Type: event.Rune, Rune: 'e'}, {Type: event.ExecuteCmdline},
-		{Type: event.StartCmdlineCommand}, {Type: event.ExecuteCmdline},
+		{Type: event.StartCmdlineCommand},
+		{Type: event.Nop},
+		{Type: event.Rune, Rune: 't'},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.CursorLeft},
+		{Type: event.CursorRight},
+		{Type: event.CursorHead},
+		{Type: event.CursorEnd},
+		{Type: event.BackspaceCmdline},
+		{Type: event.DeleteCmdline},
+		{Type: event.DeleteWordCmdline},
+		{Type: event.ClearToHeadCmdline},
+		{Type: event.ClearCmdline},
+		{Type: event.Rune, Rune: 't'},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.ExecuteCmdline},
+		{Type: event.StartCmdlineCommand},
+		{Type: event.ExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events {
@@ -599,14 +608,19 @@ func TestCmdlineSearch(t *testing.T) {
 	go c.Run()
 	events1 := []event.Event{
 		{Type: event.StartCmdlineSearchForward},
-		{Type: event.Rune, Rune: 't'}, {Type: event.Rune, Rune: 't'},
-		{Type: event.CursorLeft}, {Type: event.Rune, Rune: 'e'},
-		{Type: event.Rune, Rune: 's'}, {Type: event.ExecuteCmdline},
+		{Type: event.Rune, Rune: 't'},
+		{Type: event.Rune, Rune: 't'},
+		{Type: event.CursorLeft},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.Rune, Rune: 's'},
+		{Type: event.ExecuteCmdline},
 	}
 	events2 := []event.Event{
 		{Type: event.StartCmdlineSearchBackward},
-		{Type: event.Rune, Rune: 'x'}, {Type: event.Rune, Rune: 'y'},
-		{Type: event.Rune, Rune: 'z'}, {Type: event.ExecuteCmdline},
+		{Type: event.Rune, Rune: 'x'},
+		{Type: event.Rune, Rune: 'y'},
+		{Type: event.Rune, Rune: 'z'},
+		{Type: event.ExecuteCmdline},
 	}
 	go func() {
 		for _, e := range events1 {

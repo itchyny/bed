@@ -131,10 +131,22 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 			typ event.Type
 			ch  rune
 		}{
-			{event.StartInsert, '-'}, {event.Rune, '4'}, {event.Rune, '8'}, {event.Rune, '0'}, {event.Rune, '0'},
-			{event.Rune, 'f'}, {event.Rune, 'a'}, {event.ExitInsert, '-'}, {event.CursorLeft, '-'}, {event.Decrement, '-'},
-			{event.StartInsertHead, '-'}, {event.Rune, '1'}, {event.Rune, '2'}, {event.ExitInsert, '-'},
-			{event.CursorEnd, '-'}, {event.Delete, '-'},
+			{event.StartInsert, '-'},
+			{event.Rune, '4'},
+			{event.Rune, '8'},
+			{event.Rune, '0'},
+			{event.Rune, '0'},
+			{event.Rune, 'f'},
+			{event.Rune, 'a'},
+			{event.ExitInsert, '-'},
+			{event.CursorLeft, '-'},
+			{event.Decrement, '-'},
+			{event.StartInsertHead, '-'},
+			{event.Rune, '1'},
+			{event.Rune, '2'},
+			{event.ExitInsert, '-'},
+			{event.CursorEnd, '-'},
+			{event.Delete, '-'},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
 		}
@@ -299,9 +311,12 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 			ch    rune
 			count int64
 		}{
-			{event.CursorNext, 'w', 4}, {event.StartVisual, 'v', 0},
-			{event.CursorNext, 'w', 5}, {event.StartCmdlineCommand, ':', 0},
-			{event.Rune, 'w', 0}, {event.Rune, ' ', 0},
+			{event.CursorNext, 'w', 4},
+			{event.StartVisual, 'v', 0},
+			{event.CursorNext, 'w', 5},
+			{event.StartCmdlineCommand, ':', 0},
+			{event.Rune, 'w', 0},
+			{event.Rune, ' ', 0},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count})
 		}
@@ -343,7 +358,10 @@ func TestEditorCmdlineQuit(t *testing.T) {
 			typ event.Type
 			ch  rune
 		}{
-			{event.StartCmdlineCommand, ':'}, {event.Rune, 'q'}, {event.Rune, 'u'}, {event.Rune, 'i'},
+			{event.StartCmdlineCommand, ':'},
+			{event.Rune, 'q'},
+			{event.Rune, 'u'},
+			{event.Rune, 'i'},
 			{event.Rune, 't'},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
@@ -382,25 +400,45 @@ func TestEditorReplace(t *testing.T) {
 			count int64
 			arg   string
 		}{
-			{event.CursorNext, 'w', 2, ""}, {event.StartReplace, 'R', 0, ""},
-			{event.SwitchFocus, '\x00', 0, ""}, {event.Rune, 'a', 0, ""},
-			{event.Rune, 'b', 0, ""}, {event.Rune, 'c', 0, ""},
-			{event.CursorNext, 'w', 2, ""}, {event.Rune, 'd', 0, ""}, {event.Rune, 'e', 0, ""},
-			{event.ExitInsert, '\x00', 0, ""}, {event.CursorLeft, 'b', 5, ""},
-			{event.StartReplaceByte, 'r', 0, ""}, {event.SwitchFocus, '\x00', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '2', 0, ""},
-			{event.CursorNext, 'w', 2, ""}, {event.StartReplace, 'R', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '2', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '3', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '4', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '5', 0, ""},
-			{event.Backspace, '\x00', 0, ""}, {event.ExitInsert, '\x00', 0, ""},
-			{event.CursorEnd, '\x00', 0, ""}, {event.StartReplace, '\x00', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '6', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '7', 0, ""},
-			{event.Rune, '7', 0, ""}, {event.Rune, '8', 0, ""},
-			{event.Backspace, '\x00', 0, ""}, {event.ExitInsert, '\x00', 0, ""},
-			{event.CursorHead, '\x00', 0, ""}, {event.DeleteByte, '\x00', 0, ""},
+			{event.CursorNext, 'w', 2, ""},
+			{event.StartReplace, 'R', 0, ""},
+			{event.SwitchFocus, '\x00', 0, ""},
+			{event.Rune, 'a', 0, ""},
+			{event.Rune, 'b', 0, ""},
+			{event.Rune, 'c', 0, ""},
+			{event.CursorNext, 'w', 2, ""},
+			{event.Rune, 'd', 0, ""},
+			{event.Rune, 'e', 0, ""},
+			{event.ExitInsert, '\x00', 0, ""},
+			{event.CursorLeft, 'b', 5, ""},
+			{event.StartReplaceByte, 'r', 0, ""},
+			{event.SwitchFocus, '\x00', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '2', 0, ""},
+			{event.CursorNext, 'w', 2, ""},
+			{event.StartReplace, 'R', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '2', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '3', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '4', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '5', 0, ""},
+			{event.Backspace, '\x00', 0, ""},
+			{event.ExitInsert, '\x00', 0, ""},
+			{event.CursorEnd, '\x00', 0, ""},
+			{event.StartReplace, '\x00', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '6', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '7', 0, ""},
+			{event.Rune, '8', 0, ""},
+			{event.Backspace, '\x00', 0, ""},
+			{event.ExitInsert, '\x00', 0, ""},
+			{event.CursorHead, '\x00', 0, ""},
+			{event.DeleteByte, '\x00', 0, ""},
 			{event.Write, 'w', 0, f2.Name()},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
@@ -446,12 +484,18 @@ func TestEditorCopyCutPaste(t *testing.T) {
 			count int64
 			arg   string
 		}{
-			{event.CursorNext, 'w', 2, ""}, {event.StartVisual, 'v', 0, ""},
-			{event.CursorNext, 'w', 5, ""}, {event.Copy, 'y', 0, ""},
-			{event.CursorNext, 'w', 3, ""}, {event.Paste, 'p', 0, ""},
-			{event.CursorPrev, 'b', 2, ""}, {event.StartVisual, 'v', 0, ""},
-			{event.CursorPrev, 'b', 5, ""}, {event.Cut, 'd', 0, ""},
-			{event.CursorNext, 'w', 5, ""}, {event.PastePrev, 'P', 0, ""},
+			{event.CursorNext, 'w', 2, ""},
+			{event.StartVisual, 'v', 0, ""},
+			{event.CursorNext, 'w', 5, ""},
+			{event.Copy, 'y', 0, ""},
+			{event.CursorNext, 'w', 3, ""},
+			{event.Paste, 'p', 0, ""},
+			{event.CursorPrev, 'b', 2, ""},
+			{event.StartVisual, 'v', 0, ""},
+			{event.CursorPrev, 'b', 5, ""},
+			{event.Cut, 'd', 0, ""},
+			{event.CursorNext, 'w', 5, ""},
+			{event.PastePrev, 'P', 0, ""},
 			{event.Write, 'w', 0, f2.Name()},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch, Count: e.count, Arg: e.arg})
@@ -619,7 +663,11 @@ func TestEditorCmdlineQuitErr(t *testing.T) {
 			ch  rune
 		}{
 			{event.StartCmdlineCommand, ':'},
-			{event.Rune, 'c'}, {event.Rune, 'q'}, {event.Rune, ' '}, {event.Rune, '4'}, {event.Rune, '2'},
+			{event.Rune, 'c'},
+			{event.Rune, 'q'},
+			{event.Rune, ' '},
+			{event.Rune, '4'},
+			{event.Rune, '2'},
 		} {
 			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
 		}

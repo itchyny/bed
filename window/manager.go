@@ -550,7 +550,7 @@ func (m *Manager) filePerm(name string) os.FileMode {
 			return f.perm // keep the permission of the original file
 		}
 	}
-	return os.FileMode(0644)
+	return os.FileMode(0o644)
 }
 
 func (m *Manager) opened(name string) bool {
