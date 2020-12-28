@@ -28,8 +28,8 @@ func TestManagerOpenEmpty(t *testing.T) {
 	if windowIndex != 0 {
 		t.Errorf("window index should be %d but got %d", 0, windowIndex)
 	}
-	if ws.Name != "" {
-		t.Errorf("name should be %q but got %q", "", ws.Name)
+	if expected := ""; ws.Name != expected {
+		t.Errorf("name should be %q but got %q", expected, ws.Name)
 	}
 	if ws.Width != 16 {
 		t.Errorf("width should be %d but got %d", 16, ws.Width)
@@ -40,8 +40,8 @@ func TestManagerOpenEmpty(t *testing.T) {
 	if ws.Length != int64(0) {
 		t.Errorf("Length should be %d but got %d", int64(0), ws.Length)
 	}
-	if !strings.HasPrefix(string(ws.Bytes), "\x00") {
-		t.Errorf("Bytes should start with %q but got %q", "\x00", string(ws.Bytes))
+	if expected := "\x00"; !strings.HasPrefix(string(ws.Bytes), expected) {
+		t.Errorf("Bytes should start with %q but got %q", expected, string(ws.Bytes))
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -81,8 +81,8 @@ func TestManagerOpenStates(t *testing.T) {
 	if windowIndex != 0 {
 		t.Errorf("window index should be %d but got %d", 0, windowIndex)
 	}
-	if ws.Name != filepath.Base(f.Name()) {
-		t.Errorf("name should be %q but got %q", filepath.Base(f.Name()), ws.Name)
+	if expected := filepath.Base(f.Name()); ws.Name != expected {
+		t.Errorf("name should be %q but got %q", expected, ws.Name)
 	}
 	if ws.Width != 16 {
 		t.Errorf("width should be %d but got %d", 16, ws.Width)
@@ -136,8 +136,8 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if windowIndex != 0 {
 		t.Errorf("window index should be %d but got %d", 0, windowIndex)
 	}
-	if ws.Name != filepath.Base(f.Name()) {
-		t.Errorf("name should be %q but got %q", filepath.Base(f.Name()), ws.Name)
+	if expected := filepath.Base(f.Name()); ws.Name != expected {
+		t.Errorf("name should be %q but got %q", expected, ws.Name)
 	}
 	if ws.Width != 16 {
 		t.Errorf("width should be %d but got %d", 16, ws.Width)
@@ -215,67 +215,67 @@ func TestManagerAlternative(t *testing.T) {
 	wm.Emit(event.Event{Type: event.Alternative})
 	_, _, windowIndex, _ := wm.State()
 	if expected := 0; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Open("bed-test-manager-alternative-3")
 	_, _, windowIndex, _ = wm.State()
 	if expected := 2; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Alternative})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 0; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Alternative})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 2; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Open("bed-test-manager-alternative-4")
 	_, _, windowIndex, _ = wm.State()
 	if expected := 3; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Alternative, Count: 2})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 1; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Alternative, Count: 4})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 3; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Alternative})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 1; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Edit, Arg: "#2"})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 1; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Edit, Arg: "#4"})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 3; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Emit(event.Event{Type: event.Edit, Arg: "#"})
 	_, _, windowIndex, _ = wm.State()
 	if expected := 1; windowIndex != expected {
-		t.Errorf("windowIndex should be %+v but got %+v", expected, windowIndex)
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
 	wm.Close()
@@ -361,8 +361,8 @@ func TestManagerCopyCutPaste(t *testing.T) {
 		if ev.Buffer == nil {
 			t.Errorf("Buffer should not be nil but got: %#v", ev)
 		}
-		if ev.Arg != "yanked" {
-			t.Errorf("Arg should be %q but got: %q", "yanked", ev.Arg)
+		if expected := "yanked"; ev.Arg != expected {
+			t.Errorf("Arg should be %q but got: %q", expected, ev.Arg)
 		}
 		p := make([]byte, 20)
 		_, _ = ev.Buffer.ReadAt(p, 0)
@@ -380,8 +380,8 @@ func TestManagerCopyCutPaste(t *testing.T) {
 		if ev.Buffer == nil {
 			t.Errorf("Buffer should not be nil but got: %#v", ev)
 		}
-		if ev.Arg != "deleted" {
-			t.Errorf("Arg should be %q but got: %q", "deleted", ev.Arg)
+		if expected := "deleted"; ev.Arg != expected {
+			t.Errorf("Arg should be %q but got: %q", expected, ev.Arg)
 		}
 		p = make([]byte, 20)
 		_, _ = ev.Buffer.ReadAt(p, 0)
@@ -393,8 +393,7 @@ func TestManagerCopyCutPaste(t *testing.T) {
 		if ws.Length != int64(7) {
 			t.Errorf("Length should be %d but got %d", int64(7), ws.Length)
 		}
-		expected := "Helrld!"
-		if !strings.HasPrefix(string(ws.Bytes), expected) {
+		if expected := "Helrld!"; !strings.HasPrefix(string(ws.Bytes), expected) {
 			t.Errorf("Bytes should start with %q but got %q", expected, string(ws.Bytes))
 		}
 		waitCh <- struct{}{}
@@ -412,8 +411,7 @@ func TestManagerCopyCutPaste(t *testing.T) {
 		if ws.Length != int64(25) {
 			t.Errorf("Length should be %d but got %d", int64(25), ws.Length)
 		}
-		expected = "Hefoobarfoobarfoobarlrld!"
-		if !strings.HasPrefix(string(ws.Bytes), expected) {
+		if expected := "Hefoobarfoobarfoobarlrld!"; !strings.HasPrefix(string(ws.Bytes), expected) {
 			t.Errorf("Bytes should start with %q but got %q", expected, string(ws.Bytes))
 		}
 		close(waitCh)

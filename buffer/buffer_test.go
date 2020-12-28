@@ -2,6 +2,7 @@ package buffer
 
 import (
 	"io"
+	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -39,8 +40,8 @@ func TestBuffer(t *testing.T) {
 	if n != 8 {
 		t.Errorf("n should be 8 but got: %d", n)
 	}
-	if string(p) != "01234567" {
-		t.Errorf("p should be 01234567 but got: %s", string(p))
+	if expected := "01234567"; string(p) != expected {
+		t.Errorf("p should be %q but got: %s", expected, string(p))
 	}
 
 	l, err := b.Len()
@@ -58,13 +59,13 @@ func TestBuffer(t *testing.T) {
 
 	n, err = b.Read(p)
 	if err != nil {
-		t.Errorf("err should be EOF but got: %v", err)
+		t.Errorf("err should be nil but got: %v", err)
 	}
 	if n != 8 {
 		t.Errorf("n should be 8 but got: %d", n)
 	}
-	if string(p) != "456789ab" {
-		t.Errorf("p should be 456789ab but got: %s", string(p))
+	if expected := "456789ab"; string(p) != expected {
+		t.Errorf("p should be %q but got: %s", expected, string(p))
 	}
 
 	_, err = b.Seek(-4, io.SeekCurrent)
@@ -79,8 +80,8 @@ func TestBuffer(t *testing.T) {
 	if n != 8 {
 		t.Errorf("n should be 8 but got: %d", n)
 	}
-	if string(p) != "89abcdef" {
-		t.Errorf("p should be 89abcdef but got: %s", string(p))
+	if expected := "89abcdef"; string(p) != expected {
+		t.Errorf("p should be %q but got: %s", expected, string(p))
 	}
 
 	_, err = b.Seek(-4, io.SeekEnd)
@@ -95,19 +96,19 @@ func TestBuffer(t *testing.T) {
 	if n != 4 {
 		t.Errorf("n should be 4 but got: %d", n)
 	}
-	if string(p) != "cdefcdef" {
-		t.Errorf("p should be cdefcdef but got: %s", string(p))
+	if expected := "cdefcdef"; string(p) != expected {
+		t.Errorf("p should be %q but got: %s", expected, string(p))
 	}
 
 	n, err = b.ReadAt(p, 7)
 	if err != nil {
-		t.Errorf("err should be EOF but got: %v", err)
+		t.Errorf("err should be nil but got: %v", err)
 	}
 	if n != 8 {
 		t.Errorf("n should be 8 but got: %d", n)
 	}
-	if string(p) != "789abcde" {
-		t.Errorf("p should be 789abcde but got: %s", string(p))
+	if expected := "789abcde"; string(p) != expected {
+		t.Errorf("p should be %q but got: %s", expected, string(p))
 	}
 
 	n, err = b.ReadAt(p, -1)
@@ -355,8 +356,8 @@ func TestBufferInsert(t *testing.T) {
 		if err != nil && err != io.EOF {
 			t.Errorf("err should be nil or io.EOF but got: %v", err)
 		}
-		if n != len(strings.TrimRight(test.expected, "\x00")) {
-			t.Errorf("n should be %d but got: %d", len(strings.TrimRight(test.expected, "\x00")), n)
+		if expected := len(strings.TrimRight(test.expected, "\x00")); n != expected {
+			t.Errorf("n should be %d but got: %d", expected, n)
 		}
 		if string(p) != test.expected {
 			t.Errorf("p should be %s but got: %s", test.expected, string(p))
@@ -372,8 +373,7 @@ func TestBufferInsert(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{0, 2, 4, 5, 8, 11, 23, 25}
-	if !reflect.DeepEqual(eis, expected) {
+	if expected := []int64{0, 2, 4, 5, 8, 11, 23, 25}; !reflect.DeepEqual(eis, expected) {
 		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
@@ -435,9 +435,8 @@ func TestBufferReplace(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expectedIndices := []int64{0, 6, 15, 9223372036854775807}
-	if !reflect.DeepEqual(eis, expectedIndices) {
-		t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+	if expected := []int64{0, 6, 15, math.MaxInt64}; !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
 	if len(b.rrs) != 3 {
@@ -452,16 +451,14 @@ func TestBufferReplace(t *testing.T) {
 		b.Replace(7, 0x35)
 		p := make([]byte, 8)
 		b.ReadAt(p, 2)
-		expected := "99876589"
-		if string(p) != expected {
+		if expected := "99876589"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
 		b.UndoReplace(7)
 		b.UndoReplace(6)
 		p = make([]byte, 8)
 		b.ReadAt(p, 2)
-		expected = "99876789"
-		if string(p) != expected {
+		if expected := "99876789"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
 		b.UndoReplace(5)
@@ -471,15 +468,13 @@ func TestBufferReplace(t *testing.T) {
 		b.UndoReplace(2)
 		p = make([]byte, 8)
 		b.ReadAt(p, 2)
-		expected = "99106789"
-		if string(p) != expected {
+		if expected := "99106789"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
 
 		eis := b.EditedIndices()
-		expectedIndices := []int64{0, 6, 15, 9223372036854775807}
-		if !reflect.DeepEqual(eis, expectedIndices) {
-			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		if expected := []int64{0, 6, 15, math.MaxInt64}; !reflect.DeepEqual(eis, expected) {
+			t.Errorf("edited indices should be %v but got: %v", expected, eis)
 		}
 	}
 
@@ -489,19 +484,18 @@ func TestBufferReplace(t *testing.T) {
 		b.Replace(10, 0x30)
 		p := make([]byte, 8)
 		b.ReadAt(p, 9)
-		expected := "90bcdef0"
-		if string(p) != expected {
+		if expected := "90bcdef0"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
+
 		l, _ := b.Len()
-		if l != 17 {
-			t.Errorf("l should be %d but got: %d", 17, l)
+		if expected := int64(17); l != expected {
+			t.Errorf("l should be %d but got: %d", expected, l)
 		}
 
 		eis := b.EditedIndices()
-		expectedIndices := []int64{10, 11, 16, 9223372036854775807}
-		if !reflect.DeepEqual(eis, expectedIndices) {
-			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		if expected := []int64{10, 11, 16, math.MaxInt64}; !reflect.DeepEqual(eis, expected) {
+			t.Errorf("edited indices should be %v but got: %v", expected, eis)
 		}
 	}
 }
@@ -557,13 +551,12 @@ func TestBufferReplaceIn(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expectedIndices := []int64{0, 7, 15, 16}
-	if !reflect.DeepEqual(eis, expectedIndices) {
-		t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+	if expected := []int64{0, 7, 15, 16}; !reflect.DeepEqual(eis, expected) {
+		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
-	if want := 7; len(b.rrs) != 7 {
-		t.Errorf("len(b.rrs) should be %d but got: %d", want, len(b.rrs))
+	if expected := 7; len(b.rrs) != expected {
+		t.Errorf("len(b.rrs) should be %d but got: %d", expected, len(b.rrs))
 	}
 
 	{
@@ -572,19 +565,18 @@ func TestBufferReplaceIn(t *testing.T) {
 		b.ReplaceIn(10, 11, 0x30)
 		p := make([]byte, 8)
 		b.ReadAt(p, 9)
-		expected := "90bcdef0"
-		if string(p) != expected {
+		if expected := "90bcdef0"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
+
 		l, _ := b.Len()
-		if l != 16 {
-			t.Errorf("l should be %d but got: %d", 16, l)
+		if expected := int64(16); l != expected {
+			t.Errorf("l should be %d but got: %d", expected, l)
 		}
 
 		eis := b.EditedIndices()
-		expectedIndices := []int64{10, 11, 16, 17}
-		if !reflect.DeepEqual(eis, expectedIndices) {
-			t.Errorf("edited indices should be %v but got: %v", expectedIndices, eis)
+		if expected := []int64{10, 11, 16, 17}; !reflect.DeepEqual(eis, expected) {
+			t.Errorf("edited indices should be %v but got: %v", expected, eis)
 		}
 	}
 }
@@ -631,8 +623,8 @@ func TestBufferDelete(t *testing.T) {
 		if err != nil && err != io.EOF {
 			t.Errorf("err should be nil or io.EOF but got: %v", err)
 		}
-		if n != len(strings.TrimRight(test.expected, "\x00")) {
-			t.Errorf("n should be %d but got: %d", len(strings.TrimRight(test.expected, "\x00")), n)
+		if expected := len(strings.TrimRight(test.expected, "\x00")); n != expected {
+			t.Errorf("n should be %d but got: %d", expected, n)
 		}
 		if string(p) != test.expected {
 			t.Errorf("p should be %s but got: %s", test.expected, string(p))
@@ -648,8 +640,7 @@ func TestBufferDelete(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	expected := []int64{}
-	if !reflect.DeepEqual(eis, expected) {
+	if expected := []int64{}; !reflect.DeepEqual(eis, expected) {
 		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 

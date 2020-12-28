@@ -35,8 +35,8 @@ func TestHistoryUndo(t *testing.T) {
 	buf := make([]byte, 8)
 	b, index, offset, cursor, tick = history.Undo()
 	b.Read(buf)
-	if string(buf) != "test1\x00\x00\x00" {
-		t.Errorf("buf should be %q but got %q", "test1\x00\x00\x00", string(buf))
+	if expected := "test1\x00\x00\x00"; string(buf) != expected {
+		t.Errorf("buf should be %q but got %q", expected, string(buf))
 	}
 	if index != 0 {
 		t.Errorf("history.Undo should return index 0 but got %d", index)
@@ -54,8 +54,8 @@ func TestHistoryUndo(t *testing.T) {
 	buf = make([]byte, 8)
 	b, offset, cursor, tick = history.Redo()
 	b.Read(buf)
-	if string(buf) != "test2\x00\x00\x00" {
-		t.Errorf("buf should be %q but got %q", "test2\x00\x00\x00", string(buf))
+	if expected := "test2\x00\x00\x00"; string(buf) != expected {
+		t.Errorf("buf should be %q but got %q", expected, string(buf))
 	}
 	if offset != 3 {
 		t.Errorf("history.Redo should return offset 3 but got %d", offset)

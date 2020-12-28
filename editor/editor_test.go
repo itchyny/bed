@@ -101,8 +101,8 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if want := "\x01"; string(bs) != want {
-		t.Errorf("file contents should be %q but got %q", want, string(bs))
+	if expected := "\x01"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
 
@@ -153,8 +153,8 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if string(bs) != "\x12\x48\xff" {
-		t.Errorf("file contents should be %q but got %q", "\x12\x48\xff", string(bs))
+	if expected := "\x12\x48\xff"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
 
@@ -182,8 +182,8 @@ func TestEditorOpenForceQuit(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; err == nil || !strings.HasSuffix(err.Error(), "you have unsaved changes, use q! to force quit") {
-		t.Errorf("err should be ends with %q but got: %v", "you have unsaved changes, use q! to force quit", err)
+	if err, expected := editor.err, "you have unsaved changes, use q! to force quit"; err == nil || !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -198,8 +198,8 @@ func TestEditorWritePartial(t *testing.T) {
 	}
 	str := "Hello, world! こんにちは、世界！"
 	n, err := f.WriteString(str)
-	if n != 41 {
-		t.Errorf("WriteString should return %d but got %d", 41, n)
+	if expected := 41; n != expected {
+		t.Errorf("WriteString should return %d but got %d", expected, n)
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got %v", err)
@@ -273,8 +273,8 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	defer os.Remove(f2.Name())
 	str := "Hello, world!"
 	n, err := f1.WriteString(str)
-	if n != 13 {
-		t.Errorf("WriteString should return %d but got %d", 13, n)
+	if expected := 13; n != expected {
+		t.Errorf("WriteString should return %d but got %d", expected, n)
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got %v", err)
@@ -314,8 +314,8 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; !strings.HasSuffix(err.Error(), "6 (0x6) bytes written") {
-		t.Errorf("err should be ends with %q but got: %v", "6 (0x6) bytes written", err)
+	if err, expected := editor.err, "6 (0x6) bytes written"; !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -324,8 +324,8 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if string(bs) != "o, wor" {
-		t.Errorf("file contents should be %q but got %q", "o, wor", string(bs))
+	if expected := "o, wor"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
 
@@ -410,15 +410,14 @@ func TestEditorReplace(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; !strings.HasSuffix(err.Error(), "13 (0xd) bytes written") {
-		t.Errorf("err should be ends with %q but got: %v", "13 (0xd) bytes written", err)
+	if err, expected := editor.err, "13 (0xd) bytes written"; !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	bs, _ := ioutil.ReadFile(f2.Name())
-	expected := "earcrsterldvw"
-	if string(bs) != expected {
+	if expected := "earcrsterldvw"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
@@ -462,15 +461,14 @@ func TestEditorCopyCutPaste(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; !strings.HasSuffix(err.Error(), "19 (0x13) bytes written") {
-		t.Errorf("err should be ends with %q but got: %v", "19 (0x13) bytes written", err)
+	if err, expected := editor.err, "19 (0x13) bytes written"; !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	bs, _ := ioutil.ReadFile(f2.Name())
-	expected := "Hell w woo,llo,rld!"
-	if string(bs) != expected {
+	if expected := "Hell w woo,llo,rld!"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
@@ -591,8 +589,8 @@ func TestEditorShift(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err := editor.err; !strings.HasSuffix(err.Error(), "13 (0xd) bytes written") {
-		t.Errorf("err should be ends with %q but got: %v", "13 (0xd) bytes written", err)
+	if err, expected := editor.err, "13 (0xd) bytes written"; !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)

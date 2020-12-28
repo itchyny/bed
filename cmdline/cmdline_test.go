@@ -52,8 +52,8 @@ func TestCmdlineRun(t *testing.T) {
 	}
 	<-redrawCh
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "te" {
-		t.Errorf("cmdline should be %q got %q", "te", string(cmdline))
+	if expected := "te"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
 	}
 	if cursor != 2 {
 		t.Errorf("cursor should be 2 but got %v", cursor)
@@ -68,8 +68,8 @@ func TestCmdlineCursorMotion(t *testing.T) {
 		c.insert(ch)
 	}
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "abcde" {
-		t.Errorf("cmdline should be %v but got %v", "abcde", string(cmdline))
+	if expected := "abcde"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 5 {
 		t.Errorf("cursor should be 5 but got %v", cursor)
@@ -123,8 +123,8 @@ func TestCmdlineCursorBackspaceDelete(t *testing.T) {
 		c.insert(ch)
 	}
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "abcde" {
-		t.Errorf("cmdline should be %v but got %v", "abcde", string(cmdline))
+	if expected := "abcde"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 5 {
 		t.Errorf("cursor should be 5 but got %v", cursor)
@@ -134,8 +134,8 @@ func TestCmdlineCursorBackspaceDelete(t *testing.T) {
 	c.backspace()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "abce" {
-		t.Errorf("cmdline should be %v but got %v", "abce", string(cmdline))
+	if expected := "abce"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 3 {
 		t.Errorf("cursor should be 3 but got %v", cursor)
@@ -144,8 +144,8 @@ func TestCmdlineCursorBackspaceDelete(t *testing.T) {
 	c.deleteRune()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "abc" {
-		t.Errorf("cmdline should be %v but got %v", "abc", string(cmdline))
+	if expected := "abc"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 3 {
 		t.Errorf("cursor should be 3 but got %v", cursor)
@@ -154,8 +154,8 @@ func TestCmdlineCursorBackspaceDelete(t *testing.T) {
 	c.deleteRune()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "abc" {
-		t.Errorf("cmdline should be %v but got %v", "abc", string(cmdline))
+	if expected := "abc"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 3 {
 		t.Errorf("cursor should be 3 but got %v", cursor)
@@ -167,8 +167,8 @@ func TestCmdlineCursorBackspaceDelete(t *testing.T) {
 	c.backspace()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "bc" {
-		t.Errorf("cmdline should be %v but got %v", "bc", string(cmdline))
+	if expected := "bc"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 0 {
 		t.Errorf("cursor should be 0 but got %v", cursor)
@@ -186,8 +186,8 @@ func TestCmdlineCursorDeleteWord(t *testing.T) {
 	c.deleteWord()
 
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "de" {
-		t.Errorf("cmdline should be %v but got %v", "de", string(cmdline))
+	if expected := "de"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 0 {
 		t.Errorf("cursor should be 0 but got %v", cursor)
@@ -200,8 +200,8 @@ func TestCmdlineCursorDeleteWord(t *testing.T) {
 	c.deleteWord()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "x0z! de" {
-		t.Errorf("cmdline should be %v but got %v", "x0z! de", string(cmdline))
+	if expected := "x0z! de"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 4 {
 		t.Errorf("cursor should be 4 but got %v", cursor)
@@ -210,8 +210,8 @@ func TestCmdlineCursorDeleteWord(t *testing.T) {
 	c.deleteWord()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "x0z de" {
-		t.Errorf("cmdline should be %v but got %v", "x0z de", string(cmdline))
+	if expected := "x0z de"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 3 {
 		t.Errorf("cursor should be 3 but got %v", cursor)
@@ -225,8 +225,8 @@ func TestCmdlineCursorClear(t *testing.T) {
 		c.insert(ch)
 	}
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "abcde" {
-		t.Errorf("cmdline should be %v but got %v", "abcde", string(cmdline))
+	if expected := "abcde"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 5 {
 		t.Errorf("cursor should be 5 but got %v", cursor)
@@ -236,8 +236,8 @@ func TestCmdlineCursorClear(t *testing.T) {
 	c.clear()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "" {
-		t.Errorf("cmdline should be %v but got %v", "", string(cmdline))
+	if expected := ""; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 0 {
 		t.Errorf("cursor should be 0 but got %v", cursor)
@@ -251,8 +251,8 @@ func TestCmdlineCursorClearToHead(t *testing.T) {
 		c.insert(ch)
 	}
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "abcde" {
-		t.Errorf("cmdline should be %v but got %v", "abcde", string(cmdline))
+	if expected := "abcde"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 5 {
 		t.Errorf("cursor should be 5 but got %v", cursor)
@@ -263,8 +263,8 @@ func TestCmdlineCursorClearToHead(t *testing.T) {
 	c.clearToHead()
 
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "de" {
-		t.Errorf("cmdline should be %v but got %v", "de", string(cmdline))
+	if expected := "de"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 0 {
 		t.Errorf("cursor should be 0 but got %v", cursor)
@@ -285,8 +285,8 @@ func TestCmdlineCursorInsert(t *testing.T) {
 	c.insert('y')
 
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "abxyde" {
-		t.Errorf("cmdline should be %v but got %v", "abxyde", string(cmdline))
+	if expected := "abxyde"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, string(cmdline))
 	}
 	if cursor != 4 {
 		t.Errorf("cursor should be 4 but got %v", cursor)
@@ -533,8 +533,8 @@ func TestCmdlineComplete(t *testing.T) {
 		<-redrawCh
 	}
 	cmdline, cursor, _, _ := c.Get()
-	if string(cmdline) != "e /bin/" {
-		t.Errorf("cmdline should be %q got %q", "e /bin/", string(cmdline))
+	if expected := "e /bin/"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
 	}
 	if cursor != 7 {
 		t.Errorf("cursor should be 7 but got %v", cursor)
@@ -542,8 +542,8 @@ func TestCmdlineComplete(t *testing.T) {
 	waitCh <- struct{}{}
 	<-redrawCh
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "e /tmp/" {
-		t.Errorf("cmdline should be %q got %q", "e /tmp/", string(cmdline))
+	if expected := "e /tmp/"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
 	}
 	if cursor != 7 {
 		t.Errorf("cursor should be 7 but got %v", cursor)
@@ -551,8 +551,8 @@ func TestCmdlineComplete(t *testing.T) {
 	waitCh <- struct{}{}
 	<-redrawCh
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "e /bin/" {
-		t.Errorf("cmdline should be %q got %q", "e /bin/", string(cmdline))
+	if expected := "e /bin/"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
 	}
 	if cursor != 7 {
 		t.Errorf("cursor should be 7 but got %v", cursor)
@@ -562,8 +562,8 @@ func TestCmdlineComplete(t *testing.T) {
 	<-redrawCh
 	<-redrawCh
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "e /bin/echo" {
-		t.Errorf("cmdline should be %q got %q", "e /bin/echo", string(cmdline))
+	if expected := "e /bin/echo"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
 	}
 	if cursor != 11 {
 		t.Errorf("cursor should be 11 but got %v", cursor)
@@ -572,8 +572,8 @@ func TestCmdlineComplete(t *testing.T) {
 	go func() { <-redrawCh }()
 	e := <-eventCh
 	cmdline, cursor, _, _ = c.Get()
-	if string(cmdline) != "e /bin/echo" {
-		t.Errorf("cmdline should be %q got %q", "e /bin/echo", string(cmdline))
+	if expected := "e /bin/echo"; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
 	}
 	if cursor != 11 {
 		t.Errorf("cursor should be 11 but got %v", cursor)
@@ -581,8 +581,8 @@ func TestCmdlineComplete(t *testing.T) {
 	if e.Type != event.Edit {
 		t.Errorf("cmdline should emit Edit event but got %v", e)
 	}
-	if e.Arg != "/bin/echo" {
-		t.Errorf("cmdline should emit event with arg %q but got %v", "/bin/echo", e)
+	if expected := "/bin/echo"; e.Arg != expected {
+		t.Errorf("cmdline should emit event with arg %q but got %v", expected, e)
 	}
 }
 
@@ -625,8 +625,8 @@ func TestCmdlineSearch(t *testing.T) {
 	if e.Type != event.ExecuteSearch {
 		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
 	}
-	if e.Arg != "test" {
-		t.Errorf("cmdline should emit search event with Arg %q but got %q", "test", e.Arg)
+	if expected := "test"; e.Arg != expected {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", expected, e.Arg)
 	}
 	if e.Rune != '/' {
 		t.Errorf("cmdline should emit search event with Rune %q but got %q", '/', e.Rune)
@@ -640,8 +640,8 @@ func TestCmdlineSearch(t *testing.T) {
 	if e.Type != event.ExecuteSearch {
 		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
 	}
-	if e.Arg != "xyz" {
-		t.Errorf("cmdline should emit search event with Arg %q but got %q", "xyz", e.Arg)
+	if expected := "xyz"; e.Arg != expected {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", expected, e.Arg)
 	}
 	if e.Rune != '?' {
 		t.Errorf("cmdline should emit search event with Rune %q but got %q", '?', e.Rune)

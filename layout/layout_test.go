@@ -83,16 +83,16 @@ func TestLayout(t *testing.T) {
 	}
 
 	if got.LeftMargin() != 11 {
-		t.Errorf("LeftMargin() should be %+v but got %+v", 11, got.LeftMargin())
+		t.Errorf("LeftMargin() should be %d but got %d", 11, got.LeftMargin())
 	}
 	if got.TopMargin() != 0 {
-		t.Errorf("TopMargin() should be %+v but got %+v", 0, got.TopMargin())
+		t.Errorf("TopMargin() should be %d but got %d", 0, got.TopMargin())
 	}
 	if got.Width() != 4 {
-		t.Errorf("Width() should be %+v but got %+v", 4, got.Width())
+		t.Errorf("Width() should be %d but got %d", 4, got.Width())
 	}
 	if got.Height() != 10 {
-		t.Errorf("Height() should be %+v but got %+v", 10, got.Height())
+		t.Errorf("Height() should be %d but got %d", 10, got.Height())
 	}
 
 	expectedWindow = Window{Index: 3, Active: false, left: 0, top: 5, width: 5, height: 5}
@@ -102,16 +102,16 @@ func TestLayout(t *testing.T) {
 	}
 
 	if got.LeftMargin() != 0 {
-		t.Errorf("LeftMargin() should be %+v but got %+v", 0, got.LeftMargin())
+		t.Errorf("LeftMargin() should be %d but got %d", 0, got.LeftMargin())
 	}
 	if got.TopMargin() != 5 {
-		t.Errorf("TopMargin() should be %+v but got %+v", 5, got.TopMargin())
+		t.Errorf("TopMargin() should be %d but got %d", 5, got.TopMargin())
 	}
 	if got.Width() != 5 {
-		t.Errorf("Width() should be %+v but got %+v", 5, got.Width())
+		t.Errorf("Width() should be %d but got %d", 5, got.Width())
 	}
 	if got.Height() != 5 {
-		t.Errorf("Height() should be %+v but got %+v", 5, got.Height())
+		t.Errorf("Height() should be %d but got %d", 5, got.Height())
 	}
 
 	expectedWindow = Window{Index: -1}
@@ -168,16 +168,16 @@ func TestLayout(t *testing.T) {
 	}
 
 	if layout.LeftMargin() != 0 {
-		t.Errorf("LeftMargin() should be %+v but layout %+v", 0, layout.LeftMargin())
+		t.Errorf("LeftMargin() should be %d but layout %d", 0, layout.LeftMargin())
 	}
 	if layout.TopMargin() != 0 {
-		t.Errorf("TopMargin() should be %+v but layout %+v", 0, layout.TopMargin())
+		t.Errorf("TopMargin() should be %d but layout %d", 0, layout.TopMargin())
 	}
 	if layout.Width() != 15 {
-		t.Errorf("Width() should be %+v but layout %+v", 15, layout.Width())
+		t.Errorf("Width() should be %d but layout %d", 15, layout.Width())
 	}
 	if layout.Height() != 15 {
-		t.Errorf("Height() should be %+v but layout %+v", 15, layout.Height())
+		t.Errorf("Height() should be %d but layout %d", 15, layout.Height())
 	}
 
 	expectedMap = map[int]Window{
@@ -293,15 +293,15 @@ func TestLayout(t *testing.T) {
 	}
 
 	if layout.LeftMargin() != 0 {
-		t.Errorf("LeftMargin() should be %+v but layout %+v", 0, layout.LeftMargin())
+		t.Errorf("LeftMargin() should be %d but layout %d", 0, layout.LeftMargin())
 	}
 	if layout.TopMargin() != 0 {
-		t.Errorf("TopMargin() should be %+v but layout %+v", 0, layout.TopMargin())
+		t.Errorf("TopMargin() should be %d but layout %d", 0, layout.TopMargin())
 	}
 	if layout.Width() != 15 {
-		t.Errorf("Width() should be %+v but layout %+v", 15, layout.Width())
+		t.Errorf("Width() should be %d but layout %d", 15, layout.Width())
 	}
 	if layout.Height() != 10 {
-		t.Errorf("Height() should be %+v but layout %+v", 10, layout.Height())
+		t.Errorf("Height() should be %d but layout %d", 10, layout.Height())
 	}
 }
