@@ -205,29 +205,31 @@ func prettyByte(b byte) byte {
 }
 
 func prettyRune(b byte) string {
-	switch {
-	case b == 0x07:
+	switch b {
+	case 0x07:
 		return "\\a"
-	case b == 0x08:
+	case 0x08:
 		return "\\b"
-	case b == 0x09:
+	case 0x09:
 		return "\\t"
-	case b == 0x0a:
+	case 0x0a:
 		return "\\n"
-	case b == 0x0b:
+	case 0x0b:
 		return "\\v"
-	case b == 0x0c:
+	case 0x0c:
 		return "\\f"
-	case b == 0x0d:
+	case 0x0d:
 		return "\\r"
-	case b < 0x20:
-		return fmt.Sprintf("\\x%02x", b)
-	case b == 0x27:
+	case 0x27:
 		return "\\'"
-	case b < 0x7f:
-		return string(rune(b))
 	default:
-		return fmt.Sprintf("\\u%04x", b)
+		if b < 0x20 {
+			return fmt.Sprintf("\\x%02x", b)
+		} else if b < 0x7f {
+			return string(rune(b))
+		} else {
+			return fmt.Sprintf("\\u%04x", b)
+		}
 	}
 }
 
