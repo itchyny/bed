@@ -41,6 +41,7 @@ type window struct {
 	pendingByte      byte
 	visualStart      int64
 	focusText        bool
+	buf1             [1]byte
 	redrawCh         chan<- struct{}
 	eventCh          chan<- event.Event
 	mu               *sync.Mutex
@@ -253,6 +254,17 @@ func (w *window) emit(e event.Event) {
 	} else {
 		w.eventCh <- newEvent
 	}
+}
+
+func (w *window) readByte(offset int64) (byte, error) {
+	n, err := w.buffer.ReadAt(w.buf1[:], offset)
+	if err != nil && err != io.EOF {
+		return 0, err
+	}
+	if n == 0 {
+		return 0, io.EOF
+	}
+	return w.buf1[0], nil
 }
 
 func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
@@ -750,63 +762,63 @@ func (w *window) deletePrevBytes(count int64) *buffer.Buffer {
 }
 
 func (w *window) increment(count int64) {
-	_, bytes, err := w.readBytes(w.cursor, 1)
-	if err != nil {
+	b, err := w.readByte(w.cursor)
+	if err != nil && err != io.EOF {
 		return
 	}
-	w.replace(w.cursor, bytes[0]+byte(mathutil.MaxInt64(count, 1)))
+	w.replace(w.cursor, b+byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
 }
 
 func (w *window) decrement(count int64) {
-	_, bytes, err := w.readBytes(w.cursor, 1)
-	if err != nil {
+	b, err := w.readByte(w.cursor)
+	if err != nil && err != io.EOF {
 		return
 	}
-	w.replace(w.cursor, bytes[0]-byte(mathutil.MaxInt64(count, 1)))
+	w.replace(w.cursor, b-byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
 }
 
 func (w *window) shiftLeft(count int64) {
-	_, bytes, err := w.readBytes(w.cursor, 1)
-	if err != nil {
+	b, err := w.readByte(w.cursor)
+	if err != nil && err != io.EOF {
 		return
 	}
-	w.replace(w.cursor, bytes[0]<<byte(mathutil.MaxInt64(count, 1)))
+	w.replace(w.cursor, b<<byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
 }
 
 func (w *window) shiftRight(count int64) {
-	_, bytes, err := w.readBytes(w.cursor, 1)
-	if err != nil {
+	b, err := w.readByte(w.cursor)
+	if err != nil && err != io.EOF {
 		return
 	}
-	w.replace(w.cursor, bytes[0]>>byte(mathutil.MaxInt64(count, 1)))
+	w.replace(w.cursor, b>>byte(mathutil.MaxInt64(count, 1)))
 	if w.length == 0 {
 		w.length++
 	}
 }
 
 func (w *window) showBinary() string {
-	n, bytes, err := w.readBytes(w.cursor, 1)
-	if err != nil || n == 0 {
+	b, err := w.readByte(w.cursor)
+	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%08b", bytes[0])
+	return fmt.Sprintf("%08b", b)
 }
 
 func (w *window) showDecimal() string {
-	n, bytes, err := w.readBytes(w.cursor, 1)
-	if err != nil || n == 0 {
+	b, err := w.readByte(w.cursor)
+	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%d", bytes[0])
+	return fmt.Sprintf("%d", b)
 }
 
 func (w *window) startInsert() {
