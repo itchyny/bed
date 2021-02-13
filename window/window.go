@@ -1062,3 +1062,10 @@ func (w *window) abortSearch() {
 		w.eventCh <- event.Event{Type: event.Info, Error: err}
 	}
 }
+
+func (w *window) getName() string {
+	if w.name != "" {
+		return w.name
+	}
+	return "[No Name]"
+}
