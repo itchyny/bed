@@ -41,6 +41,7 @@ type window struct {
 	pendingByte      byte
 	visualStart      int64
 	focusText        bool
+	buf              []byte
 	buf1             [1]byte
 	redrawCh         chan<- struct{}
 	eventCh          chan<- event.Event
@@ -267,13 +268,23 @@ func (w *window) readByte(offset int64) (byte, error) {
 	return w.buf1[0], nil
 }
 
-func (w *window) readBytes(offset int64, len int) (int, []byte, error) {
-	bytes := make([]byte, len)
-	n, err := w.buffer.ReadAt(bytes, offset)
-	if err != nil && err != io.EOF {
-		return 0, bytes, err
+func (w *window) readBytes(offset int64, l int) (int, []byte, error) {
+	var reused bool
+	if l <= cap(w.buf) {
+		w.buf, reused = w.buf[:l], true
+	} else {
+		w.buf = make([]byte, l)
 	}
-	return n, bytes, nil
+	n, err := w.buffer.ReadAt(w.buf, offset)
+	if err != nil && err != io.EOF {
+		return 0, w.buf, err
+	}
+	if reused {
+		for i := n; i < len(w.buf); i++ {
+			w.buf[i] = 0
+		}
+	}
+	return n, w.buf, nil
 }
 
 func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
