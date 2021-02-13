@@ -24,7 +24,7 @@ type Searcher struct {
 
 // NewSearcher creates a new searcher.
 func NewSearcher(r io.ReaderAt) *Searcher {
-	return &Searcher{r: r, bytes: make([]byte, loadSize), mu: new(sync.Mutex)}
+	return &Searcher{r: r, mu: new(sync.Mutex)}
 }
 
 type errNotFound string
@@ -37,6 +37,9 @@ func (err errNotFound) Error() string {
 func (s *Searcher) Search(cursor int64, pattern string, forward bool) <-chan interface{} {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.bytes == nil {
+		s.bytes = make([]byte, loadSize)
+	}
 	s.cursor, s.pattern = cursor, pattern
 	ch := make(chan interface{})
 	if forward {
