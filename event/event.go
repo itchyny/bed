@@ -113,6 +113,7 @@ const (
 	Enew
 	New
 	Vnew
+	Only
 	Alternative
 	Wincmd
 	FocusWindowUp

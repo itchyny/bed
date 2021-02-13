@@ -196,6 +196,45 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	wm.Close()
 }
 
+func TestManagerOnly(t *testing.T) {
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	go func() {
+		for {
+			select {
+			case <-eventCh:
+			case <-redrawCh:
+			}
+		}
+	}()
+	wm.SetSize(110, 20)
+	if err := wm.Open(""); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	wm.Emit(event.Event{Type: event.Vnew})
+	wm.Emit(event.Event{Type: event.Vnew})
+	wm.Emit(event.Event{Type: event.FocusWindowRight})
+	wm.Resize(110, 20)
+
+	_, got, _, _ := wm.State()
+	expected := layout.NewLayout(0).SplitLeft(1).SplitLeft(2).
+		Activate(1).Resize(0, 0, 110, 20)
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("layout should be %#v but got %#v", expected, got)
+	}
+
+	wm.Emit(event.Event{Type: event.Only})
+	wm.Resize(110, 20)
+	_, got, _, _ = wm.State()
+	expected = layout.NewLayout(1).Resize(0, 0, 110, 20)
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("layout should be %#v but got %#v", expected, got)
+	}
+
+	wm.Close()
+}
+
 func TestManagerAlternative(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
@@ -320,6 +359,13 @@ func TestManagerWincmd(t *testing.T) {
 	wm.Emit(event.Event{Type: event.Quit})
 	_, got, _, _ = wm.State()
 	expected = layout.NewLayout(2).SplitBottom(0).SplitLeft(3).Resize(0, 0, 110, 20)
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("layout should be %#v but got %#v", expected, got)
+	}
+
+	wm.Emit(event.Event{Type: event.Wincmd, Arg: "o"})
+	_, got, _, _ = wm.State()
+	expected = layout.NewLayout(3).Resize(0, 0, 110, 20)
 	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("layout should be %#v but got %#v", expected, got)
 	}

@@ -47,11 +47,11 @@ This binary editor is influenced by the Vim editor.
 So if you have experience with Vim, you will notice most of basic operations of Vim are supported with this binary editor too.
 
 - File operations
-  - `:edit`, `:enew`, `:new`, `:vnew`
+  - `:edit`, `:enew`, `:new`, `:vnew`, `:only`
 - Quit and save
   - `:quit`, `:qall`, `:write`, `:wq`, `:xit`, `:xall`, `:cquit`
 - Window operations
-  - `:wincmd [nlhkjtbpKJHL]`, `<C-w>[nlhkjtbpKJHL]`
+  - `:wincmd [nolhkjtbpKJHL]`, `<C-w>[nolhkjtbpKJHL]`
 - Mode operations
   - `i`, `I`, `a`, `A`, `R`, `<ESC>`, `v`
 - Undo and redo

@@ -12,6 +12,7 @@ var commands = []command{
 	{"ene[w]", event.Enew},
 	{"new", event.New},
 	{"vne[w]", event.Vnew},
+	{"on[ly]", event.Only},
 	{"winc[md]", event.Wincmd},
 
 	{"go[to]", event.CursorGoto},

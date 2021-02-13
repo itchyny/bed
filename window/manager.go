@@ -186,6 +186,12 @@ func (m *Manager) Emit(e event.Event) {
 		} else {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
+	case event.Only:
+		if err := m.only(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Redraw}
+		}
 	case event.Alternative:
 		m.alternative(e)
 		m.eventCh <- event.Event{Type: event.Redraw}
@@ -329,6 +335,23 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 	return nil
 }
 
+func (m *Manager) only(e event.Event) error {
+	if len(e.Arg) > 0 {
+		return fmt.Errorf("too many arguments for %s", e.CmdName)
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if !e.Bang {
+		for windowIndex, w := range m.layout.Collect() {
+			if window := m.windows[windowIndex]; !w.Active && window.changedTick != window.savedChangedTick {
+				return fmt.Errorf("you have unsaved changes in %s, add ! to force :only", window.getName())
+			}
+		}
+	}
+	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
+	return nil
+}
+
 func (m *Manager) alternative(e event.Event) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -344,6 +367,8 @@ func (m *Manager) wincmd(arg string) error {
 	switch arg {
 	case "n":
 		return m.newWindow(event.Event{}, false)
+	case "o":
+		return m.only(event.Event{})
 	case "l":
 		m.focus(func(x, y layout.Window) bool {
 			return x.LeftMargin()+x.Width()+1 == y.LeftMargin() &&
