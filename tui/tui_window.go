@@ -49,7 +49,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	edittedColor := tcell.ColorLightSeaGreen
 	d := ui.getTextDrawer()
 	for i, k := 0, 0; i < height; i++ {
-		d.setTop(i + 1).setLeft(0).setOffset(0)
+		d.addTop(1).setLeft(0).setOffset(0)
 		d.setString(fmt.Sprintf(offsetStyle, s.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
 		d.setLeft(offsetStyleWidth + 3)
 		for j := 0; j < width; j, k = j+1, k+1 {
@@ -61,8 +61,8 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 				}
 			} else if k >= s.Size {
 				if k == cursorPos {
-					d.setOffset(3*j+1).setString(" ", tcell.StyleDefault.Underline(!active || s.FocusText))
-					d.setOffset(3*width+j+3).setString(" ", tcell.StyleDefault.Underline(!active || !s.FocusText))
+					d.setOffset(3*j+1).setByte(' ', tcell.StyleDefault.Underline(!active || s.FocusText))
+					d.setOffset(3*width+j+3).setByte(' ', tcell.StyleDefault.Underline(!active || !s.FocusText))
 				}
 				continue
 			} else {
@@ -86,11 +86,16 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 				style2 = style2.Reverse(active && s.FocusText).Bold(
 					!active || !s.FocusText).Underline(!active || !s.FocusText)
 			}
-			d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", b), style1)
-			d.setOffset(3*width+j+3).setString(string(prettyByte(b)), style2)
+			d.setOffset(3*j+1).setByte(hex[b>>4], style1)
+			d.setOffset(3*j+2).setByte(hex[b&0x0f], style1)
+			d.setOffset(3*width+j+3).setByte(prettyByte(b), style2)
 		}
-		d.setOffset(-2).setString(" | ", tcell.StyleDefault)
-		d.setOffset(3*width).setString(" | ", tcell.StyleDefault)
+		d.setOffset(-2).setByte(' ', tcell.StyleDefault)
+		d.setOffset(-1).setByte('|', tcell.StyleDefault)
+		d.setOffset(0).setByte(' ', tcell.StyleDefault)
+		d.addLeft(3*width).setByte(' ', tcell.StyleDefault)
+		d.setOffset(1).setByte('|', tcell.StyleDefault)
+		d.setOffset(2).setByte(' ', tcell.StyleDefault)
 	}
 	i := int(s.Cursor % int64(width))
 	if active {
@@ -107,17 +112,26 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	ui.drawFooter(s, offsetStyleWidth)
 }
 
+const hex = "0123456789abcdef"
+
 func (ui *tuiWindow) drawHeader(s *state.WindowState, offsetStyleWidth int) {
 	style := tcell.StyleDefault.Underline(true)
-	d := ui.getTextDrawer()
-	d.setString(strings.Repeat(" ", 4*s.Width+8+offsetStyleWidth), style)
-	d.setLeft(offsetStyleWidth)
+	d := ui.getTextDrawer().setLeft(-1)
 	cursor := int(s.Cursor % int64(s.Width))
-	for i := 0; i < s.Width; i++ {
-		d.setOffset(3*i+4).setString(fmt.Sprintf("%2x", i), style.Bold(cursor == i))
+	for i := 0; i < offsetStyleWidth+2; i++ {
+		d.addLeft(1).setByte(' ', style)
 	}
-	d.setOffset(2).setString("|", style)
-	d.setOffset(3*s.Width+4).setString("|", style)
+	d.addLeft(1).setByte('|', style)
+	for i := 0; i < s.Width; i++ {
+		d.addLeft(1).setByte(' ', style)
+		d.addLeft(1).setByte(" 1"[i>>4], style.Bold(cursor == i))
+		d.addLeft(1).setByte(hex[i&0x0f], style.Bold(cursor == i))
+	}
+	d.addLeft(1).setByte(' ', style)
+	d.addLeft(1).setByte('|', style)
+	for i := 0; i < s.Width+3; i++ {
+		d.addLeft(1).setByte(' ', style)
+	}
 }
 
 func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
@@ -131,13 +145,13 @@ func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
 	pad := (total*total + len - len*size - 1) / mathutil.MaxInt64(total-size+1, 1)
 	top := (s.Offset / int64(s.Width) * total) / (len - pad)
 	d := ui.getTextDrawer().setLeft(left)
-	for i := 0; i < height; i++ {
-		d.setTop(i + 1)
+	for i, b := 0, byte(0); i < height; i++ {
 		if int(top) <= i && i < int(top+size) {
-			d.setString("#", tcell.StyleDefault)
+			b = '#'
 		} else {
-			d.setString("|", tcell.StyleDefault)
+			b = '|'
 		}
+		d.addTop(1).setByte(b, tcell.StyleDefault)
 	}
 }
 

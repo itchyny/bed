@@ -31,13 +31,29 @@ func (d *textDrawer) setString(str string, style tcell.Style) {
 	}
 }
 
+func (d *textDrawer) setByte(b byte, style tcell.Style) {
+	top := d.region.top + d.top
+	left := d.region.left + d.left + d.offset
+	d.screen.SetContent(left, top, rune(b), nil, style)
+}
+
 func (d *textDrawer) setTop(top int) *textDrawer {
 	d.top = top
 	return d
 }
 
+func (d *textDrawer) addTop(diff int) *textDrawer {
+	d.top += diff
+	return d
+}
+
 func (d *textDrawer) setLeft(left int) *textDrawer {
 	d.left = left
+	return d
+}
+
+func (d *textDrawer) addLeft(diff int) *textDrawer {
+	d.left += diff
 	return d
 }
 
