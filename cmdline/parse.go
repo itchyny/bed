@@ -1,7 +1,7 @@
 package cmdline
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 	"unicode"
 
@@ -41,7 +41,7 @@ func parse(cmdline []rune) (command, *event.Range, string, bool, string, error) 
 	if len(strings.Fields(string(cmdline[k:]))) == 0 && r != nil {
 		return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), bang, "", nil
 	}
-	return command{}, nil, "", false, "", fmt.Errorf("unknown command: %s", string(cmdline))
+	return command{}, nil, "", false, "", errors.New("unknown command: " + string(cmdline))
 }
 
 func expand(name string) []string {

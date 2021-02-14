@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -67,7 +68,7 @@ Options:
 
 func start(args []string) error {
 	if len(args) > 1 {
-		return fmt.Errorf("too many files")
+		return errors.New("too many files")
 	}
 	editor := editor.NewEditor(
 		tui.NewTui(), window.NewManager(), cmdline.NewCmdline(),

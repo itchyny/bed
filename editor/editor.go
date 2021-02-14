@@ -132,7 +132,7 @@ type quitErr struct {
 }
 
 func (err *quitErr) Error() string {
-	return fmt.Sprintf("exit with %d", err.code)
+	return "exit with " + strconv.Itoa(err.code)
 }
 
 func (err *quitErr) ExitCode() int {
@@ -147,7 +147,7 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 	switch ev.Type {
 	case event.QuitAll:
 		if len(ev.Arg) > 0 {
-			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
 			redraw = true
 		} else {
 			finish = true
@@ -155,12 +155,12 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 	case event.QuitErr:
 		args := strings.Fields(ev.Arg)
 		if len(args) > 1 {
-			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
 			redraw = true
 		} else if len(args) > 0 {
 			n, er := strconv.Atoi(args[0])
 			if er != nil {
-				e.err, e.errtyp = fmt.Errorf("invalid argument for %s: %s", ev.CmdName, er), state.MessageError
+				e.err, e.errtyp = fmt.Errorf("invalid argument for %s: %w", ev.CmdName, er), state.MessageError
 				redraw = true
 			} else {
 				err = &quitErr{n}
@@ -172,7 +172,7 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 		}
 	case event.Suspend:
 		if len(ev.Arg) > 0 {
-			e.err, e.errtyp = fmt.Errorf("too many arguments for %s", ev.CmdName), state.MessageError
+			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
 		} else {
 			e.mu.Unlock()
 			if err := e.suspend(); err != nil {
@@ -224,7 +224,7 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 			if e.mode == mode.Visual {
 				ev.Arg = "'<,'>"
 			} else if ev.Count > 0 {
-				ev.Arg = fmt.Sprintf(".,.+%d", ev.Count-1)
+				ev.Arg = ".,.+" + strconv.FormatInt(ev.Count-1, 10)
 			}
 			e.mode, e.prevMode = mode.Cmdline, e.mode
 			e.err = nil

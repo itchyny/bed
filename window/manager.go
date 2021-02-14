@@ -88,7 +88,7 @@ func (m *Manager) open(filename string) (*window, error) {
 	if strings.HasPrefix(filename, "#") {
 		index, err := strconv.Atoi(filename[1:])
 		if err != nil || index <= 0 || len(m.windows) < index {
-			return nil, fmt.Errorf("invalid window index: %s", filename)
+			return nil, errors.New("invalid window index: " + filename)
 		}
 		return m.windows[index-1], nil
 	}
@@ -117,7 +117,7 @@ func (m *Manager) open(filename string) (*window, error) {
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, fmt.Errorf("%s is a directory", filename)
+		return nil, errors.New(filename + " is a directory")
 	}
 	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
 	window, err := newWindow(f, filename, filepath.Base(filename), m.eventCh, m.redrawCh)
@@ -197,7 +197,7 @@ func (m *Manager) Emit(e event.Event) {
 		m.eventCh <- event.Event{Type: event.Redraw}
 	case event.Wincmd:
 		if len(e.Arg) == 0 {
-			m.eventCh <- event.Event{Type: event.Error, Error: fmt.Errorf("an argument is required for %s", e.CmdName)}
+			m.eventCh <- event.Event{Type: event.Error, Error: errors.New("an argument is required for " + e.CmdName)}
 		} else if err := m.wincmd(e.Arg); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else {
@@ -306,7 +306,7 @@ func (m *Manager) edit(e event.Event) error {
 
 func (m *Manager) enew(e event.Event) error {
 	if len(e.Arg) > 0 {
-		return fmt.Errorf("too many arguments for %s", e.CmdName)
+		return errors.New("too many arguments for " + e.CmdName)
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -337,14 +337,14 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 
 func (m *Manager) only(e event.Event) error {
 	if len(e.Arg) > 0 {
-		return fmt.Errorf("too many arguments for %s", e.CmdName)
+		return errors.New("too many arguments for " + e.CmdName)
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if !e.Bang {
 		for windowIndex, w := range m.layout.Collect() {
 			if window := m.windows[windowIndex]; !w.Active && window.changedTick != window.savedChangedTick {
-				return fmt.Errorf("you have unsaved changes in %s, add ! to force :only", window.getName())
+				return errors.New("you have unsaved changes in " + window.getName() + ", add ! to force :only")
 			}
 		}
 	}
@@ -423,7 +423,7 @@ func (m *Manager) wincmd(arg string) error {
 			return layout.Vertical{Left: y, Right: x}
 		})
 	default:
-		return fmt.Errorf("Invalid argument for wincmd: %s", arg)
+		return errors.New("Invalid argument for wincmd: " + arg)
 	}
 	return nil
 }
@@ -451,11 +451,11 @@ func (m *Manager) move(modifier func(layout.Window, layout.Layout) layout.Layout
 
 func (m *Manager) quit(e event.Event) error {
 	if len(e.Arg) > 0 {
-		return fmt.Errorf("too many arguments for %s", e.CmdName)
+		return errors.New("too many arguments for " + e.CmdName)
 	}
 	window := m.windows[m.windowIndex]
 	if window.changedTick != window.savedChangedTick && !e.Bang {
-		return fmt.Errorf("you have unsaved changes in %s, add ! to force :quit", window.getName())
+		return errors.New("you have unsaved changes in " + window.getName() + ", add ! to force :quit")
 	}
 	w, h := m.layout.Count()
 	if w == 1 && h == 1 {
@@ -472,7 +472,7 @@ func (m *Manager) quit(e event.Event) error {
 
 func (m *Manager) write(e event.Event) error {
 	if e.Range != nil && e.Arg == "" {
-		return fmt.Errorf("cannot overwrite partially with %s", e.CmdName)
+		return errors.New("cannot overwrite partially with " + e.CmdName)
 	}
 	filename, n, err := m.writeFile(e.Range, e.Arg)
 	if err != nil {
@@ -484,10 +484,10 @@ func (m *Manager) write(e event.Event) error {
 
 func (m *Manager) writeQuit(e event.Event) error {
 	if len(e.Arg) > 0 {
-		return fmt.Errorf("too many arguments for %s", e.CmdName)
+		return errors.New("too many arguments for " + e.CmdName)
 	}
 	if e.Range != nil {
-		return fmt.Errorf("range not allowed for %s", e.CmdName)
+		return errors.New("range not allowed for " + e.CmdName)
 	}
 	if _, _, err := m.writeFile(nil, ""); err != nil {
 		return err

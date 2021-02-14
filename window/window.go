@@ -829,7 +829,7 @@ func (w *window) showDecimal() string {
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%d", b)
+	return strconv.FormatInt(int64(b), 10)
 }
 
 func (w *window) startInsert() {
