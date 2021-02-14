@@ -2,7 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -39,25 +38,46 @@ func (ui *tuiWindow) offsetStyleWidth(s *state.WindowState) int {
 
 func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	height, width := ui.region.height-2, s.Width
-	bytes, styles := ui.bytesArray(height, width, s)
 	cursorPos := int(s.Cursor - s.Offset)
 	cursorLine := cursorPos / width
 	offsetStyleWidth := ui.offsetStyleWidth(s)
 	offsetStyle := " %0" + strconv.Itoa(offsetStyleWidth) + "x"
+	eis := s.EditedIndices
+	for 0 < len(eis) && eis[1] <= s.Offset {
+		eis = eis[2:]
+	}
+	edittedColor := tcell.ColorLightSeaGreen
 	d := ui.getTextDrawer()
-	for i := 0; i < height; i++ {
+	for i, k := 0, 0; i < height; i++ {
 		d.setTop(i + 1).setLeft(0).setOffset(0)
 		d.setString(fmt.Sprintf(offsetStyle, s.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
 		d.setLeft(offsetStyleWidth + 3)
-		for j := 0; j < width; j++ {
-			style := styles[i][j]
-			if style == math.MaxInt16 {
+		for j := 0; j < width; j, k = j+1, k+1 {
+			b, style := byte(0), tcell.StyleDefault
+			if s.Pending && i*width+j == cursorPos {
+				b, style = s.PendingByte, tcell.StyleDefault.Foreground(edittedColor)
+				if s.Mode != mode.Replace {
+					k--
+				}
+			} else if k >= s.Size {
+				if k == cursorPos {
+					d.setOffset(3*j+1).setString(" ", tcell.StyleDefault.Underline(!active || s.FocusText))
+					d.setOffset(3*width+j+3).setString(" ", tcell.StyleDefault.Underline(!active || !s.FocusText))
+				}
 				continue
-			}
-			if style == math.MaxInt16-1 {
-				d.setOffset(3*j+1).setString(" ", style.Underline(!active || s.FocusText))
-				d.setOffset(3*width+j+3).setString(" ", style.Underline(!active || !s.FocusText))
-				continue
+			} else {
+				b = s.Bytes[k]
+				pos := int64(k) + s.Offset
+				if 0 < len(eis) && eis[0] <= pos && pos < eis[1] {
+					style = tcell.StyleDefault.Foreground(edittedColor)
+				} else if 0 < len(eis) && eis[1] <= pos {
+					eis = eis[2:]
+				}
+				if s.VisualStart >= 0 && s.Cursor < s.Length &&
+					(s.VisualStart <= pos && pos <= s.Cursor ||
+						s.Cursor <= pos && pos <= s.VisualStart) {
+					style = style.Underline(true)
+				}
 			}
 			style1, style2 := style, style
 			if i*width+j == cursorPos {
@@ -66,8 +86,8 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 				style2 = style2.Reverse(active && s.FocusText).Bold(
 					!active || !s.FocusText).Underline(!active || !s.FocusText)
 			}
-			d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", bytes[i][j]), style1)
-			d.setOffset(3*width+j+3).setString(string(prettyByte(bytes[i][j])), style2)
+			d.setOffset(3*j+1).setString(fmt.Sprintf("%02x", b), style1)
+			d.setOffset(3*width+j+3).setString(string(prettyByte(b)), style2)
 		}
 		d.setOffset(-2).setString(" | ", tcell.StyleDefault)
 		d.setOffset(3*width).setString(" | ", tcell.StyleDefault)
@@ -85,58 +105,6 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	ui.drawHeader(s, offsetStyleWidth)
 	ui.drawScrollBar(s, height, 4*width+7+offsetStyleWidth)
 	ui.drawFooter(s, offsetStyleWidth)
-}
-
-func (ui *tuiWindow) bytesArray(height, width int, s *state.WindowState) ([][]byte, [][]tcell.Style) {
-	var k int
-	if height <= 0 {
-		return nil, nil
-	}
-	eis := s.EditedIndices
-	for 0 < len(eis) && eis[1] <= s.Offset {
-		eis = eis[2:]
-	}
-	bytes := make([][]byte, height)
-	styles := make([][]tcell.Style, height)
-	color := tcell.ColorLightSeaGreen
-	cursorPos := int(s.Cursor - s.Offset)
-	for i := 0; i < height; i++ {
-		bytes[i] = make([]byte, width)
-		styles[i] = make([]tcell.Style, width)
-		for j := 0; j < width; j++ {
-			if s.Pending && i*width+j == cursorPos {
-				bytes[i][j] = s.PendingByte
-				styles[i][j] = styles[i][j].Foreground(color)
-				if s.Mode == mode.Replace {
-					k++
-				}
-				continue
-			}
-			if k >= s.Size {
-				if k == cursorPos {
-					styles[i][j] = tcell.Style(math.MaxInt16 - 1)
-				} else {
-					styles[i][j] = tcell.Style(math.MaxInt16)
-				}
-				k++
-				continue
-			}
-			bytes[i][j] = s.Bytes[k]
-			pos := int64(k) + s.Offset
-			if 0 < len(eis) && eis[0] <= pos && pos < eis[1] {
-				styles[i][j] = styles[i][j].Foreground(color)
-			} else if 0 < len(eis) && eis[1] <= pos {
-				eis = eis[2:]
-			}
-			if s.VisualStart >= 0 && s.Cursor < s.Length &&
-				(s.VisualStart <= pos && pos <= s.Cursor ||
-					s.Cursor <= pos && pos <= s.VisualStart) {
-				styles[i][j] = styles[i][j].Underline(true)
-			}
-			k++
-		}
-	}
-	return bytes, styles
 }
 
 func (ui *tuiWindow) drawHeader(s *state.WindowState, offsetStyleWidth int) {
