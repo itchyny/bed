@@ -186,7 +186,7 @@ func (c *completor) listFileNames(arg string) (string, []string) {
 
 func sortFilePaths(paths []string) {
 	for i, path := range paths {
-		prefix := make([]rune, 2)
+		var prefix [2]byte
 		if path[len(path)-1] == filepath.Separator {
 			prefix[0] = '1'
 		} else {
@@ -197,7 +197,7 @@ func sortFilePaths(paths []string) {
 		} else {
 			prefix[1] = '0'
 		}
-		paths[i] = string(prefix) + path
+		paths[i] = string(prefix[:]) + path
 	}
 	sort.Strings(paths)
 	for i, path := range paths {

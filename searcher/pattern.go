@@ -62,6 +62,7 @@ func decodeBinLiteral(pattern []byte) ([]byte, error) {
 
 func unescapePattern(pattern []byte) []byte {
 	var escape bool
+	var buf [4]byte
 	bs := make([]byte, 0, len(pattern))
 	for i := 0; i < len(pattern); i++ {
 		b := pattern[i]
@@ -107,8 +108,7 @@ func unescapePattern(pattern []byte) []byte {
 						if b == 'x' {
 							bs = append(bs, byte(c))
 						} else {
-							buf := make([]byte, 4)
-							n := utf8.EncodeRune(buf, c)
+							n := utf8.EncodeRune(buf[:], c)
 							bs = append(bs, buf[:n]...)
 						}
 						i += n

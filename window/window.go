@@ -907,8 +907,8 @@ func (w *window) exitInsert() {
 func (w *window) insertRune(m mode.Mode, ch rune) (exitInsert bool) {
 	if m == mode.Insert || m == mode.Replace {
 		if w.focusText {
-			buf := make([]byte, 4)
-			n := utf8.EncodeRune(buf, ch)
+			var buf [4]byte
+			n := utf8.EncodeRune(buf[:], ch)
 			for i := 0; i < n; i++ {
 				exitInsert = exitInsert || w.insertByte(m, byte(buf[i]>>4))
 				exitInsert = exitInsert || w.insertByte(m, byte(buf[i]&0x0f))
