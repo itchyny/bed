@@ -5,7 +5,7 @@ import (
 	"unicode/utf8"
 )
 
-func patternToTarget(pattern []byte) ([]byte, error) {
+func patternToTarget(pattern string) ([]byte, error) {
 	if len(pattern) > 3 && pattern[0] == '0' {
 		switch pattern[1] {
 		case 'x', 'X':
@@ -17,13 +17,13 @@ func patternToTarget(pattern []byte) ([]byte, error) {
 	return unescapePattern(pattern), nil
 }
 
-func decodeHexLiteral(pattern []byte) ([]byte, error) {
+func decodeHexLiteral(pattern string) ([]byte, error) {
 	bs := make([]byte, 0, len(pattern)/2+1)
 	var c byte
 	var lower bool
 	for i := 2; i < len(pattern); i++ {
 		if !isHex(pattern[i]) {
-			return nil, errors.New("invalid hex pattern: " + string(pattern))
+			return nil, errors.New("invalid hex pattern: " + pattern)
 		}
 		c = c<<4 | hexToDigit(pattern[i])
 		if lower {
@@ -38,13 +38,13 @@ func decodeHexLiteral(pattern []byte) ([]byte, error) {
 	return bs, nil
 }
 
-func decodeBinLiteral(pattern []byte) ([]byte, error) {
+func decodeBinLiteral(pattern string) ([]byte, error) {
 	bs := make([]byte, 0, len(pattern)/16+1)
 	var c byte
 	var bits int
 	for i := 2; i < len(pattern); i++ {
 		if !isBin(pattern[i]) {
-			return nil, errors.New("invalid bin pattern: " + string(pattern))
+			return nil, errors.New("invalid bin pattern: " + pattern)
 		}
 		c = c<<1 | hexToDigit(pattern[i])
 		bits++
@@ -60,7 +60,7 @@ func decodeBinLiteral(pattern []byte) ([]byte, error) {
 	return bs, nil
 }
 
-func unescapePattern(pattern []byte) []byte {
+func unescapePattern(pattern string) []byte {
 	var escape bool
 	var buf [4]byte
 	bs := make([]byte, 0, len(pattern))
