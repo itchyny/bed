@@ -1065,17 +1065,14 @@ func (w *window) search(str string, forward bool) {
 	}
 	ch := w.searcher.Search(w.cursor, str, forward)
 	go func() {
-		select {
-		case x := <-ch:
-			switch x := x.(type) {
-			case error:
-				w.eventCh <- event.Event{Type: event.Info, Error: x}
-			case int64:
-				w.mu.Lock()
-				w.cursor = x
-				w.mu.Unlock()
-				w.redrawCh <- struct{}{}
-			}
+		switch x := (<-ch).(type) {
+		case error:
+			w.eventCh <- event.Event{Type: event.Info, Error: x}
+		case int64:
+			w.mu.Lock()
+			w.cursor = x
+			w.mu.Unlock()
+			w.redrawCh <- struct{}{}
 		}
 	}()
 }

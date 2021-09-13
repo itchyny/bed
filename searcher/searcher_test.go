@@ -164,19 +164,16 @@ func TestSearcher(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			s := NewSearcher(strings.NewReader(testCase.str))
 			ch := s.Search(testCase.cursor, testCase.pattern, testCase.forward)
-			select {
-			case x := <-ch:
-				switch x := x.(type) {
-				case error:
-					if testCase.err == nil {
-						t.Error(x)
-					} else if x != testCase.err {
-						t.Errorf("Error should be %v but got %v", testCase.err, x)
-					}
-				case int64:
-					if x != testCase.expected {
-						t.Errorf("Search result should be %d but got %d", testCase.expected, x)
-					}
+			switch x := (<-ch).(type) {
+			case error:
+				if testCase.err == nil {
+					t.Error(x)
+				} else if x != testCase.err {
+					t.Errorf("Error should be %v but got %v", testCase.err, x)
+				}
+			case int64:
+				if x != testCase.expected {
+					t.Errorf("Search result should be %d but got %d", testCase.expected, x)
 				}
 			}
 		})
