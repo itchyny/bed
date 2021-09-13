@@ -29,7 +29,7 @@ brew install itchyny/tap/bed
 
 ### Build from source
 ```bash
-go get github.com/itchyny/bed/cmd/bed
+go install github.com/itchyny/bed/cmd/bed@latest
 ```
 
 ## Features

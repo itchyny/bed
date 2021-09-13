@@ -21,21 +21,21 @@ show-version: $(GOBIN)/gobump
 	@gobump show -r $(VERSION_PATH)
 
 $(GOBIN)/gobump:
-	@cd && go get github.com/x-motemen/gobump/cmd/gobump
+	@go install github.com/x-motemen/gobump/cmd/gobump@latest
 
 .PHONY: cross
 cross: $(GOBIN)/goxz CREDITS
 	goxz -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) ./cmd/$(BIN)
 
 $(GOBIN)/goxz:
-	cd && go get github.com/Songmu/goxz/cmd/goxz
+	go install github.com/Songmu/goxz/cmd/goxz@latest
 
 CREDITS: $(GOBIN)/gocredits go.sum
 	go mod tidy
 	gocredits . > $@
 
 $(GOBIN)/gocredits:
-	cd && go get github.com/Songmu/gocredits/cmd/gocredits
+	go install github.com/Songmu/gocredits/cmd/gocredits@latest
 
 .PHONY: test
 test: build
@@ -47,7 +47,7 @@ lint: $(GOBIN)/golint
 	golint -set_exit_status ./...
 
 $(GOBIN)/golint:
-	cd && go get golang.org/x/lint/golint
+	go install golang.org/x/lint/golint@latest
 
 .PHONY: clean
 clean:
@@ -73,4 +73,4 @@ upload: $(GOBIN)/ghr
 	ghr "v$(VERSION)" goxz
 
 $(GOBIN)/ghr:
-	cd && go get github.com/tcnksm/ghr
+	go install github.com/tcnksm/ghr@latest
