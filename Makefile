@@ -32,7 +32,7 @@ $(GOBIN)/goxz:
 
 CREDITS: $(GOBIN)/gocredits go.sum
 	go mod tidy
-	gocredits . > $@
+	gocredits -w .
 
 $(GOBIN)/gocredits:
 	go install github.com/Songmu/gocredits/cmd/gocredits@latest
