@@ -2,7 +2,6 @@ package editor
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"runtime"
@@ -70,7 +69,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-open-empty-write-quit")
+	f, err := os.CreateTemp("", "bed-test-editor-open-empty-write-quit")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -97,7 +96,7 @@ func TestEditorOpenEmptyWriteQuit(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f.Name())
+	bs, err := os.ReadFile(f.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -115,7 +114,7 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-open-write-quit")
+	f, err := os.CreateTemp("", "bed-test-editor-open-write-quit")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -161,7 +160,7 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f.Name())
+	bs, err := os.ReadFile(f.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -203,7 +202,7 @@ func TestEditorOpenForceQuit(t *testing.T) {
 }
 
 func TestEditorWritePartial(t *testing.T) {
-	f, err := ioutil.TempFile("", "bed-test-editor-write-partial")
+	f, err := os.CreateTemp("", "bed-test-editor-write-partial")
 	defer os.Remove(f.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -238,7 +237,7 @@ func TestEditorWritePartial(t *testing.T) {
 		if err := editor.Open(f.Name()); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
-		fout, err := ioutil.TempFile("", "bed-test-editor-write-partial")
+		fout, err := os.CreateTemp("", "bed-test-editor-write-partial")
 		if err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
@@ -262,7 +261,7 @@ func TestEditorWritePartial(t *testing.T) {
 		if err := editor.Close(); err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
-		bs, err := ioutil.ReadFile(fout.Name())
+		bs, err := os.ReadFile(fout.Name())
 		if err != nil {
 			t.Errorf("err should be nil but got: %v", err)
 		}
@@ -273,12 +272,12 @@ func TestEditorWritePartial(t *testing.T) {
 }
 
 func TestEditorWriteVisualSelection(t *testing.T) {
-	f1, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection1")
+	f1, err := os.CreateTemp("", "bed-test-editor-write-visual-selection1")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	defer os.Remove(f1.Name())
-	f2, err := ioutil.TempFile("", "bed-test-editor-write-visual-selection2")
+	f2, err := os.CreateTemp("", "bed-test-editor-write-visual-selection2")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -335,7 +334,7 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f2.Name())
+	bs, err := os.ReadFile(f2.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -377,8 +376,8 @@ func TestEditorCmdlineQuit(t *testing.T) {
 }
 
 func TestEditorReplace(t *testing.T) {
-	f1, _ := ioutil.TempFile("", "bed-test-editor-replace1")
-	f2, _ := ioutil.TempFile("", "bed-test-editor-replace2")
+	f1, _ := os.CreateTemp("", "bed-test-editor-replace1")
+	f2, _ := os.CreateTemp("", "bed-test-editor-replace2")
 	defer os.Remove(f1.Name())
 	defer os.Remove(f2.Name())
 	str := "Hello, world!"
@@ -454,15 +453,15 @@ func TestEditorReplace(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, _ := ioutil.ReadFile(f2.Name())
+	bs, _ := os.ReadFile(f2.Name())
 	if expected := "earcrsterldvw"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
 
 func TestEditorCopyCutPaste(t *testing.T) {
-	f1, _ := ioutil.TempFile("", "bed-test-editor-copy-cut-paste1")
-	f2, _ := ioutil.TempFile("", "bed-test-editor-copy-cut-paste2")
+	f1, _ := os.CreateTemp("", "bed-test-editor-copy-cut-paste1")
+	f2, _ := os.CreateTemp("", "bed-test-editor-copy-cut-paste2")
 	defer os.Remove(f1.Name())
 	defer os.Remove(f2.Name())
 	str := "Hello, world!"
@@ -511,7 +510,7 @@ func TestEditorCopyCutPaste(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, _ := ioutil.ReadFile(f2.Name())
+	bs, _ := os.ReadFile(f2.Name())
 	if expected := "Hell w woo,llo,rld!"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
@@ -523,7 +522,7 @@ func TestEditorShowBinary(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-show-binary")
+	f, err := os.CreateTemp("", "bed-test-editor-show-binary")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -559,7 +558,7 @@ func TestEditorShowDecimal(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f, err := ioutil.TempFile("", "bed-test-editor-show-decimal")
+	f, err := os.CreateTemp("", "bed-test-editor-show-decimal")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -595,11 +594,11 @@ func TestEditorShift(t *testing.T) {
 	if err := editor.Init(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f1, err := ioutil.TempFile("", "bed-test-editor-shift-1")
+	f1, err := os.CreateTemp("", "bed-test-editor-shift-1")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	f2, err := ioutil.TempFile("", "bed-test-editor-shift-2")
+	f2, err := os.CreateTemp("", "bed-test-editor-shift-2")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -639,7 +638,7 @@ func TestEditorShift(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f2.Name())
+	bs, err := os.ReadFile(f2.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}

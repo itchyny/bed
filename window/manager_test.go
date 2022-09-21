@@ -1,7 +1,6 @@
 package window
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -54,7 +53,7 @@ func TestManagerOpenStates(t *testing.T) {
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	wm.SetSize(110, 20)
-	f, err := ioutil.TempFile("", "bed-test-manager-open")
+	f, err := os.CreateTemp("", "bed-test-manager-open")
 	if err != nil {
 		t.Errorf("err should be nil but got %v", err)
 	}
@@ -115,7 +114,7 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 		}
 	}()
 	wm.SetSize(110, 20)
-	f, _ := ioutil.TempFile("", "bed-test-manager-open")
+	f, _ := os.CreateTemp("", "bed-test-manager-open")
 	_ = f.Close()
 	_ = os.Remove(f.Name())
 	defer os.Remove(f.Name())
@@ -154,7 +153,7 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := ioutil.ReadFile(f.Name())
+	bs, err := os.ReadFile(f.Name())
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -377,7 +376,7 @@ func TestManagerCopyCutPaste(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
-	f, err := ioutil.TempFile("", "bed-test-manager-copy-cut-paste")
+	f, err := os.CreateTemp("", "bed-test-manager-copy-cut-paste")
 	if err != nil {
 		t.Errorf("err should be nil but got %v", err)
 	}
