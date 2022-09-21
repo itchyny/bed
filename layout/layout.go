@@ -314,14 +314,12 @@ func (l Horizontal) Lookup(cond func(Window) bool) Window {
 
 // Close the active layout.
 func (l Horizontal) Close() Layout {
-	switch m := l.Top.(type) {
-	case Window:
+	if m, ok := l.Top.(Window); ok {
 		if m.Active {
 			return l.Bottom.ActivateFirst()
 		}
 	}
-	switch m := l.Bottom.(type) {
-	case Window:
+	if m, ok := l.Bottom.(Window); ok {
 		if m.Active {
 			return l.Top.ActivateFirst()
 		}
@@ -483,14 +481,12 @@ func (l Vertical) Lookup(cond func(Window) bool) Window {
 
 // Close the active layout.
 func (l Vertical) Close() Layout {
-	switch m := l.Left.(type) {
-	case Window:
+	if m, ok := l.Left.(Window); ok {
 		if m.Active {
 			return l.Right.ActivateFirst()
 		}
 	}
-	switch m := l.Right.(type) {
-	case Window:
+	if m, ok := l.Right.(Window); ok {
 		if m.Active {
 			return l.Left.ActivateFirst()
 		}

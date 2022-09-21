@@ -326,8 +326,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 			continue
 		}
 		if offset == rr.min && i > 0 {
-			switch r := b.rrs[i-1].r.(type) {
-			case *bytesReader:
+			if r, ok := b.rrs[i-1].r.(*bytesReader); ok {
 				r = r.clone()
 				r.replaceByte(offset+b.rrs[i-1].diff, c)
 				b.rrs[i-1].r = r
@@ -346,7 +345,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
 		b.rrs[i+2] = readerRange{rr.r, offset + 1, mathutil.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
-		for i = i + 3; i < len(b.rrs); i++ {
+		for i += 3; i < len(b.rrs); i++ {
 			b.rrs[i].min++
 			b.rrs[i].max = mathutil.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
 			b.rrs[i].diff--
@@ -456,8 +455,7 @@ func (b *Buffer) Delete(offset int64) {
 		if offset >= rr.max {
 			continue
 		}
-		switch r := rr.r.(type) {
-		case *bytesReader:
+		if r, ok := rr.r.(*bytesReader); ok {
 			r = r.clone()
 			r.deleteByte(offset + rr.diff)
 			b.rrs[i].r = r
@@ -504,8 +502,7 @@ func (b *Buffer) cleanup() {
 		rr1, rr2 := b.rrs[i-1], b.rrs[i]
 		switch r1 := rr1.r.(type) {
 		case constReader:
-			switch r2 := rr2.r.(type) {
-			case constReader:
+			if r2, ok := rr2.r.(constReader); ok {
 				if byte(r1) == byte(r2) {
 					b.rrs[i-1].max = b.rrs[i].max
 					b.rrs[i-1].diff = -b.rrs[i-1].min
@@ -515,8 +512,7 @@ func (b *Buffer) cleanup() {
 				}
 			}
 		case *bytesReader:
-			switch r2 := rr2.r.(type) {
-			case *bytesReader:
+			if r2, ok := rr2.r.(*bytesReader); ok {
 				bs := make([]byte, int(rr1.max-rr1.min)+len(r2.bs)-int(rr2.min+rr2.diff))
 				copy(bs, r1.bs[rr1.min+rr1.diff:rr1.max+rr1.diff])
 				copy(bs[rr1.max-rr1.min:], r2.bs[rr2.min+rr2.diff:])
