@@ -553,7 +553,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	tmpf, err := os.OpenFile(
 		name+"-"+strconv.FormatUint(rand.Uint64(), 16),
 		os.O_RDWR|os.O_CREATE|os.O_EXCL, m.filePerm(name),
-	)
+	) //#nosec G404
 	if err != nil {
 		return name, 0, err
 	}
