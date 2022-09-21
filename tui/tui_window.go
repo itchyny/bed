@@ -46,7 +46,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	for 0 < len(eis) && eis[1] <= s.Offset {
 		eis = eis[2:]
 	}
-	edittedColor := tcell.ColorLightSeaGreen
+	editedColor := tcell.ColorLightSeaGreen
 	d := ui.getTextDrawer()
 	for i, k := 0, 0; i < height; i++ {
 		d.addTop(1).setLeft(0).setOffset(0)
@@ -55,7 +55,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 		for j := 0; j < width; j, k = j+1, k+1 {
 			b, style := byte(0), tcell.StyleDefault
 			if s.Pending && i*width+j == cursorPos {
-				b, style = s.PendingByte, tcell.StyleDefault.Foreground(edittedColor)
+				b, style = s.PendingByte, tcell.StyleDefault.Foreground(editedColor)
 				if s.Mode != mode.Replace {
 					k--
 				}
@@ -69,7 +69,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 				b = s.Bytes[k]
 				pos := int64(k) + s.Offset
 				if 0 < len(eis) && eis[0] <= pos && pos < eis[1] {
-					style = tcell.StyleDefault.Foreground(edittedColor)
+					style = tcell.StyleDefault.Foreground(editedColor)
 				} else if 0 < len(eis) && eis[1] <= pos {
 					eis = eis[2:]
 				}
