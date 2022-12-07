@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -550,23 +549,22 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		window.name = filepath.Base(name)
 		window.mu.Unlock()
 	}
-	tmpf, err := os.OpenFile(
-		name+"-"+strconv.FormatUint(rand.Uint64(), 16),
-		os.O_RDWR|os.O_CREATE|os.O_EXCL, m.filePerm(name),
+	f, err := os.OpenFile(
+		name,
+		os.O_RDWR|os.O_CREATE, m.filePerm(name),
 	) //#nosec G404
 	if err != nil {
 		return name, 0, err
 	}
-	defer os.Remove(tmpf.Name())
-	n, err := window.writeTo(r, tmpf)
-	tmpf.Close()
+	defer f.Close()
+	n, err := window.writeTo(r, f)
 	if err != nil {
 		return name, 0, err
 	}
 	if window.filename == name {
 		window.savedChangedTick = window.changedTick
 	}
-	return name, n, os.Rename(tmpf.Name(), name)
+	return name, n, nil
 }
 
 func (m *Manager) filePerm(name string) os.FileMode {
