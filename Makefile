@@ -14,7 +14,7 @@ build:
 
 .PHONY: install
 install:
-	go install -ldflags=$(BUILD_LDFLAGS) ./...
+	go install -ldflags=$(BUILD_LDFLAGS) ./cmd/$(BIN)
 
 .PHONY: show-version
 show-version: $(GOBIN)/gobump
