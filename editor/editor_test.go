@@ -343,6 +343,61 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 	}
 }
 
+func TestEditorWriteUndo(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip on Windows")
+	}
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	f, err := os.CreateTemp("", "bed-test-editor-write-undo")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if _, err := f.WriteString("abc"); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f.Name()); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	defer os.Remove(f.Name())
+	go func() {
+		for _, e := range []struct {
+			typ event.Type
+			ch  rune
+			arg string
+		}{
+			{event.DeleteByte, 'x', ""},
+			{event.Write, 'w', f.Name()},
+			{event.Undo, 'u', ""},
+			{event.WriteQuit, 'x', f.Name()},
+		} {
+			ui.Emit(event.Event{Type: e.typ, Rune: e.ch})
+		}
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err, expected := editor.err, "2 (0x2) bytes written"; !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := os.ReadFile(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "abc"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+}
+
 func TestEditorCmdlineQuit(t *testing.T) {
 	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
