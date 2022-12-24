@@ -444,9 +444,12 @@ func (m *Manager) focus(search func(layout.Window, layout.Window) bool) {
 func (m *Manager) move(modifier func(layout.Window, layout.Layout) layout.Layout) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	activeWindow := m.layout.ActiveWindow()
-	m.layout = modifier(activeWindow, m.layout.Close()).Activate(
-		activeWindow.Index).Resize(0, 0, m.width, m.height)
+	w, h := m.layout.Count()
+	if w != 1 || h != 1 {
+		activeWindow := m.layout.ActiveWindow()
+		m.layout = modifier(activeWindow, m.layout.Close()).Activate(
+			activeWindow.Index).Resize(0, 0, m.width, m.height)
+	}
 }
 
 func (m *Manager) quit(e event.Event) error {

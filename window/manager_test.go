@@ -369,6 +369,16 @@ func TestManagerWincmd(t *testing.T) {
 		t.Errorf("layout should be %#v but got %#v", expected, got)
 	}
 
+	wm.Emit(event.Event{Type: event.MoveWindowLeft})
+	wm.Emit(event.Event{Type: event.MoveWindowRight})
+	wm.Emit(event.Event{Type: event.MoveWindowTop})
+	wm.Emit(event.Event{Type: event.MoveWindowBottom})
+	wm.Resize(110, 20)
+	_, got, _, _ = wm.State()
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("layout should be %#v but got %#v", expected, got)
+	}
+
 	wm.Close()
 }
 
