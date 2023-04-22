@@ -17,6 +17,8 @@ import (
 	"github.com/itchyny/bed/state"
 )
 
+var pageUpDownJumpRatio = 0.95
+
 type window struct {
 	buffer           *buffer.Buffer
 	changedTick      uint64
@@ -582,6 +584,9 @@ func (w *window) scrollDown(count int64) {
 	}
 }
 
+func (w *window) getPageJump() int64 {
+	return int64(float64(w.height) * pageUpDownJumpRatio)
+}
 func (w *window) scrollTop(count int64) {
 	if count > 0 {
 		w.cursor = mathutil.MinInt64(
@@ -637,7 +642,7 @@ func (w *window) scrollBottomHead(count int64) {
 }
 
 func (w *window) pageUp() {
-	w.offset = mathutil.MaxInt64(w.offset-(w.height-2)*w.width, 0)
+	w.offset = mathutil.MaxInt64(w.offset-w.getPageJump()*w.width, 0)
 	if w.offset == 0 {
 		w.cursor = 0
 	} else if w.cursor >= w.offset+w.height*w.width {
@@ -647,7 +652,7 @@ func (w *window) pageUp() {
 
 func (w *window) pageDown() {
 	offset := mathutil.MaxInt64(((w.length+w.width-1)/w.width-w.height)*w.width, 0)
-	w.offset = mathutil.MinInt64(w.offset+(w.height-2)*w.width, offset)
+	w.offset = mathutil.MinInt64(w.offset+w.getPageJump()*w.width, offset)
 	if w.cursor < w.offset {
 		w.cursor = w.offset
 	} else if w.offset == offset {

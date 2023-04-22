@@ -450,23 +450,14 @@ func TestWindowScreenMotions(t *testing.T) {
 
 	window.pageDown()
 	s, _ = window.state(width, height)
-	if expected := int64(128); s.Cursor != expected {
+	if expected := int64(144); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
-	if expected := int64(128); s.Offset != expected {
+	if expected := int64(144); s.Offset != expected {
 		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
 	}
 
 	window.pageDownHalf()
-	s, _ = window.state(width, height)
-	if expected := int64(208); s.Cursor != expected {
-		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
-	}
-	if expected := int64(208); s.Offset != expected {
-		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
-	}
-
-	window.scrollDown(0)
 	s, _ = window.state(width, height)
 	if expected := int64(224); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
@@ -475,39 +466,48 @@ func TestWindowScreenMotions(t *testing.T) {
 		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
 	}
 
-	window.scrollUp(0)
+	window.scrollDown(0)
 	s, _ = window.state(width, height)
-	if expected := int64(224); s.Cursor != expected {
+	if expected := int64(240); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
-	if expected := int64(208); s.Offset != expected {
+	if expected := int64(240); s.Offset != expected {
+		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
+	}
+
+	window.scrollUp(0)
+	s, _ = window.state(width, height)
+	if expected := int64(240); s.Cursor != expected {
+		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
+	}
+	if expected := int64(224); s.Offset != expected {
 		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
 	}
 
 	window.scrollDown(30)
 	s, _ = window.state(width, height)
-	if expected := int64(688); s.Cursor != expected {
+	if expected := int64(704); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
-	if expected := int64(688); s.Offset != expected {
+	if expected := int64(704); s.Offset != expected {
 		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
 	}
 
 	window.scrollUp(30)
 	s, _ = window.state(width, height)
-	if expected := int64(352); s.Cursor != expected {
+	if expected := int64(368); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
-	if expected := int64(208); s.Offset != expected {
+	if expected := int64(224); s.Offset != expected {
 		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
 	}
 
 	window.pageUpHalf()
 	s, _ = window.state(width, height)
-	if expected := int64(272); s.Cursor != expected {
+	if expected := int64(288); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
-	if expected := int64(128); s.Offset != expected {
+	if expected := int64(144); s.Offset != expected {
 		t.Errorf("s.Offset should be %d but got %d", expected, s.Offset)
 	}
 
