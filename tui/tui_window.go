@@ -124,7 +124,7 @@ func (ui *tuiWindow) drawHeader(s *state.WindowState, offsetStyleWidth int) {
 	d.addLeft(1).setByte('|', style)
 	for i := 0; i < s.Width; i++ {
 		d.addLeft(1).setByte(' ', style)
-		d.addLeft(1).setByte(" 1"[i>>4], style.Bold(cursor == i))
+		d.addLeft(1).setByte(" 123456789abcdef"[i>>4], style.Bold(cursor == i))
 		d.addLeft(1).setByte(hex[i&0x0f], style.Bold(cursor == i))
 	}
 	d.addLeft(1).setByte(' ', style)

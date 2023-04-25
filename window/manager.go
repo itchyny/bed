@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/bits"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -518,18 +519,8 @@ func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error
 }
 
 func hexWindowWidth(width int) int {
-	if width > 146 {
-		return 32
-	} else if width > 114 {
-		return 24
-	} else if width > 82 {
-		return 16
-	} else if width > 64 {
-		return 12
-	} else if width > 50 {
-		return 8
-	}
-	return 4
+	width = mathutil.MinInt(mathutil.MaxInt((width-18)/4, 4), 256)
+	return width & (0b11 << (bits.Len(uint(width)) - 2))
 }
 
 func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) {
