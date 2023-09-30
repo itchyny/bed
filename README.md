@@ -1,5 +1,5 @@
 # bed
-[![CI Status](https://github.com/itchyny/bed/workflows/CI/badge.svg)](https://github.com/itchyny/bed/actions)
+[![CI Status](https://github.com/itchyny/bed/workflows/CI/badge.svg?branch=main)](https://github.com/itchyny/bed/actions?query=branch:main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/itchyny/bed)](https://goreportcard.com/report/github.com/itchyny/bed)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/itchyny/bed/blob/main/LICENSE)
 [![release](https://img.shields.io/github/release/itchyny/bed/all.svg)](https://github.com/itchyny/bed/releases)
