@@ -32,14 +32,14 @@ func (err errNotFound) Error() string {
 }
 
 // Search the pattern.
-func (s *Searcher) Search(cursor int64, pattern string, forward bool) <-chan interface{} {
+func (s *Searcher) Search(cursor int64, pattern string, forward bool) <-chan any {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.bytes == nil {
 		s.bytes = make([]byte, loadSize)
 	}
 	s.cursor, s.pattern = cursor, pattern
-	ch := make(chan interface{})
+	ch := make(chan any)
 	if forward {
 		s.loop(s.forward, ch)
 	} else {
@@ -103,7 +103,7 @@ func (s *Searcher) backward() (int64, error) {
 	return -1, nil
 }
 
-func (s *Searcher) loop(f func() (int64, error), ch chan<- interface{}) {
+func (s *Searcher) loop(f func() (int64, error), ch chan<- any) {
 	if s.loopCh != nil {
 		close(s.loopCh)
 	}

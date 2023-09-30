@@ -104,6 +104,6 @@ func (fi *fileInfo) ModTime() time.Time {
 	return time.Time{}
 }
 
-func (fi *fileInfo) Sys() interface{} {
+func (fi *fileInfo) Sys() any {
 	return nil
 }
