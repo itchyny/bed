@@ -5,8 +5,6 @@ import (
 	"io"
 	"math"
 	"sync"
-
-	"github.com/itchyny/bed/mathutil"
 )
 
 // Buffer represents a buffer.
@@ -55,7 +53,7 @@ func (b *Buffer) read(p []byte) (i int, err error) {
 		if b.index >= rr.max {
 			continue
 		}
-		m := int(mathutil.MinInt64(int64(len(p)-i), rr.max-b.index))
+		m := int(min(int64(len(p)-i), rr.max-b.index))
 		var k int
 		if k, err = rr.r.ReadAt(p[i:i+m], b.index+rr.diff); err != nil && k == 0 {
 			break
@@ -65,8 +63,8 @@ func (b *Buffer) read(p []byte) (i int, err error) {
 		i += k
 	}
 	if len(b.bytes) > 0 {
-		j := mathutil.MaxInt64(b.offset-index, 0)
-		k := mathutil.MaxInt64(index-b.offset, 0)
+		j := max(b.offset-index, 0)
+		k := max(index-b.offset, 0)
 		if j < int64(len(p)) && k < int64(len(b.bytes)) {
 			if cnt := copy(p[j:], b.bytes[k:]); i < int(j)+cnt {
 				i = int(j) + cnt
@@ -120,7 +118,7 @@ func (b *Buffer) len() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return mathutil.MaxInt64(l-rr.diff, b.offset+int64(len(b.bytes))), nil
+	return max(l-rr.diff, b.offset+int64(len(b.bytes))), nil
 }
 
 // ReadAt reads bytes at the specific offset.
@@ -221,7 +219,7 @@ func (b *Buffer) Copy(start, end int64) *Buffer {
 		if index >= rr.max {
 			continue
 		}
-		size := mathutil.MinInt64(end-index, rr.max-index)
+		size := min(end-index, rr.max-index)
 		newBuf.rrs = append(newBuf.rrs, readerRange{rr.r, index - start, index - start + size, rr.diff + start})
 		index += size
 	}
@@ -291,7 +289,7 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 			continue
 		}
 		if offset < rr.min {
-			max = mathutil.MinInt64(rr.max, math.MaxInt64-index+rr.min) + index - rr.min
+			max = min(rr.max, math.MaxInt64-index+rr.min) + index - rr.min
 			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + rr.min})
 			index = max
 			continue
@@ -308,7 +306,7 @@ func (b *Buffer) Paste(offset int64, c *Buffer) {
 			rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + rr.min})
 			index = max
 		}
-		max = mathutil.MinInt64(rr.max, math.MaxInt64-index+offset) + index - offset
+		max = min(rr.max, math.MaxInt64-index+offset) + index - offset
 		rrs = append(rrs, readerRange{rr.r, index, max, rr.diff - index + offset})
 		index = max
 	}
@@ -333,7 +331,7 @@ func (b *Buffer) Insert(offset int64, c byte) {
 				b.rrs[i-1].max++
 				for ; i < len(b.rrs); i++ {
 					b.rrs[i].min++
-					b.rrs[i].max = mathutil.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+					b.rrs[i].max = min(b.rrs[i].max, math.MaxInt64-1) + 1
 					b.rrs[i].diff--
 				}
 				return
@@ -344,10 +342,10 @@ func (b *Buffer) Insert(offset int64, c byte) {
 		copy(b.rrs[i+2:], b.rrs[i:])
 		b.rrs[i] = readerRange{rr.r, rr.min, offset, rr.diff}
 		b.rrs[i+1] = readerRange{newBytesReader([]byte{c}), offset, offset + 1, -offset}
-		b.rrs[i+2] = readerRange{rr.r, offset + 1, mathutil.MinInt64(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
+		b.rrs[i+2] = readerRange{rr.r, offset + 1, min(rr.max, math.MaxInt64-1) + 1, rr.diff - 1}
 		for i += 3; i < len(b.rrs); i++ {
 			b.rrs[i].min++
-			b.rrs[i].max = mathutil.MinInt64(b.rrs[i].max, math.MaxInt64-1) + 1
+			b.rrs[i].max = min(b.rrs[i].max, math.MaxInt64-1) + 1
 			b.rrs[i].diff--
 		}
 		b.cleanup()

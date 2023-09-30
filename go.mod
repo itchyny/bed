@@ -1,6 +1,6 @@
 module github.com/itchyny/bed
 
-go 1.18
+go 1.21
 
 require (
 	github.com/gdamore/tcell v1.4.0

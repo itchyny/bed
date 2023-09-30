@@ -6,8 +6,6 @@ import (
 	"io"
 	"sync"
 	"time"
-
-	"github.com/itchyny/bed/mathutil"
 )
 
 const loadSize = 1024 * 1024
@@ -84,8 +82,8 @@ func (s *Searcher) backward() (int64, error) {
 	if err != nil {
 		return -1, err
 	}
-	base := mathutil.MaxInt64(0, s.cursor-int64(loadSize))
-	size := int(mathutil.MinInt64(int64(loadSize), s.cursor))
+	base := max(0, s.cursor-int64(loadSize))
+	size := int(min(int64(loadSize), s.cursor))
 	n, err := s.r.ReadAt(s.bytes[:size], base)
 	if err != nil && err != io.EOF {
 		return -1, err

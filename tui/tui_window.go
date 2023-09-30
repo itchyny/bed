@@ -7,7 +7,6 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"github.com/itchyny/bed/mathutil"
 	"github.com/itchyny/bed/mode"
 	"github.com/itchyny/bed/state"
 )
@@ -140,9 +139,9 @@ func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
 		stateSize++
 	}
 	total := int64((stateSize + s.Width - 1) / s.Width)
-	len := mathutil.MaxInt64((s.Length+int64(s.Width)-1)/int64(s.Width), 1)
-	size := mathutil.MaxInt64(total*total/len, 1)
-	pad := (total*total + len - len*size - 1) / mathutil.MaxInt64(total-size+1, 1)
+	len := max((s.Length+int64(s.Width)-1)/int64(s.Width), 1)
+	size := max(total*total/len, 1)
+	pad := (total*total + len - len*size - 1) / max(total-size+1, 1)
 	top := (s.Offset / int64(s.Width) * total) / (len - pad)
 	d := ui.getTextDrawer().setLeft(left)
 	for i, b := 0, byte(0); i < height; i++ {
@@ -170,9 +169,9 @@ func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
 		prettyMode(s.Mode), name, modified, s.Bytes[j], prettyRune(s.Bytes[j]))
 	right := fmt.Sprintf("%d/%d : "+offsetStyle+"/"+offsetStyle+" : %.2f%% ",
 		s.Cursor, s.Length, s.Cursor, s.Length,
-		float64(s.Cursor*100)/float64(mathutil.MaxInt64(s.Length, 1)))
+		float64(s.Cursor*100)/float64(max(s.Length, 1)))
 	line := left + strings.Repeat(
-		" ", mathutil.MaxInt(2, ui.region.width-len(left)-len(right)),
+		" ", max(2, ui.region.width-len(left)-len(right)),
 	) + right
 	ui.getTextDrawer().setTop(ui.region.height-1).setString(line, tcell.StyleDefault.Reverse(true))
 }

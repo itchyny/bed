@@ -5,7 +5,6 @@ import (
 	"unicode"
 
 	"github.com/itchyny/bed/event"
-	"github.com/itchyny/bed/mathutil"
 )
 
 // Cmdline implements editor.Cmdline
@@ -92,11 +91,11 @@ func (c *Cmdline) Run() {
 }
 
 func (c *Cmdline) cursorLeft() {
-	c.cursor = mathutil.MaxInt(0, c.cursor-1)
+	c.cursor = max(0, c.cursor-1)
 }
 
 func (c *Cmdline) cursorRight() {
-	c.cursor = mathutil.MinInt(len(c.cmdline), c.cursor+1)
+	c.cursor = min(len(c.cmdline), c.cursor+1)
 }
 
 func (c *Cmdline) cursorHead() {

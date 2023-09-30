@@ -16,7 +16,6 @@ import (
 
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
-	"github.com/itchyny/bed/mathutil"
 	"github.com/itchyny/bed/state"
 )
 
@@ -509,7 +508,7 @@ func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error
 		if l, ok := layouts[i]; ok {
 			var err error
 			if states[i], err = window.state(
-				hexWindowWidth(l.Width()), mathutil.MaxInt(l.Height()-2, 1),
+				hexWindowWidth(l.Width()), max(l.Height()-2, 1),
 			); err != nil {
 				return nil, m.layout, 0, err
 			}
@@ -519,7 +518,7 @@ func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error
 }
 
 func hexWindowWidth(width int) int {
-	width = mathutil.MinInt(mathutil.MaxInt((width-18)/4, 4), 256)
+	width = min(max((width-18)/4, 4), 256)
 	return width & (0b11 << (bits.Len(uint(width)) - 2))
 }
 
