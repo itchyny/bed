@@ -36,7 +36,7 @@ func (ui *testUI) Init(eventCh chan<- event.Event) error {
 	return nil
 }
 
-func (ui *testUI) Run(km map[mode.Mode]*key.Manager) {}
+func (ui *testUI) Run(map[mode.Mode]*key.Manager) {}
 
 func (ui *testUI) Height() int { return 10 }
 

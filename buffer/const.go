@@ -11,11 +11,11 @@ func (r constReader) Read(b []byte) (int, error) {
 }
 
 // Seek implements the io.Seeker interface.
-func (r constReader) Seek(offset int64, whence int) (int64, error) {
+func (r constReader) Seek(int64, int) (int64, error) {
 	return 0, nil
 }
 
 // ReadAt implements the io.ReaderAt interface.
-func (r constReader) ReadAt(b []byte, offset int64) (int, error) {
+func (r constReader) ReadAt(b []byte, _ int64) (int, error) {
 	return r.Read(b)
 }
