@@ -2,8 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/gdamore/tcell"
 
@@ -40,7 +38,6 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	cursorPos := int(s.Cursor - s.Offset)
 	cursorLine := cursorPos / width
 	offsetStyleWidth := ui.offsetStyleWidth(s)
-	offsetStyle := " %0" + strconv.Itoa(offsetStyleWidth) + "x"
 	eis := s.EditedIndices
 	for 0 < len(eis) && eis[1] <= s.Offset {
 		eis = eis[2:]
@@ -49,7 +46,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	d := ui.getTextDrawer()
 	for i, k := 0, 0; i < height; i++ {
 		d.addTop(1).setLeft(0).setOffset(0)
-		d.setString(fmt.Sprintf(offsetStyle, s.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
+		d.setString(fmt.Sprintf(" %0*x", offsetStyleWidth, s.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
 		d.setLeft(offsetStyleWidth + 3)
 		for j := 0; j < width; j, k = j+1, k+1 {
 			b, style := byte(0), tcell.StyleDefault
@@ -155,7 +152,6 @@ func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
 }
 
 func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
-	offsetStyle := "0x%0" + strconv.Itoa(offsetStyleWidth) + "x"
 	j := int(s.Cursor - s.Offset)
 	name := s.Name
 	if name == "" {
@@ -167,12 +163,10 @@ func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
 	}
 	left := fmt.Sprintf(" %s%s%s : 0x%02x : '%s'",
 		prettyMode(s.Mode), name, modified, s.Bytes[j], prettyRune(s.Bytes[j]))
-	right := fmt.Sprintf("%d/%d : "+offsetStyle+"/"+offsetStyle+" : %.2f%% ",
-		s.Cursor, s.Length, s.Cursor, s.Length,
+	right := fmt.Sprintf("%d/%d : 0x%0*x/0x%0*x : %.2f%% ",
+		s.Cursor, s.Length, offsetStyleWidth, s.Cursor, offsetStyleWidth, s.Length,
 		float64(s.Cursor*100)/float64(max(s.Length, 1)))
-	line := left + strings.Repeat(
-		" ", max(2, ui.region.width-len(left)-len(right)),
-	) + right
+	line := fmt.Sprintf("%s  %*s", left, max(ui.region.width-len(left)-2, 0), right)
 	ui.getTextDrawer().setTop(ui.region.height-1).setString(line, tcell.StyleDefault.Reverse(true))
 }
 
