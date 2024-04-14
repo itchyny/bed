@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"cmp"
 	"fmt"
 
 	"github.com/gdamore/tcell"
@@ -152,17 +153,13 @@ func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
 }
 
 func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
-	j := int(s.Cursor - s.Offset)
-	name := s.Name
-	if name == "" {
-		name = "[No name]"
-	}
 	var modified string
 	if s.Modified {
 		modified = " : +"
 	}
+	b := s.Bytes[int(s.Cursor-s.Offset)]
 	left := fmt.Sprintf(" %s%s%s : 0x%02x : '%s'",
-		prettyMode(s.Mode), name, modified, s.Bytes[j], prettyRune(s.Bytes[j]))
+		prettyMode(s.Mode), cmp.Or(s.Name, "[No name]"), modified, b, prettyRune(b))
 	right := fmt.Sprintf("%d/%d : 0x%0*x/0x%0*x : %.2f%% ",
 		s.Cursor, s.Length, offsetStyleWidth, s.Cursor, offsetStyleWidth, s.Length,
 		float64(s.Cursor*100)/float64(max(s.Length, 1)))
