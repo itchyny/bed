@@ -47,6 +47,7 @@ func (l Window) Collect() map[int]Window {
 // Replace the active window with new window index.
 func (l Window) Replace(index int) Layout {
 	if l.Active {
+		// revive:disable-next-line:modifies-value-receiver
 		l.Index = index
 	}
 	return l
@@ -54,6 +55,7 @@ func (l Window) Replace(index int) Layout {
 
 // Resize recalculates the position.
 func (l Window) Resize(left, top, width, height int) Layout {
+	// revive:disable-next-line:modifies-value-receiver
 	l.left, l.top, l.width, l.height = left, top, width, height
 	return l
 }
@@ -129,12 +131,14 @@ func (l Window) Count() (int, int) {
 
 // Activate the specific window layout.
 func (l Window) Activate(i int) Layout {
+	// revive:disable-next-line:modifies-value-receiver
 	l.Active = l.Index == i
 	return l
 }
 
 // ActivateFirst the first layout.
 func (l Window) ActivateFirst() Layout {
+	// revive:disable-next-line:modifies-value-receiver
 	l.Active = true
 	return l
 }
