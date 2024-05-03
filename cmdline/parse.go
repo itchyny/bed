@@ -55,7 +55,7 @@ func expand(name string) []string {
 		return []string{name}
 	}
 	cmds := make([]string, len(abbr)+1)
-	for i := 0; i <= len(abbr); i++ {
+	for i := range len(abbr) + 1 {
 		cmds[i] = prefix + abbr[:i]
 	}
 	return cmds

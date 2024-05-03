@@ -21,7 +21,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "new .gitignore"; cmdline != expected {
@@ -34,7 +34,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 3, c.index)
 	}
 
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "new editor" + string(filepath.Separator); cmdline != expected {
@@ -71,7 +71,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
 	}
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "new README.md"; cmdline != expected {
@@ -169,7 +169,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "vnew ~/Library/"; cmdline != expected {
@@ -179,7 +179,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 4, c.index)
 	}
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "vnew ~/"; cmdline != expected {
@@ -267,7 +267,7 @@ func TestCompletorCompleteWincmd(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
 	}
 
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "winc k"; cmdline != expected {
@@ -277,7 +277,7 @@ func TestCompletorCompleteWincmd(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 3, c.index)
 	}
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
 	}
 	if expected := "winc J"; cmdline != expected {

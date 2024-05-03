@@ -61,7 +61,7 @@ func (km *Manager) RegisterBang(eventType event.Type, keys ...Key) {
 // Press checks the new key down event.
 func (km *Manager) Press(k Key) event.Event {
 	km.keys = append(km.keys, k)
-	for i := 0; i < len(km.keys); i++ {
+	for i := range len(km.keys) {
 		keys := km.keys[i:]
 		var count int64
 		if km.count {

@@ -52,7 +52,7 @@ func TestCmdlineRun(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 		}
 	}()
-	for i := 0; i < len(events)-4; i++ {
+	for range len(events) - 4 {
 		<-redrawCh
 	}
 	e := <-eventCh
@@ -90,7 +90,7 @@ func TestCmdlineCursorMotion(t *testing.T) {
 		t.Errorf("cursor should be 4 but got %v", cursor)
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		c.cursorLeft()
 	}
 	_, cursor, _, _ = c.Get()
@@ -104,7 +104,7 @@ func TestCmdlineCursorMotion(t *testing.T) {
 		t.Errorf("cursor should be 1 but got %v", cursor)
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		c.cursorRight()
 	}
 	_, cursor, _, _ = c.Get()
@@ -538,7 +538,7 @@ func TestCmdlineComplete(t *testing.T) {
 		<-waitCh
 		cmdlineCh <- event.Event{Type: event.ExecuteCmdline}
 	}()
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		<-redrawCh
 	}
 	cmdline, cursor, _, _ := c.Get()
@@ -631,7 +631,7 @@ func TestCmdlineSearch(t *testing.T) {
 			cmdlineCh <- e
 		}
 	}()
-	for i := 0; i < len(events1)-1; i++ {
+	for range len(events1) - 1 {
 		<-redrawCh
 	}
 	e := <-eventCh
@@ -646,7 +646,7 @@ func TestCmdlineSearch(t *testing.T) {
 		t.Errorf("cmdline should emit search event with Rune %q but got %q", '/', e.Rune)
 	}
 	waitCh <- struct{}{}
-	for i := 0; i < len(events2)-1; i++ {
+	for range len(events2) - 1 {
 		<-redrawCh
 	}
 	e = <-eventCh

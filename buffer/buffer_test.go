@@ -128,7 +128,7 @@ func TestBufferClone(t *testing.T) {
 		if b0.index != b1.index || len(b0.rrs) != len(b1.rrs) {
 			return false
 		}
-		for i := 0; i < len(b0.rrs); i++ {
+		for i := range len(b0.rrs) {
 			if b0.rrs[i].min != b1.rrs[i].min || b0.rrs[i].max != b1.rrs[i].max ||
 				b0.rrs[i].diff != b1.rrs[i].diff {
 				return false

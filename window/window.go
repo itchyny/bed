@@ -407,7 +407,7 @@ func (w *window) delete(offset int64) {
 }
 
 func (w *window) undo(count int64) {
-	for i := int64(0); i < max(count, 1); i++ {
+	for range max(count, 1) {
 		buffer, _, offset, cursor, tick := w.history.Undo()
 		if buffer == nil {
 			return
@@ -418,7 +418,7 @@ func (w *window) undo(count int64) {
 }
 
 func (w *window) redo(count int64) {
-	for i := int64(0); i < max(count, 1); i++ {
+	for range max(count, 1) {
 		buffer, offset, cursor, tick := w.history.Redo()
 		if buffer == nil {
 			return
@@ -908,7 +908,7 @@ func (w *window) insertRune(m mode.Mode, ch rune) (exitInsert bool) {
 		if w.focusText {
 			var buf [4]byte
 			n := utf8.EncodeRune(buf[:], ch)
-			for i := 0; i < n; i++ {
+			for i := range n {
 				exitInsert = exitInsert || w.insertByte(m, byte(buf[i]>>4))
 				exitInsert = exitInsert || w.insertByte(m, byte(buf[i]&0x0f))
 			}
@@ -1046,7 +1046,7 @@ func (w *window) paste(e event.Event) int64 {
 	if e.Type != event.PastePrev {
 		pos = min(w.cursor+1, w.length)
 	}
-	for i := int64(0); i < count; i++ {
+	for range count {
 		w.buffer.Paste(pos, e.Buffer)
 	}
 	l, _ := e.Buffer.Len()

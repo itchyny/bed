@@ -119,7 +119,7 @@ func (ui *Tui) newTuiWindow(region region) *tuiWindow {
 }
 
 func (ui *Tui) drawVerticalSplit(region region) {
-	for i := 0; i < region.height; i++ {
+	for i := range region.height {
 		ui.setLine(region.top+i, region.left+region.width, "|", tcell.StyleDefault.Reverse(true))
 	}
 }
