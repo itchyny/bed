@@ -140,10 +140,10 @@ func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
 		stateSize++
 	}
 	total := int64((stateSize + s.Width - 1) / s.Width)
-	len := max((s.Length+int64(s.Width)-1)/int64(s.Width), 1)
-	size := max(total*total/len, 1)
-	pad := (total*total + len - len*size - 1) / max(total-size+1, 1)
-	top := (s.Offset / int64(s.Width) * total) / (len - pad)
+	length := max((s.Length+int64(s.Width)-1)/int64(s.Width), 1)
+	size := max(total*total/length, 1)
+	pad := (total*total + length - length*size - 1) / max(total-size+1, 1)
+	top := (s.Offset / int64(s.Width) * total) / (length - pad)
 	d := ui.getTextDrawer().setLeft(left)
 	for i := range height {
 		var b byte
