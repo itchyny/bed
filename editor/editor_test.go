@@ -193,7 +193,8 @@ func TestEditorOpenForceQuit(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if err, expected := editor.err, "you have unsaved changes in [No Name], add ! to force :quit"; err == nil || !strings.HasSuffix(err.Error(), expected) {
+	if err, expected := editor.err, "you have unsaved changes in [No Name], "+
+		"add ! to force :quit"; err == nil || !strings.HasSuffix(err.Error(), expected) {
 		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
