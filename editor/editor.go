@@ -69,7 +69,7 @@ func (e *Editor) listen() error {
 		for {
 			select {
 			case <-e.redrawCh:
-				e.redraw()
+				_ = e.redraw()
 			case <-e.quitCh:
 				return
 			}

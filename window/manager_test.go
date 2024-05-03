@@ -248,15 +248,21 @@ func TestManagerAlternative(t *testing.T) {
 	}()
 	wm.SetSize(110, 20)
 
-	wm.Open("bed-test-manager-alternative-1")
-	wm.Open("bed-test-manager-alternative-2")
+	if err := wm.Open("bed-test-manager-alternative-1"); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := wm.Open("bed-test-manager-alternative-2"); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
 	wm.Emit(event.Event{Type: event.Alternative})
 	_, _, windowIndex, _ := wm.State()
 	if expected := 0; windowIndex != expected {
 		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
-	wm.Open("bed-test-manager-alternative-3")
+	if err := wm.Open("bed-test-manager-alternative-3"); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
 	_, _, windowIndex, _ = wm.State()
 	if expected := 2; windowIndex != expected {
 		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
@@ -274,7 +280,9 @@ func TestManagerAlternative(t *testing.T) {
 		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
-	wm.Open("bed-test-manager-alternative-4")
+	if err := wm.Open("bed-test-manager-alternative-4"); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
 	_, _, windowIndex, _ = wm.State()
 	if expected := 3; windowIndex != expected {
 		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)

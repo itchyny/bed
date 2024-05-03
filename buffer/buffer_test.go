@@ -450,14 +450,18 @@ func TestBufferReplace(t *testing.T) {
 		b.Replace(6, 0x36)
 		b.Replace(7, 0x35)
 		p := make([]byte, 8)
-		b.ReadAt(p, 2)
+		if _, err := b.ReadAt(p, 2); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 		if expected := "99876589"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
 		b.UndoReplace(7)
 		b.UndoReplace(6)
 		p = make([]byte, 8)
-		b.ReadAt(p, 2)
+		if _, err := b.ReadAt(p, 2); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 		if expected := "99876789"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
@@ -467,7 +471,9 @@ func TestBufferReplace(t *testing.T) {
 		b.UndoReplace(3)
 		b.UndoReplace(2)
 		p = make([]byte, 8)
-		b.ReadAt(p, 2)
+		if _, err := b.ReadAt(p, 2); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 		if expected := "99106789"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
@@ -483,7 +489,9 @@ func TestBufferReplace(t *testing.T) {
 		b.Replace(16, 0x30)
 		b.Replace(10, 0x30)
 		p := make([]byte, 8)
-		b.ReadAt(p, 9)
+		if _, err := b.ReadAt(p, 9); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
 		if expected := "90bcdef0"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
@@ -564,7 +572,9 @@ func TestBufferReplaceIn(t *testing.T) {
 		b.ReplaceIn(16, 17, 0x30)
 		b.ReplaceIn(10, 11, 0x30)
 		p := make([]byte, 8)
-		b.ReadAt(p, 9)
+		if _, err := b.ReadAt(p, 9); err != io.EOF {
+			t.Errorf("err should be io.EOF but got: %v", err)
+		}
 		if expected := "90bcdef0"; string(p) != expected {
 			t.Errorf("p should be %s but got: %s", expected, string(p))
 		}
