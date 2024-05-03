@@ -715,14 +715,23 @@ func (w *window) jumpTo() {
 		return
 	}
 	var i, j int
-	for i = s; i < 2*s && isWhite(bytes[i]); i++ {
+	for i = s; i < 2*s; i++ {
+		if isWhite(bytes[i]) {
+			break
+		}
 	}
 	if i == 2*s || !isDigit(bytes[i]) {
 		return
 	}
-	for ; 0 < i && isDigit(bytes[i-1]); i-- {
+	for ; i > 0; i-- {
+		if isDigit(bytes[i-1]) {
+			break
+		}
 	}
-	for j = i; j < 2*s && isDigit(bytes[j]); j++ {
+	for j = i; j < 2*s; j++ {
+		if isDigit(bytes[j]) {
+			break
+		}
 	}
 	if j == 2*s {
 		return
