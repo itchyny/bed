@@ -34,7 +34,10 @@ func TestHistoryUndo(t *testing.T) {
 
 	buf := make([]byte, 8)
 	b, index, offset, cursor, tick = history.Undo()
-	b.Read(buf)
+	_, err := b.Read(buf)
+	if err != nil {
+		t.Fatalf("Failed to read buffer: %v", err)
+	}
 	if expected := "test1\x00\x00\x00"; string(buf) != expected {
 		t.Errorf("buf should be %q but got %q", expected, string(buf))
 	}
@@ -53,7 +56,10 @@ func TestHistoryUndo(t *testing.T) {
 
 	buf = make([]byte, 8)
 	b, offset, cursor, tick = history.Redo()
-	b.Read(buf)
+	_, err = b.Read(buf)
+	if err != nil {
+		t.Fatalf("Failed to read buffer: %v", err)
+	}
 	if expected := "test2\x00\x00\x00"; string(buf) != expected {
 		t.Errorf("buf should be %q but got %q", expected, string(buf))
 	}
