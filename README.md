@@ -24,7 +24,7 @@ I think I started coding for what I want before doing research on existing edito
 ## Installation
 ### Homebrew
 ```sh
-brew install itchyny/tap/bed
+brew install bed
 ```
 
 ### Build from source
