@@ -21,7 +21,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.x
+          go-version-file: go.mod
       - name: Build
         run: make build
       - name: Run command
@@ -49,7 +49,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.x
+          go-version-file: go.mod
       - name: Test
         run: make test
       - name: Lint
