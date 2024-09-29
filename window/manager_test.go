@@ -195,6 +195,38 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	wm.Close()
 }
 
+func TestManagerRead(t *testing.T) {
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	wm.SetSize(110, 20)
+	r := strings.NewReader("Hello, world!")
+	if err := wm.Read(r); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	windowStates, _, windowIndex, err := wm.State()
+	ws := windowStates[0]
+	if windowIndex != 0 {
+		t.Errorf("window index should be %d but got %d", 0, windowIndex)
+	}
+	if ws.Name != "" {
+		t.Errorf("name should be %q but got %q", "", ws.Name)
+	}
+	if ws.Width != 16 {
+		t.Errorf("width should be %d but got %d", 16, ws.Width)
+	}
+	if ws.Size != 13 {
+		t.Errorf("size should be %d but got %d", 13, ws.Size)
+	}
+	if ws.Length != int64(13) {
+		t.Errorf("Length should be %d but got %d", int64(13), ws.Length)
+	}
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	wm.Close()
+}
+
 func TestManagerOnly(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})

@@ -3,6 +3,7 @@ package editor
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"sync"
@@ -278,13 +279,18 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 }
 
 // Open opens a new file.
-func (e *Editor) Open(filename string) (err error) {
+func (e *Editor) Open(filename string) error {
 	return e.wm.Open(filename)
 }
 
 // OpenEmpty creates a new window.
-func (e *Editor) OpenEmpty() (err error) {
+func (e *Editor) OpenEmpty() error {
 	return e.wm.Open("")
+}
+
+// Read [io.Reader] and creates a new window.
+func (e *Editor) Read(r io.Reader) error {
+	return e.wm.Read(r)
 }
 
 // Run the editor.

@@ -4,15 +4,18 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"math/bits"
 	"math/rand"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
@@ -58,6 +61,17 @@ func (m *Manager) Open(filename string) error {
 	if err != nil {
 		return err
 	}
+	return m.init(window)
+}
+
+// Read opens a new window from [io.Reader].
+func (m *Manager) Read(r io.Reader) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.read(r)
+}
+
+func (m *Manager) init(window *window) error {
 	m.addWindow(window)
 	m.layout = layout.NewLayout(m.windowIndex).Resize(0, 0, m.width, m.height)
 	return nil
@@ -96,7 +110,7 @@ func (m *Manager) open(filename string) (*window, error) {
 	if err != nil {
 		return nil, err
 	}
-	name, err = homedirExpand(name)
+	name, err = expandHomedir(name)
 	if err != nil {
 		return nil, err
 	}
@@ -142,6 +156,51 @@ func expandBacktick(filename string) (string, error) {
 		return filename, err
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+func (m *Manager) read(r io.Reader) error {
+	done := make(chan struct{})
+	defer close(done)
+	abort := make(chan os.Signal, 1)
+	signal.Notify(abort, os.Interrupt)
+	defer signal.Stop(abort)
+	go func() {
+		select {
+		case <-time.After(time.Second):
+			fmt.Fprint(os.Stderr, "Reading stdin took more than 1 second, press <C-c> to abort...")
+		case <-done:
+		}
+	}()
+	bs, err := func() ([]byte, error) {
+		// ref: io.ReadAll
+		bs := make([]byte, 0, 1024)
+		for {
+			n, err := r.Read(bs[len(bs):cap(bs)])
+			bs = bs[:len(bs)+n]
+			if err != nil {
+				if err == io.EOF {
+					err = nil
+				}
+				return bs, err
+			}
+			select {
+			case <-time.After(10 * time.Millisecond):
+			case <-abort:
+				return bs, nil
+			}
+			if len(bs) == cap(bs) {
+				bs = append(bs, 0)[:len(bs)]
+			}
+		}
+	}()
+	if err != nil {
+		return err
+	}
+	window, err := newWindow(bytes.NewReader(bs), "", "", m.eventCh, m.redrawCh)
+	if err != nil {
+		return err
+	}
+	return m.init(window)
 }
 
 // SetSize sets the size of the screen.
@@ -534,7 +593,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		return name, 0, errors.New("cannot overwrite the original file on Windows")
 	}
 	var err error
-	if name, err = homedirExpand(name); err != nil {
+	if name, err = expandHomedir(name); err != nil {
 		return name, 0, err
 	}
 	if window.filename == "" && window.name == "" {
@@ -587,7 +646,7 @@ func (m *Manager) Close() {
 	}
 }
 
-func homedirExpand(path string) (string, error) {
+func expandHomedir(path string) (string, error) {
 	if !strings.HasPrefix(path, "~") {
 		return path, nil
 	}

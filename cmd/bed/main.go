@@ -7,6 +7,8 @@ import (
 	"os"
 	"runtime"
 
+	"golang.org/x/term"
+
 	"github.com/itchyny/bed/cmdline"
 	"github.com/itchyny/bed/editor"
 	"github.com/itchyny/bed/tui"
@@ -76,12 +78,16 @@ func start(args []string) error {
 	if err := editor.Init(); err != nil {
 		return err
 	}
-	if len(args) > 0 {
+	if len(args) > 0 && args[0] != "-" {
 		if err := editor.Open(args[0]); err != nil {
 			return err
 		}
-	} else {
+	} else if term.IsTerminal(int(os.Stdin.Fd())) {
 		if err := editor.OpenEmpty(); err != nil {
+			return err
+		}
+	} else {
+		if err := editor.Read(os.Stdin); err != nil {
 			return err
 		}
 	}

@@ -202,6 +202,45 @@ func TestEditorOpenForceQuit(t *testing.T) {
 	}
 }
 
+func TestEditorReadWriteQuit(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	r := strings.NewReader("Hello, world!")
+	if err := editor.Read(r); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	f, err := os.CreateTemp("", "bed-test-editor-read-write-quit")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
+		ui.Emit(event.Event{Type: event.Quit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err, expected := editor.err, "13 (0xd) bytes written"; !strings.HasSuffix(err.Error(), expected) {
+		t.Errorf("err should end with %q but got: %v", expected, err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := os.ReadFile(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "Hello, world!"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+}
+
 func TestEditorWritePartial(t *testing.T) {
 	f, err := os.CreateTemp("", "bed-test-editor-write-partial")
 	defer os.Remove(f.Name())

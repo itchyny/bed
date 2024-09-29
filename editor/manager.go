@@ -1,6 +1,8 @@
 package editor
 
 import (
+	"io"
+
 	"github.com/itchyny/bed/event"
 	"github.com/itchyny/bed/layout"
 	"github.com/itchyny/bed/state"
@@ -10,6 +12,7 @@ import (
 type Manager interface {
 	Init(chan<- event.Event, chan<- struct{})
 	Open(string) error
+	Read(io.Reader) error
 	SetSize(int, int)
 	Resize(int, int)
 	Emit(event.Event)
