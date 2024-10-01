@@ -9,20 +9,24 @@ import (
 
 // Cmdline implements editor.Cmdline
 type Cmdline struct {
-	cmdline   []rune
-	cursor    int
-	completor *completor
-	typ       rune
-	eventCh   chan<- event.Event
-	cmdlineCh <-chan event.Event
-	redrawCh  chan<- struct{}
-	mu        *sync.Mutex
+	cmdline      []rune
+	cursor       int
+	completor    *completor
+	typ          rune
+	historyIndex int
+	history      []string
+	histories    map[bool][]string
+	eventCh      chan<- event.Event
+	cmdlineCh    <-chan event.Event
+	redrawCh     chan<- struct{}
+	mu           *sync.Mutex
 }
 
 // NewCmdline creates a new Cmdline.
 func NewCmdline() *Cmdline {
 	return &Cmdline{
 		completor: newCompletor(&filesystem{}),
+		histories: map[bool][]string{false: {}, true: {}},
 		mu:        new(sync.Mutex),
 	}
 }
@@ -38,16 +42,17 @@ func (c *Cmdline) Run() {
 		c.mu.Lock()
 		switch e.Type {
 		case event.StartCmdlineCommand:
-			c.typ = ':'
-			c.start(e.Arg)
+			c.start(':', e.Arg)
 		case event.StartCmdlineSearchForward:
-			c.typ = '/'
-			c.clear()
+			c.start('/', "")
 		case event.StartCmdlineSearchBackward:
-			c.typ = '?'
-			c.clear()
+			c.start('?', "")
 		case event.ExitCmdline:
 			c.clear()
+		case event.CursorUp:
+			c.cursorUp()
+		case event.CursorDown:
+			c.cursorDown()
 		case event.CursorLeft:
 			c.cursorLeft()
 		case event.CursorRight:
@@ -80,6 +85,7 @@ func (c *Cmdline) Run() {
 			continue
 		case event.ExecuteCmdline:
 			c.execute()
+			c.saveHistory()
 		default:
 			c.mu.Unlock()
 			continue
@@ -87,6 +93,26 @@ func (c *Cmdline) Run() {
 		c.completor.clear()
 		c.mu.Unlock()
 		c.redrawCh <- struct{}{}
+	}
+}
+
+func (c *Cmdline) cursorUp() {
+	if c.historyIndex--; c.historyIndex >= 0 {
+		c.cmdline = []rune(c.history[c.historyIndex])
+		c.cursor = len(c.cmdline)
+	} else {
+		c.clear()
+		c.historyIndex = -1
+	}
+}
+
+func (c *Cmdline) cursorDown() {
+	if c.historyIndex++; c.historyIndex < len(c.history) {
+		c.cmdline = []rune(c.history[c.historyIndex])
+		c.cursor = len(c.cmdline)
+	} else {
+		c.clear()
+		c.historyIndex = len(c.history)
 	}
 }
 
@@ -142,9 +168,12 @@ func isKeyword(c rune) bool {
 	return unicode.IsDigit(c) || unicode.IsLetter(c) || c == '_'
 }
 
-func (c *Cmdline) start(arg string) {
+func (c *Cmdline) start(typ rune, arg string) {
+	c.typ = typ
 	c.cmdline = []rune(arg)
 	c.cursor = len(c.cmdline)
+	c.history = c.histories[typ == ':']
+	c.historyIndex = len(c.history)
 }
 
 func (c *Cmdline) clear() {
@@ -195,6 +224,17 @@ func (c *Cmdline) execute() {
 	default:
 		panic("cmdline.Cmdline.execute: unreachable")
 	}
+}
+
+func (c *Cmdline) saveHistory() {
+	cmdline := string(c.cmdline)
+	for i, h := range c.history {
+		if h == cmdline {
+			c.history = append(c.history[:i], c.history[i+1:]...)
+			break
+		}
+	}
+	c.histories[c.typ == ':'] = append(c.history, cmdline)
 }
 
 // Get returns the current state of cmdline.

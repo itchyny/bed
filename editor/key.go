@@ -111,9 +111,13 @@ func defaultKeyManagers() map[mode.Mode]*key.Manager {
 	kms[mode.Visual] = km
 
 	km = key.NewManager(false)
+	km.Register(event.CursorUp, "up")
+	km.Register(event.CursorDown, "down")
 	km.Register(event.CursorLeft, "left")
-	km.Register(event.CursorLeft, "c-b")
 	km.Register(event.CursorRight, "right")
+	km.Register(event.CursorUp, "c-p")
+	km.Register(event.CursorDown, "c-n")
+	km.Register(event.CursorLeft, "c-b")
 	km.Register(event.CursorRight, "c-f")
 	km.Register(event.CursorHead, "home")
 	km.Register(event.CursorHead, "c-a")

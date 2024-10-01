@@ -5,7 +5,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/itchyny/bed/event"
 )
@@ -49,7 +48,6 @@ func TestCmdlineRun(t *testing.T) {
 	go func() {
 		for _, e := range events {
 			cmdlineCh <- e
-			time.Sleep(10 * time.Millisecond)
 		}
 	}()
 	for range len(events) - 4 {
@@ -660,4 +658,171 @@ func TestCmdlineSearch(t *testing.T) {
 	if e.Rune != '?' {
 		t.Errorf("cmdline should emit search event with Rune %q but got %q", '?', e.Rune)
 	}
+}
+
+func TestCmdlineHistory(t *testing.T) {
+	c := NewCmdline()
+	eventCh, cmdlineCh, redrawCh := make(chan event.Event), make(chan event.Event), make(chan struct{})
+	c.Init(eventCh, cmdlineCh, redrawCh)
+	go c.Run()
+	events0 := []event.Event{
+		{Type: event.StartCmdlineCommand},
+		{Type: event.Rune, Rune: 'n'},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.Rune, Rune: 'w'},
+		{Type: event.ExecuteCmdline},
+	}
+	events1 := []event.Event{
+		{Type: event.StartCmdlineCommand},
+		{Type: event.Rune, Rune: 'v'},
+		{Type: event.Rune, Rune: 'n'},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.Rune, Rune: 'w'},
+		{Type: event.ExecuteCmdline},
+	}
+	events2 := []event.Event{
+		{Type: event.StartCmdlineCommand},
+		{Type: event.CursorUp},
+		{Type: event.ExecuteCmdline},
+	}
+	events3 := []event.Event{
+		{Type: event.StartCmdlineCommand},
+		{Type: event.CursorUp},
+		{Type: event.CursorUp},
+		{Type: event.CursorUp},
+		{Type: event.CursorDown},
+		{Type: event.ExecuteCmdline},
+	}
+	events4 := []event.Event{
+		{Type: event.StartCmdlineCommand},
+		{Type: event.CursorUp},
+		{Type: event.ExecuteCmdline},
+	}
+	events5 := []event.Event{
+		{Type: event.StartCmdlineSearchForward},
+		{Type: event.Rune, Rune: 't'},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.Rune, Rune: 's'},
+		{Type: event.Rune, Rune: 't'},
+		{Type: event.ExecuteCmdline},
+	}
+	events6 := []event.Event{
+		{Type: event.StartCmdlineSearchForward},
+		{Type: event.CursorUp},
+		{Type: event.CursorDown},
+		{Type: event.Rune, Rune: 'n'},
+		{Type: event.Rune, Rune: 'e'},
+		{Type: event.Rune, Rune: 'w'},
+		{Type: event.ExecuteCmdline},
+	}
+	events7 := []event.Event{
+		{Type: event.StartCmdlineSearchBackward},
+		{Type: event.CursorUp},
+		{Type: event.CursorUp},
+		{Type: event.ExecuteCmdline},
+	}
+	events8 := []event.Event{
+		{Type: event.StartCmdlineCommand},
+		{Type: event.CursorUp},
+		{Type: event.CursorUp},
+		{Type: event.ExecuteCmdline},
+	}
+	events9 := []event.Event{
+		{Type: event.StartCmdlineSearchForward},
+		{Type: event.CursorUp},
+		{Type: event.ExecuteCmdline},
+	}
+	go func() {
+		for _, events := range [][]event.Event{
+			events0, events1, events2, events3, events4,
+			events5, events6, events7, events8, events9,
+		} {
+			for _, e := range events {
+				cmdlineCh <- e
+			}
+		}
+	}()
+	for range len(events0) - 1 {
+		<-redrawCh
+	}
+	e := <-eventCh
+	if e.Type != event.New {
+		t.Errorf("cmdline should emit New event but got %v", e)
+	}
+	for range len(events1) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.Vnew {
+		t.Errorf("cmdline should emit Vnew event but got %v", e)
+	}
+	for range len(events2) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.Vnew {
+		t.Errorf("cmdline should emit Vnew event but got %v", e)
+	}
+	for range len(events3) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.New {
+		t.Errorf("cmdline should emit New event but got %v", e.Type)
+	}
+	for range len(events4) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.New {
+		t.Errorf("cmdline should emit New event but got %v", e.Type)
+	}
+	for range len(events5) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.ExecuteSearch {
+		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
+	}
+	if expected := "test"; e.Arg != expected {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", expected, e.Arg)
+	}
+	for range len(events6) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.ExecuteSearch {
+		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
+	}
+	if expected := "new"; e.Arg != expected {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", expected, e.Arg)
+	}
+	for range len(events7) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.ExecuteSearch {
+		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
+	}
+	if expected := "test"; e.Arg != expected {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", expected, e.Arg)
+	}
+	for range len(events8) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.Vnew {
+		t.Errorf("cmdline should emit Vnew event but got %v", e.Type)
+	}
+	for range len(events9) {
+		<-redrawCh
+	}
+	e = <-eventCh
+	if e.Type != event.ExecuteSearch {
+		t.Errorf("cmdline should emit ExecuteSearch event but got %v", e)
+	}
+	if expected := "test"; e.Arg != expected {
+		t.Errorf("cmdline should emit search event with Arg %q but got %q", expected, e.Arg)
+	}
+	<-redrawCh
 }
