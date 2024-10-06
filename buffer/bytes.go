@@ -3,6 +3,7 @@ package buffer
 import (
 	"errors"
 	"io"
+	"slices"
 )
 
 type bytesReader struct {
@@ -65,12 +66,9 @@ func (r *bytesReader) replaceByte(offset int64, b byte) {
 }
 
 func (r *bytesReader) deleteByte(offset int64) {
-	copy(r.bs[offset:], r.bs[offset+1:])
-	r.bs = r.bs[:len(r.bs)-1]
+	r.bs = slices.Delete(r.bs, int(offset), int(offset+1))
 }
 
 func (r *bytesReader) clone() *bytesReader {
-	bs := make([]byte, len(r.bs))
-	copy(bs, r.bs)
-	return newBytesReader(bs)
+	return newBytesReader(slices.Clone(r.bs))
 }

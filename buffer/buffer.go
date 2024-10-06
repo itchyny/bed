@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"math"
+	"slices"
 	"sync"
 )
 
@@ -196,10 +197,7 @@ func (b *Buffer) Clone() *Buffer {
 	}
 	newBuf.index = b.index
 	newBuf.mu = new(sync.Mutex)
-	if len(b.bytes) > 0 {
-		newBuf.bytes = make([]byte, len(b.bytes))
-		copy(newBuf.bytes, b.bytes)
-	}
+	newBuf.bytes = slices.Clone(b.bytes)
 	newBuf.offset = b.offset
 	return newBuf
 }
@@ -492,8 +490,7 @@ func (b *Buffer) Delete(offset int64) {
 func (b *Buffer) cleanup() {
 	for i := 0; i < len(b.rrs); i++ {
 		if b.rrs[i].min == b.rrs[i].max {
-			copy(b.rrs[i:], b.rrs[i+1:])
-			b.rrs = b.rrs[:len(b.rrs)-1]
+			b.rrs = slices.Delete(b.rrs, i, i+1)
 		}
 	}
 	for i := 1; i < len(b.rrs); i++ {
@@ -504,8 +501,7 @@ func (b *Buffer) cleanup() {
 				if byte(r1) == byte(r2) {
 					b.rrs[i-1].max = b.rrs[i].max
 					b.rrs[i-1].diff = -b.rrs[i-1].min
-					copy(b.rrs[i:], b.rrs[i+1:])
-					b.rrs = b.rrs[:len(b.rrs)-1]
+					b.rrs = slices.Delete(b.rrs, i, i+1)
 					i--
 				}
 			}
@@ -517,8 +513,7 @@ func (b *Buffer) cleanup() {
 				b.rrs[i-1].r = newBytesReader(bs)
 				b.rrs[i-1].max = b.rrs[i].max
 				b.rrs[i-1].diff = -b.rrs[i-1].min
-				copy(b.rrs[i:], b.rrs[i+1:])
-				b.rrs = b.rrs[:len(b.rrs)-1]
+				b.rrs = slices.Delete(b.rrs, i, i+1)
 				i--
 			}
 		}
@@ -527,8 +522,7 @@ func (b *Buffer) cleanup() {
 		rr1, rr2 := b.rrs[i-1], b.rrs[i]
 		if rr1.diff == rr2.diff && rr1.r == rr2.r && rr1.max == rr2.min {
 			b.rrs[i-1].max = b.rrs[i].max
-			copy(b.rrs[i:], b.rrs[i+1:])
-			b.rrs = b.rrs[:len(b.rrs)-1]
+			b.rrs = slices.Delete(b.rrs, i, i+1)
 		}
 	}
 }

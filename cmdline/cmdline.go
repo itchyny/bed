@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"slices"
 	"sync"
 	"unicode"
 
@@ -134,7 +135,7 @@ func (c *Cmdline) cursorEnd() {
 
 func (c *Cmdline) backspace() {
 	if c.cursor > 0 {
-		c.cmdline = append(c.cmdline[:c.cursor-1], c.cmdline[c.cursor:]...)
+		c.cmdline = slices.Delete(c.cmdline, c.cursor-1, c.cursor)
 		c.cursor--
 		return
 	}
@@ -145,7 +146,7 @@ func (c *Cmdline) backspace() {
 
 func (c *Cmdline) deleteRune() {
 	if c.cursor < len(c.cmdline) {
-		c.cmdline = append(c.cmdline[:c.cursor], c.cmdline[c.cursor+1:]...)
+		c.cmdline = slices.Delete(c.cmdline, c.cursor, c.cursor+1)
 	}
 }
 
@@ -160,7 +161,7 @@ func (c *Cmdline) deleteWord() {
 			i--
 		}
 	}
-	c.cmdline = append(c.cmdline[:i], c.cmdline[c.cursor:]...)
+	c.cmdline = slices.Delete(c.cmdline, i, c.cursor)
 	c.cursor = i
 }
 
@@ -182,15 +183,13 @@ func (c *Cmdline) clear() {
 }
 
 func (c *Cmdline) clearToHead() {
-	c.cmdline = c.cmdline[c.cursor:]
+	c.cmdline = slices.Delete(c.cmdline, 0, c.cursor)
 	c.cursor = 0
 }
 
 func (c *Cmdline) insert(ch rune) {
 	if unicode.IsPrint(ch) {
-		c.cmdline = append(c.cmdline, '\x00')
-		copy(c.cmdline[c.cursor+1:], c.cmdline[c.cursor:])
-		c.cmdline[c.cursor] = ch
+		c.cmdline = slices.Insert(c.cmdline, c.cursor, ch)
 		c.cursor++
 	}
 }
@@ -230,7 +229,7 @@ func (c *Cmdline) saveHistory() {
 	cmdline := string(c.cmdline)
 	for i, h := range c.history {
 		if h == cmdline {
-			c.history = append(c.history[:i], c.history[i+1:]...)
+			c.history = slices.Delete(c.history, i, i+1)
 			break
 		}
 	}
