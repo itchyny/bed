@@ -53,19 +53,11 @@ func (r *bytesReader) ReadAt(b []byte, offset int64) (n int, err error) {
 	return
 }
 
-func (r *bytesReader) replaceByte(offset int64, b byte) {
-	l := int64(len(r.bs))
-	switch {
-	case offset == l:
-		r.bs = append(r.bs, b)
-	case 0 <= offset && offset < l:
-		r.bs[offset] = b
-	default:
-		panic("buffer.bytesReader.replaceByte: unreachable")
-	}
+func (r *bytesReader) insert(offset int64, b byte) {
+	r.bs = slices.Insert(r.bs, int(offset), b)
 }
 
-func (r *bytesReader) deleteByte(offset int64) {
+func (r *bytesReader) delete(offset int64) {
 	r.bs = slices.Delete(r.bs, int(offset), int(offset+1))
 }
 

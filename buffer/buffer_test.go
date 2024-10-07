@@ -4,6 +4,7 @@ import (
 	"io"
 	"math"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -525,7 +526,8 @@ func TestBufferReplaceIn(t *testing.T) {
 		{5, 7, 0x30, 0, "87788007", 16},
 		{2, 6, 0x31, 0, "87111107", 16},
 		{3, 4, 0x30, 0, "87101107", 16},
-		{15, 16, 0x30, 8, "89abcde0", 16},
+		{14, 15, 0x30, 8, "89abcd0f", 16},
+		{15, 16, 0x30, 8, "89abcd00", 16},
 		{1, 5, 0x39, 0, "89999107", 16},
 	}
 
@@ -559,7 +561,7 @@ func TestBufferReplaceIn(t *testing.T) {
 	}
 
 	eis := b.EditedIndices()
-	if expected := []int64{0, 7, 15, 16}; !reflect.DeepEqual(eis, expected) {
+	if expected := []int64{0, 7, 14, 16}; !reflect.DeepEqual(eis, expected) {
 		t.Errorf("edited indices should be %v but got: %v", expected, eis)
 	}
 
@@ -682,7 +684,12 @@ func TestInsertInterval(t *testing.T) {
 		{[]int64{10, 20, 30, 40}, []int64{10, 30}, []int64{10, 40}},
 		{[]int64{10, 20, 30, 40}, []int64{15, 45}, []int64{10, 45}},
 		{[]int64{10, 20, 30, 40}, []int64{15, 25}, []int64{10, 25, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{15, 30}, []int64{10, 40}},
 		{[]int64{10, 20, 30, 40}, []int64{15, 35}, []int64{10, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{20, 25}, []int64{10, 25, 30, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{20, 30}, []int64{10, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{25, 30}, []int64{10, 20, 25, 40}},
+		{[]int64{10, 20, 30, 40}, []int64{30, 30}, []int64{10, 20, 30, 40}},
 		{[]int64{10, 20, 30, 40}, []int64{35, 37}, []int64{10, 20, 30, 40}},
 		{[]int64{10, 20, 30, 40}, []int64{40, 50}, []int64{10, 20, 30, 50}},
 		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{45, 47}, []int64{10, 20, 30, 40, 45, 47, 50, 60, 70, 80}},
@@ -692,7 +699,7 @@ func TestInsertInterval(t *testing.T) {
 		{[]int64{10, 20, 30, 40, 50, 60, 70, 80}, []int64{0, 100}, []int64{0, 100}},
 	}
 	for _, test := range tests {
-		got := insertInterval(test.intervals, test.newInterval[0], test.newInterval[1])
+		got := insertInterval(slices.Clone(test.intervals), test.newInterval[0], test.newInterval[1])
 		if !reflect.DeepEqual(got, test.expected) {
 			t.Errorf("insertInterval(%+v, %d, %d) should be %+v but got: %+v",
 				test.intervals, test.newInterval[0], test.newInterval[1], test.expected, got)
