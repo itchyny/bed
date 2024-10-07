@@ -27,7 +27,6 @@ func TestCmdlineRun(t *testing.T) {
 	go c.Run()
 	events := []event.Event{
 		{Type: event.StartCmdlineCommand},
-		{Type: event.Nop},
 		{Type: event.Rune, Rune: 't'},
 		{Type: event.Rune, Rune: 'e'},
 		{Type: event.CursorLeft},
@@ -50,14 +49,13 @@ func TestCmdlineRun(t *testing.T) {
 			cmdlineCh <- e
 		}
 	}()
-	for range len(events) - 4 {
+	for range len(events) - 3 {
 		<-redrawCh
 	}
 	e := <-eventCh
 	if e.Type != event.Error {
 		t.Errorf("cmdline should emit Error event but got %v", e)
 	}
-	<-redrawCh
 	cmdline, cursor, _, _ := c.Get()
 	if expected := "te"; string(cmdline) != expected {
 		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
@@ -65,7 +63,13 @@ func TestCmdlineRun(t *testing.T) {
 	if cursor != 2 {
 		t.Errorf("cursor should be 2 but got %v", cursor)
 	}
-	<-redrawCh
+	for range 3 {
+		<-redrawCh
+	}
+	cmdline, _, _, _ = c.Get()
+	if expected := ""; string(cmdline) != expected {
+		t.Errorf("cmdline should be %q got %q", expected, string(cmdline))
+	}
 }
 
 func TestCmdlineCursorMotion(t *testing.T) {
