@@ -159,39 +159,10 @@ func expandBacktick(filename string) (string, error) {
 }
 
 func (m *Manager) read(r io.Reader) error {
-	done := make(chan struct{})
-	defer close(done)
-	abort := make(chan os.Signal, 1)
-	signal.Notify(abort, os.Interrupt)
-	defer signal.Stop(abort)
-	go func() {
-		select {
-		case <-time.After(time.Second):
-			fmt.Fprint(os.Stderr, "Reading stdin took more than 1 second, press <C-c> to abort...")
-		case <-done:
-		}
-	}()
 	bs, err := func() ([]byte, error) {
-		// ref: io.ReadAll
-		bs := make([]byte, 0, 1024)
-		for {
-			n, err := r.Read(bs[len(bs):cap(bs)])
-			bs = bs[:len(bs)+n]
-			if err != nil {
-				if err == io.EOF {
-					err = nil
-				}
-				return bs, err
-			}
-			select {
-			case <-time.After(10 * time.Millisecond):
-			case <-abort:
-				return bs, nil
-			}
-			if len(bs) == cap(bs) {
-				bs = append(bs, 0)[:len(bs)]
-			}
-		}
+		r, stop := newReader(r)
+		defer stop()
+		return io.ReadAll(r)
 	}()
 	if err != nil {
 		return err
@@ -201,6 +172,38 @@ func (m *Manager) read(r io.Reader) error {
 		return err
 	}
 	return m.init(window)
+}
+
+type reader struct {
+	io.Reader
+	abort chan os.Signal
+}
+
+func newReader(r io.Reader) (*reader, func()) {
+	done := make(chan struct{})
+	abort := make(chan os.Signal, 1)
+	signal.Notify(abort, os.Interrupt)
+	go func() {
+		select {
+		case <-time.After(time.Second):
+			fmt.Fprint(os.Stderr, "Reading stdin took more than 1 second, press <C-c> to abort...")
+		case <-done:
+		}
+	}()
+	return &reader{r, abort}, func() {
+		signal.Stop(abort)
+		close(abort)
+		close(done)
+	}
+}
+
+func (r *reader) Read(p []byte) (int, error) {
+	select {
+	case <-r.abort:
+		return 0, io.EOF
+	default:
+	}
+	return r.Reader.Read(p)
 }
 
 // SetSize sets the size of the screen.
