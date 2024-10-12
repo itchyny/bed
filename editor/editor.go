@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,6 +26,7 @@ type Editor struct {
 	searchTarget  string
 	searchMode    rune
 	prevEventType event.Type
+	prevDir       string
 	buffer        *buffer.Buffer
 	err           error
 	errtyp        int
@@ -147,7 +150,7 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 	}
 	switch ev.Type {
 	case event.QuitAll:
-		if len(ev.Arg) > 0 {
+		if ev.Arg != "" {
 			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
 			redraw = true
 		} else {
@@ -171,6 +174,33 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 			err = &quitErr{1}
 			finish = true
 		}
+	case event.Pwd:
+		if ev.Arg != "" {
+			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
+			redraw = true
+			break
+		}
+		fallthrough
+	case event.Chdir:
+		if ev.Arg == "-" && e.prevDir == "" {
+			e.err, e.errtyp = errors.New("no previous working directory"), state.MessageError
+		} else if dir, err := os.Getwd(); err != nil {
+			e.err, e.errtyp = err, state.MessageError
+		} else if ev.Arg == "" {
+			e.err, e.errtyp = errors.New(dir), state.MessageInfo
+		} else {
+			if ev.Arg != "-" {
+				dir, e.prevDir = ev.Arg, dir
+			} else {
+				dir, e.prevDir = e.prevDir, dir
+			}
+			if dir, err = e.chdir(dir); err != nil {
+				e.err, e.errtyp = err, state.MessageError
+			} else {
+				e.err, e.errtyp = errors.New(dir), state.MessageInfo
+			}
+		}
+		redraw = true
 	case event.Suspend:
 		if len(ev.Arg) > 0 {
 			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
@@ -340,6 +370,18 @@ func (e *Editor) redraw() (err error) {
 	return e.ui.Redraw(s)
 }
 
+func (e *Editor) chdir(dir string) (string, error) {
+	if dir, err := expandHomedir(dir); err != nil {
+		return "", err
+	} else if err = os.Chdir(dir); err != nil {
+		return "", err
+	} else if dir, err = os.Getwd(); err != nil {
+		return "", err
+	} else {
+		return dir, nil
+	}
+}
+
 func (e *Editor) suspend() error {
 	return suspend(e)
 }
@@ -353,4 +395,15 @@ func (e *Editor) Close() error {
 	close(e.cmdlineCh)
 	e.wm.Close()
 	return e.ui.Close()
+}
+
+func expandHomedir(path string) (string, error) {
+	if !strings.HasPrefix(path, "~") {
+		return path, nil
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(homeDir, path[1:]), nil
 }

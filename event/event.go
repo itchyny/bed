@@ -127,6 +127,9 @@ const (
 	MoveWindowBottom
 	MoveWindowLeft
 	MoveWindowRight
+
+	Pwd
+	Chdir
 	Suspend
 	Quit
 	QuitAll

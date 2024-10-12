@@ -48,6 +48,8 @@ So if you have experience with Vim, you will notice most of basic operations of 
 
 - File operations
   - `:edit`, `:enew`, `:new`, `:vnew`, `:only`
+- Current working directory
+  - `:cd`, `:chdir`, `:pwd`
 - Quit and save
   - `:quit`, `:qall`, `:write`, `:wq`, `:xit`, `:xall`, `:cquit`
 - Window operations

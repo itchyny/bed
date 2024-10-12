@@ -778,3 +778,33 @@ func TestEditorCmdlineQuitErr(t *testing.T) {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 }
+
+func TestEditorChdir(t *testing.T) {
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.OpenEmpty(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	go func() {
+		ui.Emit(event.Event{Type: event.Pwd})
+		ui.Emit(event.Event{Type: event.Chdir, Arg: "../"})
+		ui.Emit(event.Event{Type: event.Chdir, Arg: "-"})
+		ui.Emit(event.Event{Type: event.Quit})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.err; err == nil || err.Error() != dir {
+		t.Errorf("err should end with %q but got: %v", dir, err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+}

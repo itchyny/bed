@@ -31,7 +31,9 @@ func (c *completor) clear() {
 func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
 	switch cmd.eventType {
 	case event.Edit, event.New, event.Vnew, event.Write:
-		return c.completeFilepaths(cmdline, prefix, arg, forward)
+		return c.completeFilepaths(cmdline, prefix, arg, forward, false)
+	case event.Chdir:
+		return c.completeFilepaths(cmdline, prefix, arg, forward, true)
 	case event.Wincmd:
 		return c.completeWincmd(cmdline, prefix, arg, forward)
 	default:
@@ -53,7 +55,9 @@ func (c *completor) completeNext(prefix string, forward bool) string {
 	return prefix + c.arg + c.results[c.index]
 }
 
-func (c *completor) completeFilepaths(cmdline string, prefix string, arg string, forward bool) string {
+func (c *completor) completeFilepaths(
+	cmdline string, prefix string, arg string, forward bool, dirOnly bool,
+) string {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
 	}
@@ -62,7 +66,7 @@ func (c *completor) completeFilepaths(cmdline string, prefix string, arg string,
 	}
 	c.target = cmdline
 	c.index = 0
-	c.arg, c.results = c.listFileNames(arg)
+	c.arg, c.results = c.listFileNames(arg, dirOnly)
 	if len(c.results) == 1 {
 		cmdline := prefix + c.arg + c.results[0]
 		c.results = nil
@@ -81,7 +85,7 @@ func (c *completor) completeFilepaths(cmdline string, prefix string, arg string,
 
 const separator = string(filepath.Separator)
 
-func (c *completor) listFileNames(arg string) (string, []string) {
+func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 	var targets []string
 	path, homedir, hasHomedirPrefix, err := expandHomedir(arg)
 	if err != nil {
@@ -132,6 +136,8 @@ func (c *completor) listFileNames(arg string) (string, []string) {
 		}
 		if isDir {
 			name += separator
+		} else if dirOnly {
+			continue
 		}
 		targets = append(targets, name)
 	}

@@ -21,6 +21,9 @@ var commands = []command{
 	{"u[ndo]", event.Undo},
 	{"red[o]", event.Redo},
 
+	{"pw[d]", event.Pwd},
+	{"cd", event.Chdir},
+	{"chd[ir]", event.Chdir},
 	{"exi[t]", event.Quit},
 	{"q[uit]", event.Quit},
 	{"qa[ll]", event.QuitAll},
