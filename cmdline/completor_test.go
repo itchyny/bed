@@ -110,6 +110,39 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 }
 
+func TestCompletorCompleteFilepathLeadingDot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip on Windows")
+	}
+	c := newCompletor(&mockFilesystem{})
+	cmdline := "edit ."
+	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	if expected := "edit .gitignore"; cmdline != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
+	}
+	if expected := "edit ."; c.target != expected {
+		t.Errorf("completion target should be %q but got %q", expected, c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+
+	c.clear()
+	cmdline = "edit ./r"
+	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	if expected := "edit ./README.md"; cmdline != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
+	}
+	if expected := "edit ./r"; c.target != expected {
+		t.Errorf("completion target should be %q but got %q", expected, c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+}
+
 func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 	c := newCompletor(&mockFilesystem{})
 	cmdline := " : : :  new   B"

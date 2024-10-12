@@ -3,7 +3,7 @@ package cmdline
 import (
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/itchyny/bed/event"
@@ -62,11 +62,7 @@ func (c *completor) completeFilepaths(cmdline string, prefix string, arg string,
 	}
 	c.target = cmdline
 	c.index = 0
-	if len(arg) == 0 {
-		c.arg, c.results = c.listFileNames("")
-	} else {
-		c.arg, c.results = c.listFileNames(arg)
-	}
+	c.arg, c.results = c.listFileNames(arg)
 	if len(c.results) == 1 {
 		cmdline := prefix + c.arg + c.results[0]
 		c.results = nil
@@ -83,126 +79,86 @@ func (c *completor) completeFilepaths(cmdline string, prefix string, arg string,
 	return cmdline
 }
 
+const separator = string(filepath.Separator)
+
 func (c *completor) listFileNames(arg string) (string, []string) {
 	var targets []string
-	separator := string(filepath.Separator)
+	path, homedir, hasHomedirPrefix, err := expandHomedir(arg)
+	if err != nil {
+		return arg, nil
+	}
+	if arg != "" && !strings.HasSuffix(arg, separator) && !strings.HasSuffix(arg, ".") {
+		if stat, err := c.fs.Stat(path); err == nil && stat.IsDir() {
+			return "", []string{arg + separator}
+		}
+	}
+	if strings.HasSuffix(arg, separator) || strings.HasSuffix(arg, separator+".") {
+		path += separator
+	}
+	dir, base := filepath.Dir(path), strings.ToLower(filepath.Base(path))
 	if arg == "" {
-		f, err := c.fs.Open(".")
-		if err != nil {
-			return arg, nil
-		}
-		defer f.Close()
-		fileInfos, err := f.Readdir(500)
-		if err != nil {
-			return arg, nil
-		}
-		for _, fileInfo := range fileInfos {
-			name := fileInfo.Name()
-			isDir := fileInfo.IsDir()
-			if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
-				fileInfo, err = c.fs.Stat(name)
-				if err != nil {
-					return arg, nil
-				}
-				isDir = fileInfo.IsDir()
-			}
-			if isDir {
-				name += separator
-			}
-			targets = append(targets, name)
-		}
-	} else {
-		path, err := homedirExpand(arg)
-		if err != nil {
-			return arg, nil
-		}
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return arg, nil
-		}
-		if strings.HasSuffix(arg, separator) ||
-			arg[0] == '~' && strings.HasSuffix(arg, separator+".") {
-			path += separator
-		}
-		if !strings.HasSuffix(arg, separator) && !strings.HasSuffix(arg, ".") {
-			stat, err := c.fs.Stat(path)
-			if err == nil && stat.IsDir() {
-				return "", []string{arg + separator}
-			}
-		}
-		dir, base := filepath.Dir(path), filepath.Base(path)
-		if strings.HasSuffix(path, separator) {
-			if strings.HasSuffix(arg, separator+".") {
-				base = "."
-			} else {
-				base = ""
-			}
-		}
-		f, err := c.fs.Open(dir)
-		if err != nil {
-			return arg, nil
-		}
-		defer f.Close()
-		fileInfos, err := f.Readdir(500)
-		if err != nil {
-			return arg, nil
-		}
-		lowerBase := strings.ToLower(base)
-		for _, fileInfo := range fileInfos {
-			name := fileInfo.Name()
-			if base != separator && !strings.HasPrefix(strings.ToLower(name), lowerBase) {
-				continue
-			}
-			isDir := fileInfo.IsDir()
-			if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
-				fileInfo, err = c.fs.Stat(filepath.Join(dir, name))
-				if err != nil {
-					return arg, nil
-				}
-				isDir = fileInfo.IsDir()
-			}
-			if isDir {
-				name += separator
-			}
-			targets = append(targets, name)
-		}
-		if !strings.HasSuffix(dir, separator) {
-			dir += separator
-		}
-		if arg[0] == '~' {
-			arg = filepath.Join("~", strings.TrimPrefix(dir, homeDir))
-			if !strings.HasSuffix(arg, separator) {
-				arg += separator
-			}
-		} else if arg[0] != '.' && dir[0] == '.' {
-			arg = ""
+		base = ""
+	} else if strings.HasSuffix(path, separator) {
+		if strings.HasSuffix(arg, separator+".") {
+			base = "."
 		} else {
-			arg = dir
+			base = ""
 		}
 	}
-	sortFilePaths(targets)
+	f, err := c.fs.Open(dir)
+	if err != nil {
+		return arg, nil
+	}
+	defer f.Close()
+	fileInfos, err := f.Readdir(1024)
+	if err != nil {
+		return arg, nil
+	}
+	for _, fileInfo := range fileInfos {
+		name := fileInfo.Name()
+		if !strings.HasPrefix(strings.ToLower(name), base) {
+			continue
+		}
+		isDir := fileInfo.IsDir()
+		if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
+			fileInfo, err = c.fs.Stat(filepath.Join(dir, name))
+			if err != nil {
+				if os.IsNotExist(err) {
+					continue
+				}
+				return arg, nil
+			}
+			isDir = fileInfo.IsDir()
+		}
+		if isDir {
+			name += separator
+		}
+		targets = append(targets, name)
+	}
+	slices.SortFunc(targets, func(p, q string) int {
+		ps, pd := p[len(p)-1] == filepath.Separator, p[0] == '.'
+		qs, qd := q[len(q)-1] == filepath.Separator, q[0] == '.'
+		switch {
+		case ps && !qs:
+			return 1
+		case !ps && qs:
+			return -1
+		case pd && !qd:
+			return 1
+		case !pd && qd:
+			return -1
+		default:
+			return strings.Compare(p, q)
+		}
+	})
+	if hasHomedirPrefix {
+		arg = filepath.Join("~", strings.TrimPrefix(dir, homedir)) + separator
+	} else if !strings.HasPrefix(arg, "."+separator) && dir == "." {
+		arg = ""
+	} else if arg = dir; !strings.HasSuffix(arg, separator) {
+		arg += separator
+	}
 	return arg, targets
-}
-
-func sortFilePaths(paths []string) {
-	for i, path := range paths {
-		var prefix [2]byte
-		if path[len(path)-1] == filepath.Separator {
-			prefix[0] = '1'
-		} else {
-			prefix[0] = '0'
-		}
-		if strings.HasPrefix(filepath.Base(path), ".") {
-			prefix[1] = '1'
-		} else {
-			prefix[1] = '0'
-		}
-		paths[i] = string(prefix[:]) + path
-	}
-	sort.Strings(paths)
-	for i, path := range paths {
-		paths[i] = path[2:]
-	}
 }
 
 func (c *completor) completeWincmd(cmdline string, prefix string, arg string, forward bool) string {
@@ -221,13 +177,13 @@ func (c *completor) completeWincmd(cmdline string, prefix string, arg string, fo
 	return cmdline
 }
 
-func homedirExpand(path string) (string, error) {
+func expandHomedir(path string) (string, string, bool, error) {
 	if !strings.HasPrefix(path, "~") {
-		return path, nil
+		return path, "", false, nil
 	}
-	home, err := os.UserHomeDir()
+	homedir, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return "", "", false, err
 	}
-	return filepath.Join(home, path[1:]), nil
+	return filepath.Join(homedir, path[1:]), homedir, true, nil
 }
