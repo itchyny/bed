@@ -202,19 +202,14 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 		}
 		redraw = true
 	case event.Suspend:
-		if len(ev.Arg) > 0 {
-			e.err, e.errtyp = errors.New("too many arguments for "+ev.CmdName), state.MessageError
-		} else {
+		e.mu.Unlock()
+		if err := e.suspend(); err != nil {
+			e.mu.Lock()
+			e.err, e.errtyp = err, state.MessageError
 			e.mu.Unlock()
-			if err := e.suspend(); err != nil {
-				e.mu.Lock()
-				e.err, e.errtyp = err, state.MessageError
-				e.mu.Unlock()
-			}
-			redraw = true
-			return
 		}
 		redraw = true
+		return
 	case event.Info:
 		e.err, e.errtyp = ev.Error, state.MessageInfo
 		redraw = true
