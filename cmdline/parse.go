@@ -25,9 +25,7 @@ func parse(cmdline []rune) (command, *event.Range, string, bool, string, error) 
 	for k < l && unicode.IsSpace(cmdline[k]) {
 		k++
 	}
-	cmdName := string(cmdline[i:j])
-	bang := strings.HasSuffix(cmdName, "!")
-	cmdName = strings.TrimSuffix(cmdName, "!")
+	cmdName, bang := strings.CutSuffix(string(cmdline[i:j]), "!")
 	for _, cmd := range commands {
 		if len(cmdName) == 0 || cmdName[0] != cmd.name[0] {
 			continue
