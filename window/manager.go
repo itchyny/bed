@@ -37,7 +37,7 @@ type Manager struct {
 }
 
 type file struct {
-	name string
+	path string
 	file *os.File
 	perm os.FileMode
 }
@@ -54,10 +54,10 @@ func (m *Manager) Init(eventCh chan<- event.Event, redrawCh chan<- struct{}) {
 }
 
 // Open a new window.
-func (m *Manager) Open(filename string) error {
+func (m *Manager) Open(name string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	window, err := m.open(filename)
+	window, err := m.open(name)
 	if err != nil {
 		return err
 	}
@@ -88,79 +88,76 @@ func (m *Manager) addWindow(window *window) {
 	m.windowIndex, m.prevWindowIndex = len(m.windows)-1, m.windowIndex
 }
 
-func (m *Manager) open(filename string) (*window, error) {
-	if filename == "" {
+func (m *Manager) open(name string) (*window, error) {
+	if name == "" {
 		window, err := newWindow(bytes.NewReader(nil), "", "", m.eventCh, m.redrawCh)
 		if err != nil {
 			return nil, err
 		}
 		return window, nil
 	}
-	if filename == "#" {
+	if name == "#" {
 		return m.windows[m.prevWindowIndex], nil
 	}
-	if strings.HasPrefix(filename, "#") {
-		index, err := strconv.Atoi(filename[1:])
+	if strings.HasPrefix(name, "#") {
+		index, err := strconv.Atoi(name[1:])
 		if err != nil || index <= 0 || len(m.windows) < index {
-			return nil, errors.New("invalid window index: " + filename)
+			return nil, errors.New("invalid window index: " + name)
 		}
 		return m.windows[index-1], nil
 	}
-	name, err := expandBacktick(filename)
+	name, err := expandBacktick(name)
 	if err != nil {
 		return nil, err
 	}
-	name, err = expandHomedir(name)
+	path, err := expandPath(name)
 	if err != nil {
 		return nil, err
 	}
-	filename = name
-	f, err := os.Open(filename)
+	r, err := m.openFile(path, name)
+	if err != nil {
+		return nil, err
+	}
+	return newWindow(r, path, filepath.Base(path), m.eventCh, m.redrawCh)
+}
+
+func (m *Manager) openFile(path, name string) (readAtSeeker, error) {
+	fi, err := os.Stat(path)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}
-		window, err := newWindow(bytes.NewReader(nil), filename, filepath.Base(filename), m.eventCh, m.redrawCh)
-		if err != nil {
-			return nil, err
-		}
-		return window, nil
+		return bytes.NewReader(nil), nil
+	} else if fi.IsDir() {
+		return nil, errors.New(name + " is a directory")
 	}
-	info, err := os.Stat(filename)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	if info.IsDir() {
-		return nil, errors.New(filename + " is a directory")
-	}
-	m.addFile(filename, f, info)
-	window, err := newWindow(f, filename, filepath.Base(filename), m.eventCh, m.redrawCh)
-	if err != nil {
-		return nil, err
-	}
-	return window, nil
+	m.addFile(path, f, fi)
+	return f, nil
 }
 
-func expandBacktick(filename string) (string, error) {
-	if !strings.HasPrefix(filename, "`") ||
-		!strings.HasSuffix(filename, "`") || len(filename) <= 2 {
-		return filename, nil
+func expandBacktick(name string) (string, error) {
+	if len(name) <= 2 || name[0] != '`' || name[len(name)-1] != '`' {
+		return name, nil
 	}
-	filename = strings.TrimSpace(filename[1 : len(filename)-1])
-	xs := strings.Fields(filename)
+	name = strings.TrimSpace(name[1 : len(name)-1])
+	xs := strings.Fields(name)
 	if len(xs) < 1 {
-		return filename, nil
+		return name, nil
 	}
 	out, err := exec.Command(xs[0], xs[1:]...).Output()
 	if err != nil {
-		return filename, err
+		return name, err
 	}
 	return strings.TrimSpace(string(out)), nil
 }
 
-func expandHomedir(path string) (string, error) {
+func expandPath(path string) (string, error) {
 	if !strings.HasPrefix(path, "~") {
-		return path, nil
+		return filepath.Abs(path)
 	}
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -364,7 +361,7 @@ func (m *Manager) edit(e event.Event) error {
 	defer m.mu.Unlock()
 	name := e.Arg
 	if name == "" {
-		name = m.windows[m.windowIndex].filename
+		name = m.windows[m.windowIndex].path
 	}
 	window, err := m.open(name)
 	if err != nil {
@@ -538,7 +535,7 @@ func (m *Manager) quit(e event.Event) error {
 		m.mu.Lock()
 		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
 		m.windowIndex, m.prevWindowIndex = m.layout.ActiveWindow().Index, m.windowIndex
-		m.mu.Unlock()
+		defer m.mu.Unlock()
 		m.eventCh <- event.Event{Type: event.Redraw}
 	}
 	return nil
@@ -548,11 +545,11 @@ func (m *Manager) write(e event.Event) error {
 	if e.Range != nil && e.Arg == "" {
 		return errors.New("cannot overwrite partially with " + e.CmdName)
 	}
-	filename, n, err := m.writeFile(e.Range, e.Arg)
+	name, n, err := m.writeFile(e.Range, e.Arg)
 	if err != nil {
 		return err
 	}
-	m.eventCh <- event.Event{Type: event.Info, Error: fmt.Errorf("%s: %d (0x%x) bytes written", filename, n, n)}
+	m.eventCh <- event.Event{Type: event.Info, Error: fmt.Errorf("%s: %d (0x%x) bytes written", name, n, n)}
 	return nil
 }
 
@@ -571,55 +568,57 @@ func (m *Manager) writeQuit(e event.Event) error {
 
 func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) {
 	window := m.windows[m.windowIndex]
+	var path string
 	if name == "" {
-		name = window.filename
+		if window.name == "" {
+			return "", 0, errors.New("no file name")
+		}
+		path, name = window.path, window.name
+	} else {
+		var err error
+		path, err = expandPath(name)
+		if err != nil {
+			return "", 0, err
+		}
 	}
-	if name == "" {
-		return name, 0, errors.New("no file name")
+	if runtime.GOOS == "windows" && m.opened(path) {
+		return "", 0, errors.New("cannot overwrite the original file on Windows")
 	}
-	if runtime.GOOS == "windows" && m.opened(name) {
-		return name, 0, errors.New("cannot overwrite the original file on Windows")
-	}
-	var err error
-	if name, err = expandHomedir(name); err != nil {
-		return name, 0, err
-	}
-	if window.filename == "" && window.name == "" {
+	if window.path == "" && window.name == "" {
 		window.mu.Lock()
-		window.filename = name
-		window.name = filepath.Base(name)
-		window.mu.Unlock()
+		window.setPathName(path, filepath.Base(path))
+		defer window.mu.Unlock()
 	}
 	tmpf, err := os.OpenFile(
-		name+"-"+strconv.FormatUint(rand.Uint64(), 16),
-		os.O_RDWR|os.O_CREATE|os.O_EXCL, m.filePerm(name),
+		path+"-"+strconv.FormatUint(rand.Uint64(), 16),
+		os.O_RDWR|os.O_CREATE|os.O_EXCL, m.filePerm(path),
 	) //#nosec G404
 	if err != nil {
-		return name, 0, err
+		return "", 0, err
 	}
 	defer os.Remove(tmpf.Name())
 	n, err := window.writeTo(r, tmpf)
 	tmpf.Close()
 	if err != nil {
-		return name, 0, err
+		return "", 0, err
 	}
-	if window.filename == name {
+	if window.path == path {
 		window.savedChangedTick = window.changedTick
 	}
-	return name, n, os.Rename(tmpf.Name(), name)
+	return name, n, os.Rename(tmpf.Name(), path)
 }
 
-func (m *Manager) addFile(name string, f *os.File, fi os.FileInfo) {
-	m.files[name] = file{name: name, file: f, perm: fi.Mode().Perm()}
+func (m *Manager) addFile(path string, f *os.File, fi os.FileInfo) {
+	m.files[path] = file{path: path, file: f, perm: fi.Mode().Perm()}
 }
 
-func (m *Manager) opened(name string) bool {
-	_, ok := m.files[name]
+func (m *Manager) opened(path string) bool {
+	_, ok := m.files[path]
 	return ok
 }
 
-func (m *Manager) filePerm(name string) os.FileMode {
-	if f, ok := m.files[name]; ok {
+func (m *Manager) filePerm(path string) os.FileMode {
+	if f, ok := m.files[path]; ok {
 		return f.perm
 	}
 	return os.FileMode(0o644)

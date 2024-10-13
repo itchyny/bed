@@ -1,6 +1,7 @@
 package window
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"io"
@@ -25,7 +26,7 @@ type window struct {
 	history          *history.History
 	searcher         *searcher.Searcher
 	searchTick       uint64
-	filename         string
+	path             string
 	name             string
 	height           int64
 	width            int64
@@ -57,7 +58,10 @@ type readAtSeeker interface {
 	io.Seeker
 }
 
-func newWindow(r readAtSeeker, filename string, name string, eventCh chan<- event.Event, redrawCh chan<- struct{}) (*window, error) {
+func newWindow(
+	r readAtSeeker, path string, name string,
+	eventCh chan<- event.Event, redrawCh chan<- struct{},
+) (*window, error) {
 	buffer := buffer.NewBuffer(r)
 	length, err := buffer.Len()
 	if err != nil {
@@ -69,7 +73,7 @@ func newWindow(r readAtSeeker, filename string, name string, eventCh chan<- even
 		buffer:      buffer,
 		history:     history,
 		searcher:    searcher.NewSearcher(r),
-		filename:    filename,
+		path:        path,
 		name:        name,
 		length:      length,
 		visualStart: -1,
@@ -1091,9 +1095,10 @@ func (w *window) abortSearch() {
 	}
 }
 
+func (w *window) setPathName(path, name string) {
+	w.path, w.name = path, name
+}
+
 func (w *window) getName() string {
-	if w.name != "" {
-		return w.name
-	}
-	return "[No Name]"
+	return cmp.Or(w.name, "[No Name]")
 }

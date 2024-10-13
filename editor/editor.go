@@ -304,8 +304,8 @@ func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
 }
 
 // Open opens a new file.
-func (e *Editor) Open(filename string) error {
-	return e.wm.Open(filename)
+func (e *Editor) Open(name string) error {
+	return e.wm.Open(name)
 }
 
 // OpenEmpty creates a new window.

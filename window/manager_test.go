@@ -18,6 +18,9 @@ func TestManagerOpenEmpty(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
+	go func() {
+		<-redrawCh
+	}()
 	wm.SetSize(110, 20)
 	if err := wm.Open(""); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -44,6 +47,14 @@ func TestManagerOpenEmpty(t *testing.T) {
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
+	}
+	go wm.Emit(event.Event{Type: event.Write})
+	ev := <-eventCh
+	if ev.Type != event.Error {
+		t.Errorf("event type should be %d but got: %d", event.Error, ev.Type)
+	}
+	if expected := "no file name"; ev.Error.Error() != expected {
+		t.Errorf("err should be %q but got: %v", expected, ev.Error)
 	}
 	wm.Close()
 }
@@ -129,7 +140,7 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 		wm.Emit(event.Event{Type: event.Rune, Rune: c, Mode: mode.Insert})
 	}
 	wm.Emit(event.Event{Type: event.ExitInsert})
-	wm.Emit(event.Event{Type: event.Write})
+	wm.Emit(event.Event{Type: event.WriteQuit})
 	windowStates, _, windowIndex, err := wm.State()
 	ws := windowStates[0]
 	if windowIndex != 0 {
@@ -168,17 +179,17 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	wm.SetSize(110, 20)
-	cmd, filename := "`which ls`", "ls"
+	cmd, name := "`which ls`", "ls"
 	if runtime.GOOS == "windows" {
-		cmd, filename = "`where ping`", "PING.EXE"
+		cmd, name = "`where ping`", "PING.EXE"
 	}
 	if err := wm.Open(cmd); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	windowStates, _, _, err := wm.State()
 	ws := windowStates[0]
-	if ws.Name != filename {
-		t.Errorf("name should be %q but got %q", filename, ws.Name)
+	if ws.Name != name {
+		t.Errorf("name should be %q but got %q", name, ws.Name)
 	}
 	if ws.Width != 16 {
 		t.Errorf("width should be %d but got %d", 16, ws.Width)
@@ -191,6 +202,86 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	}
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
+	}
+	wm.Close()
+}
+
+func TestManagerOpenChdirWrite(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip on Windows")
+	}
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	go func() {
+		for {
+			select {
+			case <-eventCh:
+			case <-redrawCh:
+			}
+		}
+	}()
+	wm.SetSize(110, 20)
+	f, _ := os.CreateTemp("", "bed-test-manager-open")
+	_ = f.Close()
+	defer os.Remove(f.Name())
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	defer func() {
+		if err := os.Chdir(dir); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+	}()
+	if err := os.Chdir(filepath.Dir(f.Name())); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := wm.Open(filepath.Base(f.Name())); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := os.Chdir("../"); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	str := "Hello, world!"
+	wm.Emit(event.Event{Type: event.StartInsert})
+	wm.Emit(event.Event{Type: event.SwitchFocus})
+	for _, c := range str {
+		wm.Emit(event.Event{Type: event.Rune, Rune: c, Mode: mode.Insert})
+	}
+	wm.Emit(event.Event{Type: event.ExitInsert})
+	wm.Emit(event.Event{Type: event.Write})
+	bs, err := os.ReadFile(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if string(bs) != str {
+		t.Errorf("file contents should be %q but got %q", str, string(bs))
+	}
+	wm.Close()
+}
+
+func TestManagerOpenDirectory(t *testing.T) {
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	go func() {
+		for {
+			select {
+			case <-eventCh:
+			case <-redrawCh:
+			}
+		}
+	}()
+	wm.SetSize(110, 20)
+	dir, _ := os.MkdirTemp("", "bed-test-manager-open")
+	defer os.Remove(dir)
+	if err := wm.Open(dir); err != nil {
+		if expected := dir + " is a directory"; err.Error() != expected {
+			t.Errorf("err should be %q but got: %v", expected, err)
+		}
+	} else {
+		t.Errorf("err should not be nil but got: %v", err)
 	}
 	wm.Close()
 }
