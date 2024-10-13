@@ -267,7 +267,8 @@ func (m *Manager) Emit(e event.Event) {
 		m.eventCh <- event.Event{Type: event.Redraw}
 	case event.Wincmd:
 		if e.Arg == "" {
-			m.eventCh <- event.Event{Type: event.Error, Error: errors.New("an argument is required for " + e.CmdName)}
+			m.eventCh <- event.Event{Type: event.Error,
+				Error: errors.New("an argument is required for " + e.CmdName)}
 		} else if err := m.wincmd(e.Arg); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else {
@@ -344,11 +345,16 @@ func (m *Manager) Emit(e event.Event) {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
 	case event.Write:
-		if err := m.write(e); err != nil {
+		if name, n, err := m.write(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Info,
+				Error: fmt.Errorf("%s: %[2]d (0x%[2]x) bytes written", name, n)}
 		}
 	case event.WriteQuit:
-		if err := m.writeQuit(e); err != nil {
+		if _, _, err := m.write(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else if err := m.quit(event.Event{}); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
 	default:
@@ -524,6 +530,8 @@ func (m *Manager) quit(e event.Event) error {
 	if e.Arg != "" {
 		return errors.New("too many arguments for " + e.CmdName)
 	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	window := m.windows[m.windowIndex]
 	if window.changedTick != window.savedChangedTick && !e.Bang {
 		return errors.New("you have unsaved changes in " + window.getName() + ", add ! to force :quit")
@@ -532,43 +540,22 @@ func (m *Manager) quit(e event.Event) error {
 	if w == 1 && h == 1 {
 		m.eventCh <- event.Event{Type: event.QuitAll}
 	} else {
-		m.mu.Lock()
 		m.layout = m.layout.Close().Resize(0, 0, m.width, m.height)
 		m.windowIndex, m.prevWindowIndex = m.layout.ActiveWindow().Index, m.windowIndex
-		defer m.mu.Unlock()
 		m.eventCh <- event.Event{Type: event.Redraw}
 	}
 	return nil
 }
 
-func (m *Manager) write(e event.Event) error {
+func (m *Manager) write(e event.Event) (string, int64, error) {
 	if e.Range != nil && e.Arg == "" {
-		return errors.New("cannot overwrite partially with " + e.CmdName)
+		return "", 0, errors.New("cannot overwrite partially with " + e.CmdName)
 	}
-	name, n, err := m.writeFile(e.Range, e.Arg)
-	if err != nil {
-		return err
-	}
-	m.eventCh <- event.Event{Type: event.Info, Error: fmt.Errorf("%s: %d (0x%x) bytes written", name, n, n)}
-	return nil
-}
-
-func (m *Manager) writeQuit(e event.Event) error {
-	if e.Arg != "" {
-		return errors.New("too many arguments for " + e.CmdName)
-	}
-	if e.Range != nil {
-		return errors.New("range not allowed for " + e.CmdName)
-	}
-	if _, _, err := m.writeFile(nil, ""); err != nil {
-		return err
-	}
-	return m.quit(e)
-}
-
-func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	window := m.windows[m.windowIndex]
 	var path string
+	name := e.Arg
 	if name == "" {
 		if window.name == "" {
 			return "", 0, errors.New("no file name")
@@ -585,9 +572,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		return "", 0, errors.New("cannot overwrite the original file on Windows")
 	}
 	if window.path == "" && window.name == "" {
-		window.mu.Lock()
 		window.setPathName(path, filepath.Base(path))
-		defer window.mu.Unlock()
 	}
 	tmpf, err := os.OpenFile(
 		path+"-"+strconv.FormatUint(rand.Uint64(), 16),
@@ -597,7 +582,7 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 		return "", 0, err
 	}
 	defer os.Remove(tmpf.Name())
-	n, err := window.writeTo(r, tmpf)
+	n, err := window.writeTo(e.Range, tmpf)
 	tmpf.Close()
 	if err != nil {
 		return "", 0, err

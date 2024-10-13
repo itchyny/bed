@@ -219,15 +219,9 @@ func TestEditorReadWriteQuit(t *testing.T) {
 	if err := f.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	go func() {
-		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
-		ui.Emit(event.Event{Type: event.Quit})
-	}()
+	go ui.Emit(event.Event{Type: event.WriteQuit, Arg: f.Name()})
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
-	}
-	if err, expected := editor.err, "13 (0xd) bytes written"; !strings.HasSuffix(err.Error(), expected) {
-		t.Errorf("err should end with %q but got: %v", expected, err)
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
