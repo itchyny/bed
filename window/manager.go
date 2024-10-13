@@ -31,7 +31,7 @@ type Manager struct {
 	mu              *sync.Mutex
 	windowIndex     int
 	prevWindowIndex int
-	files           []file
+	files           map[string]file
 	eventCh         chan<- event.Event
 	redrawCh        chan<- struct{}
 }
@@ -50,7 +50,7 @@ func NewManager() *Manager {
 // Init initializes the Manager.
 func (m *Manager) Init(eventCh chan<- event.Event, redrawCh chan<- struct{}) {
 	m.eventCh, m.redrawCh = eventCh, redrawCh
-	m.mu = new(sync.Mutex)
+	m.mu, m.files = new(sync.Mutex), make(map[string]file)
 }
 
 // Open a new window.
@@ -133,7 +133,7 @@ func (m *Manager) open(filename string) (*window, error) {
 	if info.IsDir() {
 		return nil, errors.New(filename + " is a directory")
 	}
-	m.files = append(m.files, file{name: filename, file: f, perm: info.Mode().Perm()})
+	m.addFile(filename, f, info)
 	window, err := newWindow(f, filename, filepath.Base(filename), m.eventCh, m.redrawCh)
 	if err != nil {
 		return nil, err
@@ -156,6 +156,17 @@ func expandBacktick(filename string) (string, error) {
 		return filename, err
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+func expandHomedir(path string) (string, error) {
+	if !strings.HasPrefix(path, "~") {
+		return path, nil
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(homeDir, path[1:]), nil
 }
 
 func (m *Manager) read(r io.Reader) error {
@@ -558,30 +569,6 @@ func (m *Manager) writeQuit(e event.Event) error {
 	return m.quit(e)
 }
 
-// State returns the state of the windows.
-func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	layouts := m.layout.Collect()
-	states := make(map[int]*state.WindowState, len(m.windows))
-	for i, window := range m.windows {
-		if l, ok := layouts[i]; ok {
-			var err error
-			if states[i], err = window.state(
-				hexWindowWidth(l.Width()), max(l.Height()-2, 1),
-			); err != nil {
-				return nil, m.layout, 0, err
-			}
-		}
-	}
-	return states, m.layout, m.windowIndex, nil
-}
-
-func hexWindowWidth(width int) int {
-	width = min(max((width-18)/4, 4), 256)
-	return width & (0b11 << (bits.Len(uint(width)) - 2))
-}
-
 func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) {
 	window := m.windows[m.windowIndex]
 	if name == "" {
@@ -622,22 +609,44 @@ func (m *Manager) writeFile(r *event.Range, name string) (string, int64, error) 
 	return name, n, os.Rename(tmpf.Name(), name)
 }
 
+func (m *Manager) addFile(name string, f *os.File, fi os.FileInfo) {
+	m.files[name] = file{name: name, file: f, perm: fi.Mode().Perm()}
+}
+
+func (m *Manager) opened(name string) bool {
+	_, ok := m.files[name]
+	return ok
+}
+
 func (m *Manager) filePerm(name string) os.FileMode {
-	for _, f := range m.files {
-		if f.name == name {
-			return f.perm // keep the permission of the original file
-		}
+	if f, ok := m.files[name]; ok {
+		return f.perm
 	}
 	return os.FileMode(0o644)
 }
 
-func (m *Manager) opened(name string) bool {
-	for _, f := range m.files {
-		if f.name == name {
-			return true
+// State returns the state of the windows.
+func (m *Manager) State() (map[int]*state.WindowState, layout.Layout, int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	layouts := m.layout.Collect()
+	states := make(map[int]*state.WindowState, len(m.windows))
+	for i, window := range m.windows {
+		if l, ok := layouts[i]; ok {
+			var err error
+			if states[i], err = window.state(
+				hexWindowWidth(l.Width()), max(l.Height()-2, 1),
+			); err != nil {
+				return nil, m.layout, 0, err
+			}
 		}
 	}
-	return false
+	return states, m.layout, m.windowIndex, nil
+}
+
+func hexWindowWidth(width int) int {
+	width = min(max((width-18)/4, 4), 256)
+	return width & (0b11 << (bits.Len(uint(width)) - 2))
 }
 
 // Close the Manager.
@@ -645,15 +654,4 @@ func (m *Manager) Close() {
 	for _, f := range m.files {
 		f.file.Close()
 	}
-}
-
-func expandHomedir(path string) (string, error) {
-	if !strings.HasPrefix(path, "~") {
-		return path, nil
-	}
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(homeDir, path[1:]), nil
 }
