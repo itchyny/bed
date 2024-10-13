@@ -258,7 +258,7 @@ func (m *Manager) Emit(e event.Event) {
 		m.alternative(e)
 		m.eventCh <- event.Event{Type: event.Redraw}
 	case event.Wincmd:
-		if len(e.Arg) == 0 {
+		if e.Arg == "" {
 			m.eventCh <- event.Event{Type: event.Error, Error: errors.New("an argument is required for " + e.CmdName)}
 		} else if err := m.wincmd(e.Arg); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -351,11 +351,9 @@ func (m *Manager) Emit(e event.Event) {
 func (m *Manager) edit(e event.Event) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	var name string
-	if len(e.Arg) == 0 {
+	name := e.Arg
+	if name == "" {
 		name = m.windows[m.windowIndex].filename
-	} else {
-		name = e.Arg
 	}
 	window, err := m.open(name)
 	if err != nil {
@@ -367,7 +365,7 @@ func (m *Manager) edit(e event.Event) error {
 }
 
 func (m *Manager) enew(e event.Event) error {
-	if len(e.Arg) > 0 {
+	if e.Arg != "" {
 		return errors.New("too many arguments for " + e.CmdName)
 	}
 	m.mu.Lock()
@@ -398,7 +396,7 @@ func (m *Manager) newWindow(e event.Event, vertical bool) error {
 }
 
 func (m *Manager) only(e event.Event) error {
-	if len(e.Arg) > 0 {
+	if e.Arg != "" {
 		return errors.New("too many arguments for " + e.CmdName)
 	}
 	m.mu.Lock()
@@ -515,7 +513,7 @@ func (m *Manager) move(modifier func(layout.Window, layout.Layout) layout.Layout
 }
 
 func (m *Manager) quit(e event.Event) error {
-	if len(e.Arg) > 0 {
+	if e.Arg != "" {
 		return errors.New("too many arguments for " + e.CmdName)
 	}
 	window := m.windows[m.windowIndex]
@@ -548,7 +546,7 @@ func (m *Manager) write(e event.Event) error {
 }
 
 func (m *Manager) writeQuit(e event.Event) error {
-	if len(e.Arg) > 0 {
+	if e.Arg != "" {
 		return errors.New("too many arguments for " + e.CmdName)
 	}
 	if e.Range != nil {
