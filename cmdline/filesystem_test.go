@@ -2,6 +2,7 @@ package cmdline
 
 import (
 	"os"
+	"os/user"
 	"time"
 )
 
@@ -15,6 +16,10 @@ func (*mockFilesystem) Open(path string) (file, error) {
 
 func (*mockFilesystem) Stat(path string) (os.FileInfo, error) {
 	return &mockFileInfo{name: path, isDir: path == mockHomeDir}, nil
+}
+
+func (*mockFilesystem) GetUser(name string) (*user.User, error) {
+	return &user.User{Username: name, HomeDir: mockHomeDir}, nil
 }
 
 func (*mockFilesystem) UserHomeDir() (string, error) {

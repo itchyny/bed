@@ -195,6 +195,15 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 func (c *completor) expandPath(path string) (string, func(string) string) {
 	switch {
 	case strings.HasPrefix(path, "~"):
+		if name, rest, _ := strings.Cut(path[1:], separator); name != "" {
+			user, err := c.fs.GetUser(name)
+			if err != nil {
+				return path, nil
+			}
+			return filepath.Join(user.HomeDir, rest), func(path string) string {
+				return filepath.Join("~"+user.Username, strings.TrimPrefix(path, user.HomeDir))
+			}
+		}
 		homedir, err := c.fs.UserHomeDir()
 		if err != nil {
 			return path, nil

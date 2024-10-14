@@ -225,6 +225,20 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	if c.index != -1 {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
 	}
+
+	c.clear()
+	cmdline = "cd ~user/"
+	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
+	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	if expected := "cd ~user/Documents/"; cmdline != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
+	}
+	if expected := "cd ~user/"; c.target != expected {
+		t.Errorf("completion target should be %q but got %q", expected, c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
 }
 
 func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {

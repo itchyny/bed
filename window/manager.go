@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -159,6 +160,13 @@ func expandBacktick(name string) (string, error) {
 func expandPath(path string) (string, error) {
 	switch {
 	case strings.HasPrefix(path, "~"):
+		if name, rest, _ := strings.Cut(path[1:], string(filepath.Separator)); name != "" {
+			user, err := user.Lookup(name)
+			if err != nil {
+				return path, nil
+			}
+			return filepath.Join(user.HomeDir, rest), nil
+		}
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return "", err
