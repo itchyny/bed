@@ -293,27 +293,22 @@ func (w *window) readBytes(offset int64, l int) (int, []byte, error) {
 func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	var from, to int64
 	if r == nil {
-		if _, err := w.buffer.Seek(0, io.SeekStart); err != nil {
+		from, to = 0, w.length-1
+	} else {
+		var err error
+		if from, err = w.positionToOffset(r.From); err != nil {
 			return 0, err
 		}
-		return io.Copy(dst, w.buffer)
+		if to, err = w.positionToOffset(r.To); err != nil {
+			return 0, err
+		}
+		if from > to {
+			from, to = to, from
+		}
 	}
-	var from, to int64
-	var err error
-	if from, err = w.positionToOffset(r.From); err != nil {
-		return 0, err
-	}
-	if to, err = w.positionToOffset(r.To); err != nil {
-		return 0, err
-	}
-	if from > to {
-		from, to = to, from
-	}
-	if _, err := w.buffer.Seek(from, io.SeekStart); err != nil {
-		return 0, err
-	}
-	return io.Copy(dst, io.LimitReader(w.buffer, to-from+1))
+	return io.Copy(dst, io.NewSectionReader(w.buffer, from, to-from+1))
 }
 
 func (w *window) positionToOffset(pos event.Position) (int64, error) {
