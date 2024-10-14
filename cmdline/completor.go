@@ -29,7 +29,8 @@ func (c *completor) clear() {
 	c.index = 0
 }
 
-func (c *completor) complete(cmdline string, cmd command, prefix string, arg string, forward bool) string {
+func (c *completor) complete(cmdline string, forward bool) string {
+	cmd, _, _, prefix, arg, _ := parse(cmdline)
 	switch cmd.eventType {
 	case event.Edit, event.New, event.Vnew, event.Write:
 		return c.completeFilepaths(cmdline, prefix, arg, forward, false)
@@ -38,8 +39,7 @@ func (c *completor) complete(cmdline string, cmd command, prefix string, arg str
 	case event.Wincmd:
 		return c.completeWincmd(cmdline, prefix, arg, forward)
 	default:
-		c.results = nil
-		c.index = 0
+		c.clear()
 		return cmdline
 	}
 }

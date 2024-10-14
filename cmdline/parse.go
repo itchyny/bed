@@ -8,53 +8,46 @@ import (
 	"github.com/itchyny/bed/event"
 )
 
-func parse(cmdline []rune) (command, *event.Range, string, bool, string, error) {
-	i, l := 0, len(cmdline)
-	for i < l && (unicode.IsSpace(cmdline[i]) || cmdline[i] == ':') {
-		i++
+func parse(src string) (cmd command, r *event.Range,
+	bang bool, prefix string, arg string, err error) {
+	arg = strings.TrimLeftFunc(src, func(r rune) bool {
+		return unicode.IsSpace(r) || r == ':'
+	})
+	if arg == "" {
+		return
 	}
-	if i == l {
-		return command{}, nil, "", false, "", nil
-	}
-	r, i := event.ParseRange(cmdline, i)
-	j := i
-	for j < l && !unicode.IsSpace(cmdline[j]) {
-		j++
-	}
-	k := j
-	for k < l && unicode.IsSpace(cmdline[k]) {
-		k++
-	}
-	cmdName, bang := strings.CutSuffix(string(cmdline[i:j]), "!")
-	for _, cmd := range commands {
-		if len(cmdName) == 0 || cmdName[0] != cmd.name[0] {
-			continue
-		}
-		for _, c := range expand(cmd.name) {
-			if cmdName == c {
-				return cmd, r, string(cmdline[:k]), bang, strings.TrimSpace(string(cmdline[k:])), nil
-			}
+	r, arg = event.ParseRange(arg)
+	name, arg := cutPrefixFunc(arg, func(r rune) bool {
+		return !unicode.IsSpace(r)
+	})
+	name, bang = strings.CutSuffix(name, "!")
+	arg = strings.TrimLeftFunc(arg, unicode.IsSpace)
+	prefix = src[:len(src)-len(arg)]
+	for _, cmd = range commands {
+		if matchCommand(cmd.name, name) {
+			return
 		}
 	}
-	if len(strings.Fields(string(cmdline[k:]))) == 0 && r != nil {
-		return command{"goto", event.CursorGoto}, r, string(cmdline[:k]), bang, "", nil
+	if arg == "" && r != nil {
+		cmd = command{"goto", event.CursorGoto}
+		return
 	}
-	return command{}, nil, "", false, "", errors.New("unknown command: " + string(cmdline))
+	err = errors.New("unknown command: " + name)
+	return
 }
 
-func expand(name string) []string {
-	var prefix, abbr string
-	if i := strings.IndexRune(name, '['); i > 0 {
-		prefix = name[:i]
-		j := strings.IndexRune(name, ']')
-		abbr = name[i+1 : j]
+func cutPrefixFunc(src string, f func(rune) bool) (string, string) {
+	for i, r := range src {
+		if !f(r) {
+			return src[:i], src[i:]
+		}
 	}
-	if len(abbr) == 0 {
-		return []string{name}
-	}
-	cmds := make([]string, len(abbr)+1)
-	for i := range len(abbr) + 1 {
-		cmds[i] = prefix + abbr[:i]
-	}
-	return cmds
+	return src, ""
+}
+
+func matchCommand(cmd, name string) bool {
+	prefix, rest, _ := strings.Cut(cmd, "[")
+	abbr, _, _ := strings.Cut(rest, "]")
+	return strings.HasPrefix(name, prefix) &&
+		strings.HasPrefix(abbr, name[len(prefix):])
 }

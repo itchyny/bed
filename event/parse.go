@@ -1,113 +1,96 @@
 package event
 
-import "unicode"
+import (
+	"strings"
+	"unicode"
+)
 
 // ParseRange parses a Range.
-func ParseRange(xs []rune, i int) (*Range, int) {
-	from, i := ParsePos(xs, i)
+func ParseRange(src string) (*Range, string) {
+	var from, to Position
+	from, src = parsePosition(src)
 	if from == nil {
-		return nil, i
+		return nil, src
 	}
-	if i >= len(xs) || xs[i] != ',' {
-		return &Range{From: from}, i
+	var ok bool
+	if src, ok = strings.CutPrefix(src, ","); !ok {
+		return &Range{From: from}, src
 	}
-	to, i := ParsePos(xs, i+1)
-	return &Range{From: from, To: to}, i
+	to, src = parsePosition(src)
+	return &Range{From: from, To: to}, src
 }
 
-var states = map[int]map[rune]struct {
-	position Position
-	state    int
-}{
-	0: {
-		'$':  {position: End{}, state: 1},
-		'.':  {position: Relative{}, state: 1},
-		'\'': {position: nil, state: 2},
-	},
-	2: {
-		'<': {position: VisualStart{}, state: 1},
-		'>': {position: VisualEnd{}, state: 1},
-	},
-}
-
-// ParsePos parses a Position.
-//
-//	   +---- num.. ----+
-//	   +-- [-+]num.. --+   +---------------+
-//	   +------ $ ------+   |               |
-//	---+------ . ------+---+-- [-+]num.. --+---
-//	   +-- ' -+- < -+--+
-//	          +- > -+
-func ParsePos(xs []rune, i int) (Position, int) {
-	var state int
-	var position Position
-	for ; i < len(xs); i++ {
-		if state <= 1 && unicode.IsSpace(xs[i]) {
-			continue
-		}
-		if state == 0 && '0' <= xs[i] && xs[i] <= '9' {
-			var offset int64
-			offset, i = parseNum(xs, i)
-			if position == nil {
-				position = Absolute{offset}
-			}
-			state = 1
-			continue
-		}
-		if state <= 1 && (xs[i] == '+' || xs[i] == '-') {
-			var offset int64
-			sign := int64(1)
-			if xs[i] == '-' {
-				sign = -1
-			}
-			offset, i = parseNum(xs, i+1)
-			offset *= sign
-			if position == nil {
-				position = Relative{offset}
-			} else {
-				position = position.addOffset(offset)
-			}
-			state = 1
-			continue
-		}
-		if s, ok := states[state]; ok {
-			if next, ok := s[xs[i]]; ok {
-				state = next.state
-				position = next.position
-			} else {
-				return position, i
-			}
-		} else {
-			return position, i
-		}
-	}
-	return position, i
-}
-
-func parseNum(xs []rune, i int) (int64, int) {
+func parsePosition(src string) (Position, string) {
+	var pos Position
 	var offset int64
-	var hex int
-	for ; i < len(xs); i++ {
-		c := xs[i]
-		if hex == 0 && c == '0' {
-			hex = 1
-		} else if hex == 1 && c == 'x' {
-			hex = 2
-		} else if '0' <= c && c <= '9' || hex == 2 && 'a' <= c && c <= 'f' {
-			if hex == 2 {
-				offset *= 0x10
-			} else {
-				hex = 3
-				offset *= 10
-			}
-			if '0' <= c && c <= '9' {
-				offset += int64(c - '0')
-			} else {
-				offset += int64(c - 'a' + 0x0a)
-			}
-		} else {
-			return offset, i - 1
+	src = strings.TrimLeftFunc(src, unicode.IsSpace)
+	if src == "" {
+		return nil, src
+	}
+	switch src[0] {
+	case '.':
+		src = src[1:]
+		fallthrough
+	case '-', '+':
+		pos = Relative{}
+	case '$':
+		pos = End{}
+		src = src[1:]
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		offset, src = parseNum(src)
+		pos = Absolute{offset}
+	case '\'':
+		if len(src) == 1 {
+			return nil, src
+		}
+		switch src[1] {
+		case '<':
+			pos = VisualStart{}
+		case '>':
+			pos = VisualEnd{}
+		default:
+			return nil, src
+		}
+		src = src[2:]
+	default:
+		return nil, src
+	}
+	for src != "" {
+		src = strings.TrimLeftFunc(src, unicode.IsSpace)
+		if src == "" {
+			break
+		}
+		sign := int64(1)
+		switch src[0] {
+		case '-':
+			sign = -1
+			fallthrough
+		case '+':
+			offset, src = parseNum(src[1:])
+			pos = pos.add(sign * offset)
+		default:
+			return pos, src
 		}
 	}
-	return offset, i - 1
+	return pos, src
+}
+
+func parseNum(src string) (int64, string) {
+	offset, radix, ishex := int64(0), int64(10), false
+	if src, ishex = strings.CutPrefix(src, "0x"); ishex {
+		radix = 16
+	}
+	for src != "" {
+		c := src[0]
+		switch {
+		case '0' <= c && c <= '9':
+			offset = offset*radix + int64(c-'0')
+		case ('A' <= c && c <= 'F' || 'a' <= c && c <= 'f') && ishex:
+			offset = offset*radix + int64(c|('a'-'A')-'a'+10)
+		default:
+			return offset, src
+		}
+		src = src[1:]
+	}
+	return offset, src
 }

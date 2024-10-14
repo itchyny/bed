@@ -9,9 +9,7 @@ import (
 
 func TestCompletorCompleteFilepath(t *testing.T) {
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "new "
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete("new ", true)
 	if expected := "new Gopkg.toml"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -26,7 +24,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	for range 3 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "new .gitignore"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -39,7 +37,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	for range 4 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "new editor" + string(filepath.Separator); cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -51,7 +49,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 7, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "new "; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -59,7 +57,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", -1, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "new Gopkg.toml"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -67,7 +65,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, false)
 	if expected := "new "; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -76,7 +74,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	for range 3 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "new README.md"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -86,9 +84,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "new Gopkg.to"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("new Gopkg.to", true)
 	if expected := "new Gopkg.toml"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -100,9 +96,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "edit"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("edit", true)
 	if expected := "edit Gopkg.toml"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -119,9 +113,7 @@ func TestCompletorCompleteFilepathLeadingDot(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "edit ."
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete("edit .", true)
 	if expected := "edit .gitignore"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -133,9 +125,7 @@ func TestCompletorCompleteFilepathLeadingDot(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "edit ./r"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("edit ./r", true)
 	if expected := "edit ./README.md"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -149,9 +139,7 @@ func TestCompletorCompleteFilepathLeadingDot(t *testing.T) {
 
 func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := " : : :  new   B"
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete(" : : :  new   B", true)
 	if expected := " : : :  new   buffer" + string(filepath.Separator); cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -162,7 +150,7 @@ func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := " : : :  new   build" + string(filepath.Separator); cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -170,8 +158,8 @@ func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
-	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, false)
+	cmdline = c.complete(cmdline, false)
 	if expected := " : : :  new   B"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -185,9 +173,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "vnew ~/"
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete("vnew ~/", true)
 	if expected := "vnew ~/example.txt"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -198,7 +184,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "vnew ~/.vimrc"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -207,7 +193,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	}
 
 	for range 3 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "vnew ~/Library/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -217,7 +203,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	}
 
 	for range 2 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "vnew ~/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -227,9 +213,7 @@ func TestCompletorCompleteFilepathHomedir(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "cd ~user/"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("cd ~user/", true)
 	if expected := "cd ~user/Documents/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -246,9 +230,7 @@ func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "vnew ~/."
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	cmdline := c.complete("vnew ~/.", false)
 	if expected := "vnew ~/.zshrc"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -259,7 +241,7 @@ func TestCompletorCompleteFilepathHomedirDot(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "vnew ~/."; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -274,9 +256,7 @@ func TestCompletorCompleteFilepathEnviron(t *testing.T) {
 	}
 
 	c := newCompletor(&mockFilesystem{}, &mockEnvironment{})
-	cmdline := "e $h"
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete("e $h", true)
 	if expected := "e $HOME/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -285,9 +265,7 @@ func TestCompletorCompleteFilepathEnviron(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "e $HOME/"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("e $HOME/", true)
 	if expected := "e $HOME/example.txt"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -299,9 +277,7 @@ func TestCompletorCompleteFilepathEnviron(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "cd $h"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("cd $h", true)
 	if expected := "cd $HOME/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -310,9 +286,7 @@ func TestCompletorCompleteFilepathEnviron(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = "cd $HOME/"
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete("cd $HOME/", true)
 	if expected := "cd $HOME/Documents/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -326,9 +300,7 @@ func TestCompletorCompleteFilepathRoot(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "e /"
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete("e /", true)
 	if expected := "e /bin/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -339,7 +311,7 @@ func TestCompletorCompleteFilepathRoot(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "e /tmp/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -347,10 +319,9 @@ func TestCompletorCompleteFilepathRoot(t *testing.T) {
 		t.Errorf("completion index should be %d but got %d", 1, c.index)
 	}
 
-	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	cmdline = c.complete(cmdline, false)
 	c.clear()
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "e /bin/cp"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -364,9 +335,7 @@ func TestCompletorCompleteFilepathChdir(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "cd "
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, false)
+	cmdline := c.complete("cd ", false)
 	if expected := "cd editor/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -378,7 +347,7 @@ func TestCompletorCompleteFilepathChdir(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = c.complete(cmdline, cmd, prefix, "~/", false)
+	cmdline = c.complete("cd ~/", false)
 	if expected := "cd ~/Pictures/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -387,7 +356,7 @@ func TestCompletorCompleteFilepathChdir(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = c.complete(cmdline, cmd, prefix, "/", true)
+	cmdline = c.complete("cd /", true)
 	if expected := "cd /bin/"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -398,9 +367,7 @@ func TestCompletorCompleteFilepathChdir(t *testing.T) {
 
 func TestCompletorCompleteWincmd(t *testing.T) {
 	c := newCompletor(&mockFilesystem{}, nil)
-	cmdline := "winc"
-	cmd, _, prefix, _, arg, _ := parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline := c.complete("winc", true)
 	if expected := "winc"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
@@ -409,7 +376,7 @@ func TestCompletorCompleteWincmd(t *testing.T) {
 	}
 
 	for range 4 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "winc k"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -419,7 +386,7 @@ func TestCompletorCompleteWincmd(t *testing.T) {
 	}
 
 	for range 5 {
-		cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+		cmdline = c.complete(cmdline, true)
 	}
 	if expected := "winc J"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
@@ -429,8 +396,7 @@ func TestCompletorCompleteWincmd(t *testing.T) {
 	}
 
 	c.clear()
-	cmd, _, prefix, _, arg, _ = parse([]rune(cmdline))
-	cmdline = c.complete(cmdline, cmd, prefix, arg, true)
+	cmdline = c.complete(cmdline, true)
 	if expected := "winc J"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
