@@ -135,6 +135,18 @@ func TestCompletorCompleteFilepathLeadingDot(t *testing.T) {
 	if c.index != 0 {
 		t.Errorf("completion index should be %d but got %d", 0, c.index)
 	}
+
+	c.clear()
+	cmdline = c.complete("cd ..", true)
+	if expected := "cd ../"; cmdline != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
+	}
+	if expected := "cd .."; c.target != expected {
+		t.Errorf("completion target should be %q but got %q", expected, c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
 }
 
 func TestCompletorCompleteFilepathKeepPrefix(t *testing.T) {

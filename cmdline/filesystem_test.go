@@ -15,7 +15,10 @@ func (*mockFilesystem) Open(path string) (file, error) {
 }
 
 func (*mockFilesystem) Stat(path string) (os.FileInfo, error) {
-	return &mockFileInfo{name: path, isDir: path == mockHomeDir}, nil
+	return &mockFileInfo{
+		name:  path,
+		isDir: path == mockHomeDir || path == "..",
+	}, nil
 }
 
 func (*mockFilesystem) GetUser(name string) (*user.User, error) {

@@ -116,7 +116,8 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 		slices.Sort(targets)
 		return "", targets
 	}
-	if arg != "" && !strings.HasSuffix(arg, separator) && !strings.HasSuffix(arg, ".") {
+	if arg != "" && !strings.HasSuffix(arg, separator) &&
+		(!strings.HasSuffix(arg, ".") || strings.HasSuffix(arg, "..")) {
 		if stat, err := c.fs.Stat(path); err == nil && stat.IsDir() {
 			return "", []string{arg + separator}
 		}
