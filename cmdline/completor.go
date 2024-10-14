@@ -11,14 +11,15 @@ import (
 
 type completor struct {
 	fs      fs
+	env     env
 	target  string
 	arg     string
 	results []string
 	index   int
 }
 
-func newCompletor(fs fs) *completor {
-	return &completor{fs: fs}
+func newCompletor(fs fs, env env) *completor {
+	return &completor{fs: fs, env: env}
 }
 
 func (c *completor) clear() {
@@ -87,9 +88,33 @@ const separator = string(filepath.Separator)
 
 func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 	var targets []string
-	path, homedir, hasHomedirPrefix, err := c.expandHomedir(arg)
-	if err != nil {
-		return arg, nil
+	path, simplify := c.expandPath(arg)
+	if strings.HasPrefix(arg, "$") && !strings.Contains(arg, separator) {
+		base := strings.ToLower(arg[1:])
+		for _, env := range c.env.List() {
+			name, value, ok := strings.Cut(env, "=")
+			if !ok {
+				continue
+			}
+			if !strings.HasPrefix(strings.ToLower(name), base) {
+				continue
+			}
+			if !filepath.IsAbs(value) {
+				continue
+			}
+			fi, err := c.fs.Stat(value)
+			if err != nil {
+				continue
+			}
+			if fi.IsDir() {
+				name += separator
+			} else if dirOnly {
+				continue
+			}
+			targets = append(targets, "$"+name)
+		}
+		slices.Sort(targets)
+		return "", targets
 	}
 	if arg != "" && !strings.HasSuffix(arg, separator) && !strings.HasSuffix(arg, ".") {
 		if stat, err := c.fs.Stat(path); err == nil && stat.IsDir() {
@@ -157,8 +182,8 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 			return strings.Compare(p, q)
 		}
 	})
-	if hasHomedirPrefix {
-		arg = filepath.Join("~", strings.TrimPrefix(dir, homedir)) + separator
+	if simplify != nil {
+		arg = simplify(dir) + separator
 	} else if !strings.HasPrefix(arg, "."+separator) && dir == "." {
 		arg = ""
 	} else if arg = dir; !strings.HasSuffix(arg, separator) {
@@ -167,15 +192,28 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 	return arg, targets
 }
 
-func (c *completor) expandHomedir(path string) (string, string, bool, error) {
-	if !strings.HasPrefix(path, "~") {
-		return path, "", false, nil
+func (c *completor) expandPath(path string) (string, func(string) string) {
+	switch {
+	case strings.HasPrefix(path, "~"):
+		homedir, err := c.fs.UserHomeDir()
+		if err != nil {
+			return path, nil
+		}
+		return filepath.Join(homedir, path[1:]), func(path string) string {
+			return filepath.Join("~", strings.TrimPrefix(path, homedir))
+		}
+	case strings.HasPrefix(path, "$"):
+		name, rest, _ := strings.Cut(path[1:], separator)
+		value := strings.TrimRight(c.env.Get(name), separator)
+		if value == "" {
+			return path, nil
+		}
+		return filepath.Join(value, rest), func(path string) string {
+			return filepath.Join("$"+name, strings.TrimPrefix(path, value))
+		}
+	default:
+		return path, nil
 	}
-	homedir, err := c.fs.UserHomeDir()
-	if err != nil {
-		return "", "", false, err
-	}
-	return filepath.Join(homedir, path[1:]), homedir, true, nil
 }
 
 func (c *completor) completeWincmd(cmdline string, prefix string, arg string, forward bool) string {

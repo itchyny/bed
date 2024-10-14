@@ -157,14 +157,23 @@ func expandBacktick(name string) (string, error) {
 }
 
 func expandPath(path string) (string, error) {
-	if !strings.HasPrefix(path, "~") {
+	switch {
+	case strings.HasPrefix(path, "~"):
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(homeDir, path[1:]), nil
+	case strings.HasPrefix(path, "$"):
+		name, rest, _ := strings.Cut(path[1:], string(filepath.Separator))
+		value := os.Getenv(name)
+		if value == "" {
+			return path, nil
+		}
+		return filepath.Join(value, rest), nil
+	default:
 		return filepath.Abs(path)
 	}
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(homeDir, path[1:]), nil
 }
 
 func (m *Manager) read(r io.Reader) error {

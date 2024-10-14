@@ -26,7 +26,7 @@ type Cmdline struct {
 // NewCmdline creates a new Cmdline.
 func NewCmdline() *Cmdline {
 	return &Cmdline{
-		completor: newCompletor(&filesystem{}),
+		completor: newCompletor(&filesystem{}, &environment{}),
 		histories: map[bool][]string{false: {}, true: {}},
 		mu:        new(sync.Mutex),
 	}

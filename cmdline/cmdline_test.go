@@ -518,7 +518,7 @@ func TestCmdlineComplete(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	c := NewCmdline()
-	c.completor = newCompletor(&mockFilesystem{})
+	c.completor = newCompletor(&mockFilesystem{}, nil)
 	eventCh, cmdlineCh, redrawCh := make(chan event.Event), make(chan event.Event), make(chan struct{})
 	c.Init(eventCh, cmdlineCh, redrawCh)
 	waitCh := make(chan struct{})
