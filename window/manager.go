@@ -31,6 +31,7 @@ type Manager struct {
 	mu              *sync.Mutex
 	windowIndex     int
 	prevWindowIndex int
+	prevDir         string
 	files           map[string]file
 	eventCh         chan<- event.Event
 	redrawCh        chan<- struct{}
@@ -340,6 +341,18 @@ func (m *Manager) Emit(e event.Event) {
 		} else {
 			m.eventCh <- event.Event{Type: event.Redraw}
 		}
+	case event.Pwd:
+		if e.Arg != "" {
+			m.eventCh <- event.Event{Type: event.Error, Error: errors.New("too many arguments for " + e.CmdName)}
+			break
+		}
+		fallthrough
+	case event.Chdir:
+		if dir, err := m.chdir(e); err != nil {
+			m.eventCh <- event.Event{Type: event.Error, Error: err}
+		} else {
+			m.eventCh <- event.Event{Type: event.Info, Error: errors.New(dir)}
+		}
 	case event.Quit:
 		if err := m.quit(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
@@ -524,6 +537,33 @@ func (m *Manager) move(modifier func(layout.Window, layout.Layout) layout.Layout
 		m.layout = modifier(activeWindow, m.layout.Close()).Activate(
 			activeWindow.Index).Resize(0, 0, m.width, m.height)
 	}
+}
+
+func (m *Manager) chdir(e event.Event) (string, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if e.Arg == "-" && m.prevDir == "" {
+		return "", errors.New("no previous working directory")
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	if e.Arg == "" {
+		return dir, nil
+	}
+	if e.Arg != "-" {
+		dir, m.prevDir = e.Arg, dir
+	} else {
+		dir, m.prevDir = m.prevDir, dir
+	}
+	if dir, err = expandPath(dir); err != nil {
+		return "", err
+	}
+	if err = os.Chdir(dir); err != nil {
+		return "", err
+	}
+	return os.Getwd()
 }
 
 func (m *Manager) quit(e event.Event) error {
