@@ -5,26 +5,31 @@ import (
 	"time"
 )
 
-type mockFilesystem struct {
-}
+const mockHomeDir = "/home/user"
 
-func (fs *mockFilesystem) Open(path string) (file, error) {
+type mockFilesystem struct{}
+
+func (*mockFilesystem) Open(path string) (file, error) {
 	return &mockFile{path}, nil
 }
 
-func (fs *mockFilesystem) Stat(path string) (os.FileInfo, error) {
-	return &fileInfo{name: path, isDir: false}, nil
+func (*mockFilesystem) Stat(path string) (os.FileInfo, error) {
+	return &mockFileInfo{name: path, isDir: path == mockHomeDir}, nil
+}
+
+func (*mockFilesystem) UserHomeDir() (string, error) {
+	return mockHomeDir, nil
 }
 
 type mockFile struct {
 	path string
 }
 
-func (f *mockFile) Close() error {
+func (*mockFile) Close() error {
 	return nil
 }
 
-func createFileInfoList(infos []*fileInfo) []os.FileInfo {
+func createFileInfoList(infos []*mockFileInfo) []os.FileInfo {
 	fileInfos := make([]os.FileInfo, len(infos))
 	for i, info := range infos {
 		fileInfos[i] = info
@@ -34,7 +39,7 @@ func createFileInfoList(infos []*fileInfo) []os.FileInfo {
 
 func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 	if f.path == "." {
-		return createFileInfoList([]*fileInfo{
+		return createFileInfoList([]*mockFileInfo{
 			{"README.md", false},
 			{"Makefile", false},
 			{".gitignore", false},
@@ -45,12 +50,8 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 			{"build", true},
 		}), nil
 	}
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	if f.path == homeDir {
-		return createFileInfoList([]*fileInfo{
+	if f.path == mockHomeDir {
+		return createFileInfoList([]*mockFileInfo{
 			{"Documents", true},
 			{"Pictures", true},
 			{"Library", true},
@@ -60,7 +61,7 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 		}), nil
 	}
 	if f.path == "/" {
-		return createFileInfoList([]*fileInfo{
+		return createFileInfoList([]*mockFileInfo{
 			{"bin", true},
 			{"tmp", true},
 			{"var", true},
@@ -68,7 +69,7 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 		}), nil
 	}
 	if f.path == "/bin" {
-		return createFileInfoList([]*fileInfo{
+		return createFileInfoList([]*mockFileInfo{
 			{"cp", false},
 			{"echo", false},
 			{"rm", false},
@@ -79,31 +80,31 @@ func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 	return nil, nil
 }
 
-type fileInfo struct {
+type mockFileInfo struct {
 	name  string
 	isDir bool
 }
 
-func (fi *fileInfo) Name() string {
+func (fi *mockFileInfo) Name() string {
 	return fi.name
 }
 
-func (fi *fileInfo) IsDir() bool {
+func (fi *mockFileInfo) IsDir() bool {
 	return fi.isDir
 }
 
-func (fi *fileInfo) Size() int64 {
+func (*mockFileInfo) Size() int64 {
 	return 0
 }
 
-func (fi *fileInfo) Mode() os.FileMode {
+func (*mockFileInfo) Mode() os.FileMode {
 	return os.FileMode(0x1ed)
 }
 
-func (fi *fileInfo) ModTime() time.Time {
+func (*mockFileInfo) ModTime() time.Time {
 	return time.Time{}
 }
 
-func (fi *fileInfo) Sys() any {
+func (*mockFileInfo) Sys() any {
 	return nil
 }

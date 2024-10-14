@@ -87,7 +87,7 @@ const separator = string(filepath.Separator)
 
 func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 	var targets []string
-	path, homedir, hasHomedirPrefix, err := expandHomedir(arg)
+	path, homedir, hasHomedirPrefix, err := c.expandHomedir(arg)
 	if err != nil {
 		return arg, nil
 	}
@@ -167,6 +167,17 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 	return arg, targets
 }
 
+func (c *completor) expandHomedir(path string) (string, string, bool, error) {
+	if !strings.HasPrefix(path, "~") {
+		return path, "", false, nil
+	}
+	homedir, err := c.fs.UserHomeDir()
+	if err != nil {
+		return "", "", false, err
+	}
+	return filepath.Join(homedir, path[1:]), homedir, true, nil
+}
+
 func (c *completor) completeWincmd(cmdline string, prefix string, arg string, forward bool) string {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
@@ -181,15 +192,4 @@ func (c *completor) completeWincmd(cmdline string, prefix string, arg string, fo
 	c.results = []string{"n", "h", "l", "k", "j", "H", "L", "K", "J", "t", "b", "p"}
 	c.index = -1
 	return cmdline
-}
-
-func expandHomedir(path string) (string, string, bool, error) {
-	if !strings.HasPrefix(path, "~") {
-		return path, "", false, nil
-	}
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		return "", "", false, err
-	}
-	return filepath.Join(homedir, path[1:]), homedir, true, nil
 }

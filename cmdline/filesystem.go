@@ -5,6 +5,7 @@ import "os"
 type fs interface {
 	Open(string) (file, error)
 	Stat(string) (os.FileInfo, error)
+	UserHomeDir() (string, error)
 }
 
 type file interface {
@@ -12,13 +13,16 @@ type file interface {
 	Readdir(int) ([]os.FileInfo, error)
 }
 
-type filesystem struct {
-}
+type filesystem struct{}
 
-func (fs *filesystem) Open(path string) (file, error) {
+func (*filesystem) Open(path string) (file, error) {
 	return os.Open(path)
 }
 
-func (fs *filesystem) Stat(path string) (os.FileInfo, error) {
+func (*filesystem) Stat(path string) (os.FileInfo, error) {
 	return os.Stat(path)
+}
+
+func (*filesystem) UserHomeDir() (string, error) {
+	return os.UserHomeDir()
 }
