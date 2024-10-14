@@ -317,42 +317,29 @@ func (w *window) writeTo(r *event.Range, dst io.Writer) (int64, error) {
 }
 
 func (w *window) positionToOffset(pos event.Position) (int64, error) {
+	var offset int64
 	switch pos := pos.(type) {
 	case event.Absolute:
-		return max(
-			min(pos.Offset, max(w.length, 1)-1),
-			0,
-		), nil
+		offset = pos.Offset
 	case event.Relative:
-		return w.cursor + max(
-			min(pos.Offset, max(w.length, 1)-1-w.cursor),
-			-w.cursor,
-		), nil
+		offset = w.cursor + pos.Offset
 	case event.End:
-		return max(w.length, 1) - 1 + max(
-			min(pos.Offset, 0),
-			-(max(w.length, 1)-1),
-		), nil
+		offset = max(w.length, 1) - 1 + pos.Offset
 	case event.VisualStart:
 		if w.visualStart < 0 {
 			return 0, errors.New("no visual selection found")
 		}
-		// TODO: save visualStart after exitting visual mode
-		return w.visualStart + max(
-			min(pos.Offset, max(w.length, 1)-1-w.visualStart),
-			-w.visualStart,
-		), nil
+		// TODO: save visualStart after exiting visual mode
+		offset = w.visualStart + pos.Offset
 	case event.VisualEnd:
 		if w.visualStart < 0 {
 			return 0, errors.New("no visual selection found")
 		}
-		return w.cursor + max(
-			min(pos.Offset, max(w.length, 1)-1-w.cursor),
-			-w.cursor,
-		), nil
+		offset = w.cursor + pos.Offset
 	default:
 		return 0, errors.New("invalid range")
 	}
+	return max(min(offset, max(w.length, 1)-1), 0), nil
 }
 
 func (w *window) state(width, height int) (*state.WindowState, error) {
@@ -557,7 +544,7 @@ func (w *window) cursorGotoPos(pos event.Position, cmdName string) {
 		}
 	}
 	if offset, err := w.positionToOffset(pos); err == nil {
-		w.cursor = max(min(offset, max(w.length, 1)-1), 0)
+		w.cursor = offset
 		if w.cursor < w.offset {
 			w.offset = (max(w.cursor/w.width, w.height/2) - w.height/2) * w.width
 		} else if w.cursor >= w.offset+w.height*w.width {
