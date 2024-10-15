@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 	"sync"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/itchyny/bed/buffer"
@@ -686,43 +687,25 @@ func (w *window) windowBottom(count int64) {
 	w.cursor = (w.offset/w.width + h - min(h, max(count, 1)-1)) * w.width
 }
 
-func isDigit(b byte) bool {
-	return '\x30' <= b && b <= '\x39'
-}
-
-func isWhite(b byte) bool {
-	return b == '\x00' || b == '\x09' || b == '\x0a' || b == '\x0d' || b == '\x20'
-}
-
 func (w *window) jumpTo() {
-	s := 50
-	_, bytes, err := w.readBytes(max(w.cursor-int64(s), 0), 2*s)
+	i := min(w.cursor, 16)
+	_, bytes, err := w.readBytes(w.cursor-i, 32)
 	if err != nil {
 		return
 	}
-	var i, j int
-	for i = s; i < 2*s; i++ {
-		if isWhite(bytes[i]) {
+	for ; i >= 0; i-- {
+		if !unicode.IsDigit(rune(bytes[i])) {
+			bytes = bytes[i+1:]
 			break
 		}
 	}
-	if i == 2*s || !isDigit(bytes[i]) {
-		return
-	}
-	for ; i > 0; i-- {
-		if isDigit(bytes[i-1]) {
+	for i := 0; i < len(bytes); i++ {
+		if !unicode.IsDigit(rune(bytes[i])) {
+			bytes = bytes[:i]
 			break
 		}
 	}
-	for j = i; j < 2*s; j++ {
-		if isDigit(bytes[j]) {
-			break
-		}
-	}
-	if j == 2*s {
-		return
-	}
-	offset, _ := strconv.ParseInt(string(bytes[i:j]), 10, 64)
+	offset, _ := strconv.ParseInt(string(bytes), 10, 64)
 	if offset <= 0 || w.length <= offset {
 		return
 	}
