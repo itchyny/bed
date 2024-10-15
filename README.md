@@ -10,58 +10,66 @@ Binary editor written in Go
 ## Screenshot
 ![bed command screenshot](https://user-images.githubusercontent.com/375258/38499347-2f71306c-3c42-11e8-926e-1782b0bc73f3.png)
 
-## Why?
-Why not? Programming is so fun!
+## Motivation
+I wanted to create a binary editor with Vim-like user interface, which runs in terminals, fast, and is portable.
+I have always been interested in various binary formats and I wanted to create my own editor to handle them.
+I also wanted to learn how a binary editor can handle large files and allow users to edit them interactively.
 
-I learned so much while creating this editor; handling of file pointers, what the saying details should depend on abstractions mean, how to mock file system for tests in Go language, how to solve deadlock or race conditions between goroutines and many other things.
-
-After all, creating by yourself is the best way to learn how it works.
-
-#### Okay, but why?
-I actually want a binary editor with Vim-like user interface, which runs in terminals, portable, fast and with window splitting feature.
-I think I started coding for what I want before doing research on existing editors.
+While creating this binary editor, I leaned a lot about programming in Go language.
+I spent a lot of time writing the core logic of buffer implementation of the editor.
+It was a great learning experience for me and a lot of fun.
 
 ## Installation
 ### Homebrew
+
 ```sh
 brew install bed
 ```
 
 ### Build from source
+
 ```bash
 go install github.com/itchyny/bed/cmd/bed@latest
 ```
 
 ## Features
-- Basic editing: inserting, replacing, deleting bytes
-- Support for large files
+
+- Basic byte editing
+- Large file support
+- Command line interface
 - Window splitting
 - Partial writing
 - Text searching
-
-Note that this software is still in its early stage of development.
-Please refer to [#1](https://github.com/itchyny/bed/issues/1) for roadmap.
+- Undo and redo
 
 ### Commands and keyboard shortcuts
 This binary editor is influenced by the Vim editor.
-So if you have experience with Vim, you will notice most of basic operations of Vim are supported with this binary editor too.
 
 - File operations
   - `:edit`, `:enew`, `:new`, `:vnew`, `:only`
 - Current working directory
   - `:cd`, `:chdir`, `:pwd`
 - Quit and save
-  - `:quit`, `:qall`, `:write`, `:wq`, `:xit`, `:xall`, `:cquit`
+  - `:quit`, `ZQ`, `:qall`, `:write`,
+    `:wq`, `ZZ`, `:xit`, `:xall`, `:cquit`
 - Window operations
   - `:wincmd [nolhkjtbpKJHL]`, `<C-w>[nolhkjtbpKJHL]`
+- Cursor motions
+  - `h`, `j`, `k`, `l`, `w`, `b`, `^`, `0`, `$`,
+    `<C-[fb]>`, `<C-[du]>`, `<C-[ey]>`, `<C-[np]>`,
+    `G`, `gg`, `:{count}`, `:{count}goto`, `:{count}%`,
+    `H`, `M`, `L`, `zt`, `zz`, `z.`, `zb`, `z-`,
+    `<TAB>` (toggle focus between hex and text views)
 - Mode operations
-  - `i`, `I`, `a`, `A`, `R`, `<ESC>`, `v`
+  - `i`, `I`, `a`, `A`, `v`, `r`, `R`, `<ESC>`
+- Inspect and edit
+  - `gb` (binary), `gd` (decimal), `x` (delete), `X` (delete backward),
+    `d` (delete selection), `y` (copy selection), `p`, `P` (paste),
+    `<` (left shift), `>` (right shift), `<C-a>` (increment), `<C-x>` (decrement)
 - Undo and redo
   - `:undo`, `u`, `:redo`, `<C-r>`
-- Moving cursor
-  - `:{count}`, `:{count}goto`, `:{count}%`
-- Searching
-  - `/`, `?`, `n`, `N`, `<C-c>` (to abort)
+- Search
+  - `/`, `?`, `n`, `N`, `<C-c>` (abort)
 
 ## Bug Tracker
 Report bug at [Issues・itchyny/bed - GitHub](https://github.com/itchyny/bed/issues).
