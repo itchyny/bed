@@ -153,10 +153,7 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 		if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
 			fileInfo, err = c.fs.Stat(filepath.Join(dir, name))
 			if err != nil {
-				if os.IsNotExist(err) {
-					continue
-				}
-				return arg, nil
+				continue
 			}
 			isDir = fileInfo.IsDir()
 		}
