@@ -6,9 +6,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/itchyny/bed/cmdline"
 	"github.com/itchyny/bed/event"
@@ -19,49 +17,43 @@ import (
 )
 
 type testUI struct {
-	eventCh chan<- event.Event
-	initCh  chan struct{}
-	mu      *sync.Mutex
+	eventCh  chan<- event.Event
+	initCh   chan struct{}
+	redrawCh chan struct{}
 }
 
 func newTestUI() *testUI {
-	return &testUI{initCh: make(chan struct{}), mu: new(sync.Mutex)}
+	return &testUI{
+		initCh:   make(chan struct{}),
+		redrawCh: make(chan struct{}),
+	}
 }
 
 func (ui *testUI) Init(eventCh chan<- event.Event) error {
-	defer close(ui.initCh)
-	ui.mu.Lock()
-	defer ui.mu.Unlock()
 	ui.eventCh = eventCh
+	go func() { defer close(ui.initCh); <-ui.redrawCh }()
 	return nil
 }
 
-func (ui *testUI) Run(map[mode.Mode]*key.Manager) {}
+func (*testUI) Run(map[mode.Mode]*key.Manager) {}
 
-func (ui *testUI) Height() int { return 10 }
+func (*testUI) Size() (int, int) { return 90, 20 }
 
-func (ui *testUI) Size() (int, int) { return 90, 20 }
+func (ui *testUI) Redraw(state.State) error {
+	ui.redrawCh <- struct{}{}
+	return nil
+}
 
-func (ui *testUI) Redraw(_ state.State) error { return nil }
-
-func (ui *testUI) Close() error { return nil }
+func (*testUI) Close() error { return nil }
 
 func (ui *testUI) Emit(e event.Event) {
 	<-ui.initCh
-	ui.mu.Lock()
-	defer ui.mu.Unlock()
-	if e.Type == event.ExecuteCmdline {
-		time.Sleep(100 * time.Millisecond)
-	}
 	ui.eventCh <- e
 	switch e.Type {
-	case event.Write, event.WriteQuit, event.StartCmdlineCommand,
-		event.ExecuteCmdline, event.NextSearch, event.PreviousSearch:
-		time.Sleep(500 * time.Millisecond)
-	case event.Rune:
-	default:
-		time.Sleep(10 * time.Millisecond)
+	case event.ExecuteCmdline, event.NextSearch, event.PreviousSearch:
+		<-ui.redrawCh
 	}
+	<-ui.redrawCh
 }
 
 func createTemp(dir, str string) (*os.File, error) {
