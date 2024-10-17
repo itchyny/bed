@@ -37,7 +37,7 @@ func NewLayout(index int) Layout {
 	return Window{Index: index, Active: true}
 }
 
-func (l Window) isLayout() {}
+func (Window) isLayout() {}
 
 // Collect returns all the Window.
 func (l Window) Collect() map[int]Window {
@@ -125,7 +125,7 @@ func (l Window) SplitRight(index int) Layout {
 }
 
 // Count returns the width and height counts.
-func (l Window) Count() (int, int) {
+func (Window) Count() (int, int) {
 	return 1, 1
 }
 
@@ -177,7 +177,7 @@ type Horizontal struct {
 	height int
 }
 
-func (l Horizontal) isLayout() {}
+func (Horizontal) isLayout() {}
 
 // Collect returns all the Window.
 func (l Horizontal) Collect() map[int]Window {
@@ -342,7 +342,7 @@ type Vertical struct {
 	height int
 }
 
-func (l Vertical) isLayout() {}
+func (Vertical) isLayout() {}
 
 // Collect returns all the Window.
 func (l Vertical) Collect() map[int]Window {

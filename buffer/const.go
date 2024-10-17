@@ -11,7 +11,7 @@ func (r constReader) Read(b []byte) (int, error) {
 }
 
 // Seek implements the io.Seeker interface.
-func (r constReader) Seek(int64, int) (int64, error) {
+func (constReader) Seek(int64, int) (int64, error) {
 	return 0, nil
 }
 

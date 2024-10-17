@@ -23,7 +23,7 @@ func (ui *tuiWindow) setCursor(line int, offset int) {
 	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
 }
 
-func (ui *tuiWindow) offsetStyleWidth(s *state.WindowState) int {
+func offsetStyleWidth(s *state.WindowState) int {
 	threshold := int64(0xfffff)
 	for i := range 10 {
 		if s.Length <= threshold {
@@ -38,7 +38,7 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	height, width := ui.region.height-2, s.Width
 	cursorPos := int(s.Cursor - s.Offset)
 	cursorLine := cursorPos / width
-	offsetStyleWidth := ui.offsetStyleWidth(s)
+	offsetStyleWidth := offsetStyleWidth(s)
 	eis := s.EditedIndices
 	for 0 < len(eis) && eis[1] <= s.Offset {
 		eis = eis[2:]
