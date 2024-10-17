@@ -85,8 +85,10 @@ func (c *Cmdline) Run() {
 			c.mu.Unlock()
 			continue
 		case event.ExecuteCmdline:
-			c.execute()
-			c.saveHistory()
+			if c.execute() {
+				c.mu.Unlock()
+				continue
+			}
 		default:
 			c.mu.Unlock()
 			continue
@@ -199,16 +201,16 @@ func (c *Cmdline) complete(forward bool) {
 	c.cursor = len(c.cmdline)
 }
 
-func (c *Cmdline) execute() {
+func (c *Cmdline) execute() (finish bool) {
+	defer c.saveHistory()
 	switch c.typ {
 	case ':':
 		cmd, r, bang, _, arg, err := parse(string(c.cmdline))
 		if err != nil {
 			c.eventCh <- event.Event{Type: event.Error, Error: err}
-			return
-		}
-		if cmd.name != "" {
+		} else if cmd.name != "" {
 			c.eventCh <- event.Event{Type: cmd.eventType, Range: r, CmdName: cmd.name, Bang: bang, Arg: arg}
+			finish = cmd.eventType == event.QuitAll || cmd.eventType == event.QuitErr
 		}
 	case '/':
 		c.eventCh <- event.Event{Type: event.ExecuteSearch, Arg: string(c.cmdline), Rune: '/'}
@@ -217,10 +219,14 @@ func (c *Cmdline) execute() {
 	default:
 		panic("cmdline.Cmdline.execute: unreachable")
 	}
+	return
 }
 
 func (c *Cmdline) saveHistory() {
 	cmdline := string(c.cmdline)
+	if cmdline == "" {
+		return
+	}
 	for i, h := range c.history {
 		if h == cmdline {
 			c.history = slices.Delete(c.history, i, i+1)
