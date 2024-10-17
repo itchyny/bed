@@ -104,7 +104,6 @@ func (e *Editor) listen() error {
 				} else if finish {
 					close(e.quitCh)
 					errCh <- err
-					return
 				}
 			case ev := <-e.uiEventCh:
 				if redraw, finish, err := e.emit(ev); redraw {
@@ -112,7 +111,6 @@ func (e *Editor) listen() error {
 				} else if finish {
 					close(e.quitCh)
 					errCh <- err
-					return
 				}
 			case <-e.quitCh:
 				return
