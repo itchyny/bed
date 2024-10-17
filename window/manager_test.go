@@ -30,10 +30,21 @@ func createTemp(dir, contents string) (*os.File, error) {
 
 func TestManagerOpenEmpty(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	go func() {
-		<-redrawCh
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
+		ev := <-eventCh
+		if ev.Type != event.Error {
+			t.Errorf("event type should be %d but got: %d", event.Error, ev.Type)
+		}
+		if expected := "no file name"; ev.Error.Error() != expected {
+			t.Errorf("err should be %q but got: %v", expected, ev.Error)
+		}
 	}()
 	wm.SetSize(110, 20)
 	if err := wm.Open(""); err != nil {
@@ -62,21 +73,14 @@ func TestManagerOpenEmpty(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	go wm.Emit(event.Event{Type: event.Write})
-	ev := <-eventCh
-	if ev.Type != event.Error {
-		t.Errorf("event type should be %d but got: %d", event.Error, ev.Type)
-	}
-	if expected := "no file name"; ev.Error.Error() != expected {
-		t.Errorf("err should be %q but got: %v", expected, ev.Error)
-	}
+	wm.Emit(event.Event{Type: event.Write})
+	<-waitCh
 	wm.Close()
 }
 
 func TestManagerOpenStates(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
-	wm.Init(eventCh, redrawCh)
+	wm.Init(nil, nil)
 	wm.SetSize(110, 20)
 	str := "Hello, world! こんにちは、世界！"
 	f, err := createTemp(t.TempDir(), str)
@@ -114,14 +118,19 @@ func TestManagerOpenStates(t *testing.T) {
 
 func TestManagerOpenNonExistsWrite(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	go func() {
-		for {
-			select {
-			case <-eventCh:
-			case <-redrawCh:
-			}
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
+		for range 16 {
+			<-redrawCh
+		}
+		if ev := <-eventCh; ev.Type != event.QuitAll {
+			t.Errorf("event type should be %d but got: %d", event.QuitAll, ev.Type)
 		}
 	}()
 	wm.SetSize(110, 20)
@@ -168,13 +177,13 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if string(bs) != str {
 		t.Errorf("file contents should be %q but got %q", str, string(bs))
 	}
+	<-waitCh
 	wm.Close()
 }
 
 func TestManagerOpenExpandBacktick(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
-	wm.Init(eventCh, redrawCh)
+	wm.Init(nil, nil)
 	wm.SetSize(110, 20)
 	cmd, name := "`which ls`", "ls"
 	if runtime.GOOS == "windows" {
@@ -208,8 +217,7 @@ func TestEditorOpenExpandHomedir(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
-	wm.Init(eventCh, redrawCh)
+	wm.Init(nil, nil)
 	wm.SetSize(110, 20)
 	str := "Hello, world!"
 	f, err := createTemp(t.TempDir(), str)
@@ -246,21 +254,48 @@ func TestManagerOpenChdirWrite(t *testing.T) {
 		t.Skip("skip on Windows")
 	}
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
-	go func() {
-		for {
-			select {
-			case <-eventCh:
-			case <-redrawCh:
-			}
-		}
-	}()
-	wm.SetSize(110, 20)
 	f, err := createTemp(t.TempDir(), "Hello")
 	if err != nil {
 		t.Fatalf("err should be nil but got: %v", err)
 	}
+	go func() {
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
+		ev := <-eventCh
+		if ev.Type != event.Info {
+			t.Errorf("event type should be %d but got: %d", event.Info, ev.Type)
+		}
+		dir, err := filepath.EvalSymlinks(filepath.Dir(f.Name()))
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+		if expected := dir; ev.Error.Error() != expected {
+			t.Errorf("err should be %q but got: %v", expected, ev.Error)
+		}
+		ev = <-eventCh
+		if ev.Type != event.Info {
+			t.Errorf("event type should be %d but got: %d", event.Info, ev.Type)
+		}
+		if expected := filepath.Dir(dir); ev.Error.Error() != expected {
+			t.Errorf("err should be %q but got: %v", expected, ev.Error)
+		}
+		for range 11 {
+			<-redrawCh
+		}
+		ev = <-eventCh
+		if ev.Type != event.Info {
+			t.Errorf("event type should be %d but got: %d", event.Info, ev.Type)
+		}
+		if expected := "13 (0xd) bytes written"; !strings.HasSuffix(ev.Error.Error(), expected) {
+			t.Errorf("err should be %q but got: %v", expected, ev.Error)
+		}
+	}()
+	wm.SetSize(110, 20)
 	wm.Emit(event.Event{Type: event.Chdir, Arg: filepath.Dir(f.Name())})
 	if err := wm.Open(filepath.Base(f.Name())); err != nil {
 		t.Fatalf("err should be nil but got: %v", err)
@@ -284,21 +319,13 @@ func TestManagerOpenChdirWrite(t *testing.T) {
 	if expected := "Hello, world!"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
+	<-waitCh
 	wm.Close()
 }
 
 func TestManagerOpenDirectory(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
-	wm.Init(eventCh, redrawCh)
-	go func() {
-		for {
-			select {
-			case <-eventCh:
-			case <-redrawCh:
-			}
-		}
-	}()
+	wm.Init(nil, nil)
 	wm.SetSize(110, 20)
 	dir := t.TempDir()
 	if err := wm.Open(dir); err != nil {
@@ -313,8 +340,7 @@ func TestManagerOpenDirectory(t *testing.T) {
 
 func TestManagerRead(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
-	wm.Init(eventCh, redrawCh)
+	wm.Init(nil, nil)
 	wm.SetSize(110, 20)
 	r := strings.NewReader("Hello, world!")
 	if err := wm.Read(r); err != nil {
@@ -345,14 +371,16 @@ func TestManagerRead(t *testing.T) {
 
 func TestManagerOnly(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	go func() {
-		for {
-			select {
-			case <-eventCh:
-			case <-redrawCh:
-			}
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
+		for range 4 {
+			<-eventCh
 		}
 	}()
 	wm.SetSize(110, 20)
@@ -379,19 +407,22 @@ func TestManagerOnly(t *testing.T) {
 		t.Errorf("layout should be %#v but got %#v", expected, got)
 	}
 
+	<-waitCh
 	wm.Close()
 }
 
 func TestManagerAlternative(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	go func() {
-		for {
-			select {
-			case <-eventCh:
-			case <-redrawCh:
-			}
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
+		for range 9 {
+			<-eventCh
 		}
 	}()
 	wm.SetSize(110, 20)
@@ -475,19 +506,22 @@ func TestManagerAlternative(t *testing.T) {
 		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
 
+	<-waitCh
 	wm.Close()
 }
 
 func TestManagerWincmd(t *testing.T) {
 	wm := NewManager()
-	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	go func() {
-		for {
-			select {
-			case <-eventCh:
-			case <-redrawCh:
-			}
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
+		for range 17 {
+			<-eventCh
 		}
 	}()
 	wm.SetSize(110, 20)
@@ -538,6 +572,7 @@ func TestManagerWincmd(t *testing.T) {
 		t.Errorf("layout should be %#v but got %#v", expected, got)
 	}
 
+	<-waitCh
 	wm.Close()
 }
 
@@ -556,6 +591,11 @@ func TestManagerCopyCutPaste(t *testing.T) {
 	}
 	_, _, _, _ = wm.State()
 	go func() {
+		defer func() {
+			close(eventCh)
+			close(redrawCh)
+			close(waitCh)
+		}()
 		<-redrawCh
 		<-redrawCh
 		<-redrawCh
@@ -620,7 +660,6 @@ func TestManagerCopyCutPaste(t *testing.T) {
 		if expected := "Hefoobarfoobarfoobarlrld!"; !strings.HasPrefix(string(ws.Bytes), expected) {
 			t.Errorf("Bytes should start with %q but got %q", expected, string(ws.Bytes))
 		}
-		close(waitCh)
 	}()
 	wm.Emit(event.Event{Type: event.CursorNext, Mode: mode.Normal, Count: 3})
 	wm.Emit(event.Event{Type: event.StartVisual})
