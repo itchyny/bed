@@ -14,6 +14,20 @@ import (
 	"github.com/itchyny/bed/mode"
 )
 
+func createTemp(dir, contents string) (*os.File, error) {
+	f, err := os.CreateTemp(dir, "")
+	if err != nil {
+		return nil, err
+	}
+	if _, err = f.WriteString(contents); err != nil {
+		return nil, err
+	}
+	if err = f.Close(); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
 func TestManagerOpenEmpty(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
@@ -23,7 +37,7 @@ func TestManagerOpenEmpty(t *testing.T) {
 	}()
 	wm.SetSize(110, 20)
 	if err := wm.Open(""); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, windowIndex, err := wm.State()
 	ws := windowStates[0]
@@ -64,27 +78,13 @@ func TestManagerOpenStates(t *testing.T) {
 	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
 	wm.SetSize(110, 20)
-	f, err := os.CreateTemp("", "bed-test-manager-open")
-	if err != nil {
-		t.Errorf("err should be nil but got %v", err)
-	}
 	str := "Hello, world! こんにちは、世界！"
-	n, err := f.WriteString(str)
-	if n != 41 {
-		t.Errorf("WriteString should return %d but got %d", 41, n)
-	}
+	f, err := createTemp(t.TempDir(), str)
 	if err != nil {
-		t.Errorf("err should be nil but got %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
-	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	if err := f.Close(); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	defer os.Remove(f.Name())
 	if err := wm.Open(f.Name()); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, windowIndex, err := wm.State()
 	ws := windowStates[0]
@@ -125,12 +125,9 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 		}
 	}()
 	wm.SetSize(110, 20)
-	f, _ := os.CreateTemp("", "bed-test-manager-open")
-	_ = f.Close()
-	_ = os.Remove(f.Name())
-	defer os.Remove(f.Name())
-	if err := wm.Open(f.Name()); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+	fname := filepath.Join(t.TempDir(), "test")
+	if err := wm.Open(fname); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	_, _, _, _ = wm.State()
 	str := "Hello, world!"
@@ -146,7 +143,7 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if windowIndex != 0 {
 		t.Errorf("window index should be %d but got %d", 0, windowIndex)
 	}
-	if expected := filepath.Base(f.Name()); ws.Name != expected {
+	if expected := filepath.Base(fname); ws.Name != expected {
 		t.Errorf("name should be %q but got %q", expected, ws.Name)
 	}
 	if ws.Width != 16 {
@@ -164,7 +161,7 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := os.ReadFile(f.Name())
+	bs, err := os.ReadFile(fname)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
@@ -184,7 +181,7 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 		cmd, name = "`where ping`", "PING.EXE"
 	}
 	if err := wm.Open(cmd); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, _, err := wm.State()
 	ws := windowStates[0]
@@ -206,6 +203,44 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	wm.Close()
 }
 
+func TestEditorOpenExpandHomedir(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip on Windows")
+	}
+	wm := NewManager()
+	eventCh, redrawCh := make(chan event.Event), make(chan struct{})
+	wm.Init(eventCh, redrawCh)
+	wm.SetSize(110, 20)
+	str := "Hello, world!"
+	f, err := createTemp(t.TempDir(), str)
+	if err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	home := os.Getenv("HOME")
+	t.Cleanup(func() { os.Setenv("HOME", home) })
+	os.Setenv("HOME", filepath.Dir(f.Name()))
+	for i, prefix := range []string{"~/", "$HOME/"} {
+		if err := wm.Open(prefix + filepath.Base(f.Name())); err != nil {
+			t.Fatalf("err should be nil but got: %v", err)
+		}
+		windowStates, _, windowIndex, err := wm.State()
+		ws := windowStates[i]
+		if windowIndex != i {
+			t.Errorf("window index should be %d but got %d", i, windowIndex)
+		}
+		if expected := filepath.Base(f.Name()); ws.Name != expected {
+			t.Errorf("name should be %q but got %q", expected, ws.Name)
+		}
+		if !strings.HasPrefix(string(ws.Bytes), str) {
+			t.Errorf("Bytes should start with %q but got %q", str, string(ws.Bytes))
+		}
+		if err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+	}
+	wm.Close()
+}
+
 func TestManagerOpenChdirWrite(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("skip on Windows")
@@ -222,31 +257,22 @@ func TestManagerOpenChdirWrite(t *testing.T) {
 		}
 	}()
 	wm.SetSize(110, 20)
-	f, _ := os.CreateTemp("", "bed-test-manager-open")
-	_ = f.Close()
-	defer os.Remove(f.Name())
-	dir, err := os.Getwd()
+	f, err := createTemp(t.TempDir(), "Hello")
 	if err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
-	defer func() {
-		if err := os.Chdir(dir); err != nil {
-			t.Errorf("err should be nil but got: %v", err)
-		}
-	}()
-	if err := os.Chdir(filepath.Dir(f.Name())); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
+	wm.Emit(event.Event{Type: event.Chdir, Arg: filepath.Dir(f.Name())})
 	if err := wm.Open(filepath.Base(f.Name())); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
-	if err := os.Chdir("../"); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+	_, _, windowIndex, _ := wm.State()
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
 	}
-	str := "Hello, world!"
-	wm.Emit(event.Event{Type: event.StartInsert})
+	wm.Emit(event.Event{Type: event.Chdir, Arg: "../"})
+	wm.Emit(event.Event{Type: event.StartAppendEnd})
 	wm.Emit(event.Event{Type: event.SwitchFocus})
-	for _, c := range str {
+	for _, c := range ", world!" {
 		wm.Emit(event.Event{Type: event.Rune, Rune: c, Mode: mode.Insert})
 	}
 	wm.Emit(event.Event{Type: event.ExitInsert})
@@ -255,8 +281,8 @@ func TestManagerOpenChdirWrite(t *testing.T) {
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if string(bs) != str {
-		t.Errorf("file contents should be %q but got %q", str, string(bs))
+	if expected := "Hello, world!"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 	wm.Close()
 }
@@ -274,8 +300,7 @@ func TestManagerOpenDirectory(t *testing.T) {
 		}
 	}()
 	wm.SetSize(110, 20)
-	dir, _ := os.MkdirTemp("", "bed-test-manager-open")
-	defer os.Remove(dir)
+	dir := t.TempDir()
 	if err := wm.Open(dir); err != nil {
 		if expected := dir + " is a directory"; err.Error() != expected {
 			t.Errorf("err should be %q but got: %v", expected, err)
@@ -293,7 +318,7 @@ func TestManagerRead(t *testing.T) {
 	wm.SetSize(110, 20)
 	r := strings.NewReader("Hello, world!")
 	if err := wm.Read(r); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, windowIndex, err := wm.State()
 	ws := windowStates[0]
@@ -332,7 +357,7 @@ func TestManagerOnly(t *testing.T) {
 	}()
 	wm.SetSize(110, 20)
 	if err := wm.Open(""); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	wm.Emit(event.Event{Type: event.Vnew})
 	wm.Emit(event.Event{Type: event.Vnew})
@@ -371,11 +396,14 @@ func TestManagerAlternative(t *testing.T) {
 	}()
 	wm.SetSize(110, 20)
 
+	if err := os.Chdir(os.TempDir()); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
 	if err := wm.Open("bed-test-manager-alternative-1"); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	if err := wm.Open("bed-test-manager-alternative-2"); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	wm.Emit(event.Event{Type: event.Alternative})
 	_, _, windowIndex, _ := wm.State()
@@ -464,7 +492,7 @@ func TestManagerWincmd(t *testing.T) {
 	}()
 	wm.SetSize(110, 20)
 	if err := wm.Open(""); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	wm.Emit(event.Event{Type: event.Wincmd, Arg: "n"})
 	wm.Emit(event.Event{Type: event.Wincmd, Arg: "n"})
@@ -517,22 +545,14 @@ func TestManagerCopyCutPaste(t *testing.T) {
 	wm := NewManager()
 	eventCh, redrawCh, waitCh := make(chan event.Event), make(chan struct{}), make(chan struct{})
 	wm.Init(eventCh, redrawCh)
-	f, err := os.CreateTemp("", "bed-test-manager-copy-cut-paste")
-	if err != nil {
-		t.Errorf("err should be nil but got %v", err)
-	}
 	str := "Hello, world!"
-	_, err = f.WriteString(str)
+	f, err := createTemp(t.TempDir(), str)
 	if err != nil {
-		t.Errorf("err should be nil but got %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
-	if err := f.Close(); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
-	}
-	defer os.Remove(f.Name())
 	wm.SetSize(110, 20)
 	if err := wm.Open(f.Name()); err != nil {
-		t.Errorf("err should be nil but got: %v", err)
+		t.Fatalf("err should be nil but got: %v", err)
 	}
 	_, _, _, _ = wm.State()
 	go func() {
