@@ -225,8 +225,14 @@ func TestEditorOpenExpandHomedir(t *testing.T) {
 		t.Fatalf("err should be nil but got: %v", err)
 	}
 	home := os.Getenv("HOME")
-	t.Cleanup(func() { os.Setenv("HOME", home) })
-	os.Setenv("HOME", filepath.Dir(f.Name()))
+	t.Cleanup(func() {
+		if err := os.Setenv("HOME", home); err != nil {
+			t.Errorf("err should be nil but got: %v", err)
+		}
+	})
+	if err := os.Setenv("HOME", filepath.Dir(f.Name())); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
 	for i, prefix := range []string{"~/", "$HOME/"} {
 		if err := wm.Open(prefix + filepath.Base(f.Name())); err != nil {
 			t.Fatalf("err should be nil but got: %v", err)
