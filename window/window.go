@@ -60,7 +60,7 @@ type readAtSeeker interface {
 }
 
 func newWindow(
-	r readAtSeeker, path string, name string,
+	r readAtSeeker, path, name string,
 	eventCh chan<- event.Event, redrawCh chan<- struct{},
 ) (*window, error) {
 	buffer := buffer.NewBuffer(r)

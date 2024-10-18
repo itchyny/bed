@@ -138,7 +138,7 @@ func (err *quitErr) ExitCode() int {
 	return err.code
 }
 
-func (e *Editor) emit(ev event.Event) (redraw bool, finish bool, err error) {
+func (e *Editor) emit(ev event.Event) (redraw, finish bool, err error) {
 	e.mu.Lock()
 	if ev.Type != event.Redraw {
 		e.prevEventType = ev.Type

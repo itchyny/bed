@@ -19,7 +19,7 @@ func (ui *tuiWindow) getTextDrawer() *textDrawer {
 	return &textDrawer{region: ui.region, screen: ui.screen}
 }
 
-func (ui *tuiWindow) setCursor(line int, offset int) {
+func (ui *tuiWindow) setCursor(line, offset int) {
 	ui.screen.ShowCursor(ui.region.left+offset, ui.region.top+line)
 }
 
@@ -48,7 +48,10 @@ func (ui *tuiWindow) drawWindow(s *state.WindowState, active bool) {
 	var k int
 	for i := range height {
 		d.addTop(1).setLeft(0).setOffset(0)
-		d.setString(fmt.Sprintf(" %0*x", offsetStyleWidth, s.Offset+int64(i*width)), tcell.StyleDefault.Bold(i == cursorLine))
+		d.setString(
+			fmt.Sprintf(" %0*x", offsetStyleWidth, s.Offset+int64(i*width)),
+			tcell.StyleDefault.Bold(i == cursorLine),
+		)
 		d.setLeft(offsetStyleWidth + 3)
 		for j := range width {
 			b, style := byte(0), tcell.StyleDefault
@@ -134,7 +137,7 @@ func (ui *tuiWindow) drawHeader(s *state.WindowState, offsetStyleWidth int) {
 	}
 }
 
-func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height int, left int) {
+func (ui *tuiWindow) drawScrollBar(s *state.WindowState, height, left int) {
 	stateSize := s.Size
 	if s.Cursor+1 == s.Length && s.Cursor == s.Offset+int64(s.Size) {
 		stateSize++

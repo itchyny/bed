@@ -57,7 +57,7 @@ func (c *completor) completeNext(prefix string, forward bool) string {
 }
 
 func (c *completor) completeFilepaths(
-	cmdline string, prefix string, arg string, forward bool, dirOnly bool,
+	cmdline, prefix, arg string, forward, dirOnly bool,
 ) string {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
@@ -223,7 +223,7 @@ func (c *completor) expandPath(path string) (string, func(string) string) {
 	}
 }
 
-func (c *completor) completeWincmd(cmdline string, prefix string, arg string, forward bool) string {
+func (c *completor) completeWincmd(cmdline, prefix, arg string, forward bool) string {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
 	}

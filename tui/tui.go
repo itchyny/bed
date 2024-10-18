@@ -87,7 +87,7 @@ func (ui *Tui) Redraw(s state.State) error {
 	return nil
 }
 
-func (ui *Tui) setLine(line int, offset int, str string, style tcell.Style) {
+func (ui *Tui) setLine(line, offset int, str string, style tcell.Style) {
 	for _, c := range str {
 		ui.screen.SetContent(offset, line, c, nil, style)
 		offset += runewidth.RuneWidth(c)
@@ -146,7 +146,7 @@ func (ui *Tui) drawCmdline(s state.State) {
 	}
 }
 
-func (ui *Tui) drawCompletionResults(s state.State, width int, height int) {
+func (ui *Tui) drawCompletionResults(s state.State, width, height int) {
 	if len(s.CompletionResults) > 0 {
 		var line string
 		var pos, lineWidth int

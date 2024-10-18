@@ -21,7 +21,7 @@ func NewHistory() *History {
 }
 
 // Push a new buffer to the history.
-func (h *History) Push(buffer *buffer.Buffer, offset int64, cursor int64, tick uint64) {
+func (h *History) Push(buffer *buffer.Buffer, offset, cursor int64, tick uint64) {
 	newEntry := &historyEntry{buffer.Clone(), offset, cursor, tick}
 	if len(h.entries)-1 > h.index {
 		h.index++

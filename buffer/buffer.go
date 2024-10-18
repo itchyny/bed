@@ -153,7 +153,7 @@ func (b *Buffer) EditedIndices() []int64 {
 	return eis
 }
 
-func insertInterval(xs []int64, start int64, end int64) []int64 {
+func insertInterval(xs []int64, start, end int64) []int64 {
 	i, fi := slices.BinarySearch(xs, start)
 	j, fj := slices.BinarySearch(xs, end)
 	if i%2 == 0 {

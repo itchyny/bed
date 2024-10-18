@@ -9,7 +9,7 @@ import (
 )
 
 func parse(src string) (cmd command, r *event.Range,
-	bang bool, prefix string, arg string, err error) {
+	bang bool, prefix, arg string, err error) {
 	arg = strings.TrimLeftFunc(src, func(r rune) bool {
 		return unicode.IsSpace(r) || r == ':'
 	})
