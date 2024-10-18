@@ -225,14 +225,16 @@ func TestBufferCopy(t *testing.T) {
 		p := make([]byte, 17)
 		_, _ = got.Read(p)
 		if !strings.HasPrefix(string(p), testCase.expected+"\x00") {
-			t.Errorf("Copy(%d, %d) should clone %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+			t.Errorf("Copy(%d, %d) should clone %q but got %q",
+				testCase.start, testCase.end, testCase.expected, string(p))
 		}
 		got.Insert(0, 0x48)
 		got.Insert(int64(len(testCase.expected)+1), 0x49)
 		p = make([]byte, 19)
 		_, _ = got.ReadAt(p, 0)
 		if !strings.HasPrefix(string(p), "H"+testCase.expected+"I\x00") {
-			t.Errorf("Copy(%d, %d) should clone %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+			t.Errorf("Copy(%d, %d) should clone %q but got %q",
+				testCase.start, testCase.end, testCase.expected, string(p))
 		}
 	}
 }
@@ -274,14 +276,16 @@ func TestBufferCut(t *testing.T) {
 		p := make([]byte, 17)
 		_, _ = got.Read(p)
 		if !strings.HasPrefix(string(p), testCase.expected+"\x00") {
-			t.Errorf("Cut(%d, %d) should result into %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+			t.Errorf("Cut(%d, %d) should result into %q but got %q",
+				testCase.start, testCase.end, testCase.expected, string(p))
 		}
 		got.Insert(0, 0x48)
 		got.Insert(int64(len(testCase.expected)+1), 0x49)
 		p = make([]byte, 19)
 		_, _ = got.ReadAt(p, 0)
 		if !strings.HasPrefix(string(p), "H"+testCase.expected+"I\x00") {
-			t.Errorf("Cut(%d, %d) should result into %q but got %q", testCase.start, testCase.end, testCase.expected, string(p))
+			t.Errorf("Cut(%d, %d) should result into %q but got %q",
+				testCase.start, testCase.end, testCase.expected, string(p))
 		}
 	}
 }
