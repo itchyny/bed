@@ -632,7 +632,7 @@ func (m *Manager) write(e event.Event) (string, int64, error) {
 		window.setPathName(path, filepath.Base(path))
 	}
 	tmpf, err := os.OpenFile(
-		path+"-"+strconv.FormatUint(rand.Uint64(), 16),
+		path+"-"+strconv.FormatUint(rand.Uint64(), 36),
 		os.O_RDWR|os.O_CREATE|os.O_EXCL, m.filePerm(path),
 	) //#nosec G404
 	if err != nil {
@@ -640,8 +640,11 @@ func (m *Manager) write(e event.Event) (string, int64, error) {
 	}
 	defer os.Remove(tmpf.Name())
 	n, err := window.writeTo(e.Range, tmpf)
-	tmpf.Close()
 	if err != nil {
+		_ = tmpf.Close()
+		return "", 0, err
+	}
+	if err = tmpf.Close(); err != nil {
 		return "", 0, err
 	}
 	if window.path == path {
@@ -693,6 +696,6 @@ func hexWindowWidth(width int) int {
 // Close the Manager.
 func (m *Manager) Close() {
 	for _, f := range m.files {
-		f.file.Close()
+		_ = f.file.Close()
 	}
 }
