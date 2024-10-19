@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/itchyny/bed/event"
 )
@@ -12,6 +14,7 @@ import (
 type completor struct {
 	fs      fs
 	env     env
+	command bool
 	target  string
 	arg     string
 	results []string
@@ -22,24 +25,24 @@ func newCompletor(fs fs, env env) *completor {
 	return &completor{fs: fs, env: env}
 }
 
-func (c *completor) clear() {
-	c.target = ""
-	c.arg = ""
-	c.results = nil
-	c.index = 0
-}
-
 func (c *completor) complete(cmdline string, forward bool) string {
-	cmd, _, _, prefix, arg, _ := parse(cmdline)
+	cmd, r, _, name, prefix, arg, _ := parse(cmdline)
+	if name == "" || c.command ||
+		!hasSuffixFunc(prefix, unicode.IsSpace) && cmd.fullname != name {
+		cmdline = c.completeCommand(cmdline, name, prefix, r, forward)
+		if c.results != nil {
+			return cmdline
+		}
+		prefix = cmdline
+	}
 	switch cmd.eventType {
 	case event.Edit, event.New, event.Vnew, event.Write:
-		return c.completeFilepaths(cmdline, prefix, arg, forward, false)
+		return c.completeFilepath(cmdline, prefix, arg, forward, false)
 	case event.Chdir:
-		return c.completeFilepaths(cmdline, prefix, arg, forward, true)
+		return c.completeFilepath(cmdline, prefix, arg, forward, true)
 	case event.Wincmd:
 		return c.completeWincmd(cmdline, prefix, arg, forward)
 	default:
-		c.clear()
 		return cmdline
 	}
 }
@@ -53,35 +56,45 @@ func (c *completor) completeNext(prefix string, forward bool) string {
 	if c.index < 0 {
 		return c.target
 	}
+	if len(c.results) == 1 {
+		defer c.clear()
+	}
 	return prefix + c.arg + c.results[c.index]
 }
 
-func (c *completor) completeFilepaths(
+func (c *completor) completeCommand(
+	cmdline, name, prefix string, r *event.Range, forward bool,
+) string {
+	prefix = prefix[:len(prefix)-len(name)]
+	if c.results == nil {
+		c.command, c.target, c.index = true, cmdline, -1
+		c.arg, c.results = "", listCommandNames(name, r)
+	}
+	return c.completeNext(prefix, forward)
+}
+
+func listCommandNames(name string, r *event.Range) []string {
+	var targets []string
+	for _, cmd := range commands {
+		if strings.HasPrefix(cmd.fullname, name) && cmd.rangeType.allows(r) {
+			targets = append(targets, cmd.fullname)
+		}
+	}
+	slices.Sort(targets)
+	return targets
+}
+
+func (c *completor) completeFilepath(
 	cmdline, prefix, arg string, forward, dirOnly bool,
 ) string {
-	if !strings.HasSuffix(prefix, " ") {
+	if !hasSuffixFunc(prefix, unicode.IsSpace) {
 		prefix += " "
 	}
-	if len(c.results) > 0 {
-		return c.completeNext(prefix, forward)
+	if c.results == nil {
+		c.command, c.target, c.index = false, cmdline, -1
+		c.arg, c.results = c.listFileNames(arg, dirOnly)
 	}
-	c.target = cmdline
-	c.index = 0
-	c.arg, c.results = c.listFileNames(arg, dirOnly)
-	if len(c.results) == 1 {
-		cmdline := prefix + c.arg + c.results[0]
-		c.results = nil
-		return cmdline
-	}
-	if len(c.results) > 1 {
-		if forward {
-			c.index = 0
-			return prefix + c.arg + c.results[0]
-		}
-		c.index = len(c.results) - 1
-		return prefix + c.arg + c.results[len(c.results)-1]
-	}
-	return cmdline
+	return c.completeNext(prefix, forward)
 }
 
 const separator = string(filepath.Separator)
@@ -223,18 +236,28 @@ func (c *completor) expandPath(path string) (string, func(string) string) {
 	}
 }
 
-func (c *completor) completeWincmd(cmdline, prefix, arg string, forward bool) string {
-	if !strings.HasSuffix(prefix, " ") {
+func (c *completor) completeWincmd(
+	cmdline, prefix, arg string, forward bool,
+) string {
+	if !hasSuffixFunc(prefix, unicode.IsSpace) {
 		prefix += " "
 	}
-	if len(c.results) > 0 {
-		return c.completeNext(prefix, forward)
+	if c.results == nil {
+		if arg != "" {
+			return cmdline
+		}
+		c.command, c.target, c.arg, c.index = false, cmdline, "", -1
+		c.results = strings.Split("nohjkltbpHJKL", "")
 	}
-	if len(arg) > 0 {
-		return cmdline
-	}
-	c.target = cmdline
-	c.results = []string{"n", "h", "l", "k", "j", "H", "L", "K", "J", "t", "b", "p"}
-	c.index = -1
-	return cmdline
+	return c.completeNext(prefix, forward)
+}
+
+func (c *completor) clear() {
+	c.command, c.target, c.arg = false, "", ""
+	c.results, c.index = nil, 0
+}
+
+func hasSuffixFunc(s string, f func(rune) bool) bool {
+	r, size := utf8.DecodeLastRuneInString(s)
+	return size > 0 && f(r)
 }

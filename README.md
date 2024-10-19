@@ -53,7 +53,7 @@ This binary editor is influenced by the Vim editor.
   - `:quit`, `ZQ`, `:qall`, `:write`,
     `:wq`, `ZZ`, `:xit`, `:xall`, `:cquit`
 - Window operations
-  - `:wincmd [nolhkjtbpKJHL]`, `<C-w>[nolhkjtbpKJHL]`
+  - `:wincmd [nohjkltbpHJKL]`, `<C-w>[nohjkltbpHJKL]`
 - Cursor motions
   - `h`, `j`, `k`, `l`, `w`, `b`, `^`, `0`, `$`,
     `<C-[fb]>`, `<C-[du]>`, `<C-[ey]>`, `<C-[np]>`,

@@ -9,30 +9,32 @@ import (
 )
 
 func parse(src string) (cmd command, r *event.Range,
-	bang bool, prefix, arg string, err error) {
-	arg = strings.TrimLeftFunc(src, func(r rune) bool {
+	bang bool, name, prefix, arg string, err error) {
+	prefix, arg = cutPrefixFunc(src, func(r rune) bool {
 		return unicode.IsSpace(r) || r == ':'
 	})
 	if arg == "" {
 		return
 	}
 	r, arg = event.ParseRange(arg)
-	name, arg := cutPrefixFunc(arg, func(r rune) bool {
+	name, arg = cutPrefixFunc(arg, func(r rune) bool {
 		return !unicode.IsSpace(r)
 	})
 	name, bang = strings.CutSuffix(name, "!")
-	arg = strings.TrimLeftFunc(arg, unicode.IsSpace)
 	prefix = src[:len(src)-len(arg)]
+	if name == "" {
+		// To jump by byte offset, name should not be "go[to]".
+		cmd = command{name: "goto", eventType: event.CursorGoto}
+		return
+	}
 	for _, cmd = range commands {
 		if matchCommand(cmd.name, name) {
+			arg = strings.TrimLeftFunc(arg, unicode.IsSpace)
+			prefix = src[:len(src)-len(arg)]
 			return
 		}
 	}
-	if arg == "" && r != nil {
-		cmd = command{"goto", event.CursorGoto}
-		return
-	}
-	err = errors.New("unknown command: " + name)
+	cmd, err = command{}, errors.New("unknown command: "+name)
 	return
 }
 

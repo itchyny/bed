@@ -205,7 +205,7 @@ func (c *Cmdline) execute() (finish bool) {
 	defer c.saveHistory()
 	switch c.typ {
 	case ':':
-		cmd, r, bang, _, arg, err := parse(string(c.cmdline))
+		cmd, r, bang, _, _, arg, err := parse(string(c.cmdline))
 		if err != nil {
 			c.eventCh <- event.Event{Type: event.Error, Error: err}
 		} else if cmd.name != "" {
