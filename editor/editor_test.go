@@ -341,9 +341,6 @@ func TestEditorWriteVisualSelection(t *testing.T) {
 }
 
 func TestEditorWriteUndo(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skip on Windows")
-	}
 	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
@@ -358,9 +355,9 @@ func TestEditorWriteUndo(t *testing.T) {
 	}
 	go func() {
 		ui.Emit(event.Event{Type: event.DeleteByte})
-		ui.Emit(event.Event{Type: event.Write, Arg: f.Name()})
+		ui.Emit(event.Event{Type: event.Write, Arg: f.Name() + ".out"})
 		ui.Emit(event.Event{Type: event.Undo})
-		ui.Emit(event.Event{Type: event.WriteQuit, Arg: f.Name()})
+		ui.Emit(event.Event{Type: event.Quit})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -382,12 +379,16 @@ func TestEditorWriteUndo(t *testing.T) {
 	if expected := "abc"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
+	bs, err = os.ReadFile(f.Name() + ".out")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "bc"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
 }
 
 func TestEditorSearch(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skip on Windows")
-	}
 	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
@@ -418,8 +419,8 @@ func TestEditorSearch(t *testing.T) {
 		ui.Emit(event.Event{Type: event.DeleteByte})
 		ui.Emit(event.Event{Type: event.PreviousSearch})
 		ui.Emit(event.Event{Type: event.DeleteByte})
-		ui.Emit(event.Event{Type: event.Write})
-		ui.Emit(event.Event{Type: event.Quit})
+		ui.Emit(event.Event{Type: event.Write, Arg: f.Name() + ".out"})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
 	}()
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -434,11 +435,62 @@ func TestEditorSearch(t *testing.T) {
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	bs, err := os.ReadFile(f.Name())
+	bs, err := os.ReadFile(f.Name() + ".out")
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
 	if expected := "abcdfacdfacdef"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+}
+
+func TestEditorCmdlineCursorGoto(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	f, err := createTemp(t.TempDir(), "Hello, world!")
+	if err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f.Name()); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	go func() {
+		ui.Emit(event.Event{Type: event.StartCmdlineCommand})
+		ui.Emit(event.Event{Type: event.Rune, Rune: '6'})
+		ui.Emit(event.Event{Type: event.ExecuteCmdline})
+		ui.Emit(event.Event{Type: event.DeleteByte})
+		ui.Emit(event.Event{Type: event.Write, Arg: f.Name() + ".out1"})
+		ui.Emit(event.Event{Type: event.Undo})
+		ui.Emit(event.Event{Type: event.StartCmdlineCommand})
+		ui.Emit(event.Event{Type: event.Rune, Rune: '7'})
+		ui.Emit(event.Event{Type: event.Rune, Rune: '0'})
+		ui.Emit(event.Event{Type: event.Rune, Rune: '%'})
+		ui.Emit(event.Event{Type: event.ExecuteCmdline})
+		ui.Emit(event.Event{Type: event.DeletePrevByte})
+		ui.Emit(event.Event{Type: event.Write, Arg: f.Name() + ".out2"})
+		ui.Emit(event.Event{Type: event.Quit, Bang: true})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := os.ReadFile(f.Name() + ".out1")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "Hello,world!"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+	bs, err = os.ReadFile(f.Name() + ".out2")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "Hello, wrld!"; string(bs) != expected {
 		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
