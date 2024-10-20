@@ -384,7 +384,7 @@ func (m *Manager) Emit(e event.Event) {
 	case event.WriteQuit:
 		if _, _, err := m.write(e); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
-		} else if err := m.quit(event.Event{}); err != nil {
+		} else if err := m.quit(event.Event{Bang: e.Bang}); err != nil {
 			m.eventCh <- event.Event{Type: event.Error, Error: err}
 		}
 	default:

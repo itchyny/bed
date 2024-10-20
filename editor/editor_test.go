@@ -171,7 +171,7 @@ func TestEditorOpenWriteQuit(t *testing.T) {
 	}
 }
 
-func TestEditorOpenForceQuit(t *testing.T) {
+func TestEditorOpenQuitBang(t *testing.T) {
 	ui := newTestUI()
 	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
 	if err := editor.Init(); err != nil {
@@ -197,6 +197,48 @@ func TestEditorOpenForceQuit(t *testing.T) {
 	}
 	if err := editor.Close(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
+	}
+}
+
+func TestEditorOpenWriteQuitBang(t *testing.T) {
+	ui := newTestUI()
+	editor := NewEditor(ui, window.NewManager(), cmdline.NewCmdline())
+	if err := editor.Init(); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	f, err := createTemp(t.TempDir(), "ab")
+	if err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	if err := editor.Open(f.Name()); err != nil {
+		t.Fatalf("err should be nil but got: %v", err)
+	}
+	go func() {
+		ui.Emit(event.Event{Type: event.SwitchFocus})
+		ui.Emit(event.Event{Type: event.StartAppendEnd})
+		ui.Emit(event.Event{Type: event.Rune, Rune: 'c'})
+		ui.Emit(event.Event{Type: event.ExitInsert})
+		ui.Emit(event.Event{Type: event.WriteQuit, Arg: f.Name() + ".out", Bang: true})
+	}()
+	if err := editor.Run(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if err := editor.Close(); err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	bs, err := os.ReadFile(f.Name())
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "ab"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
+	}
+	bs, err = os.ReadFile(f.Name() + ".out")
+	if err != nil {
+		t.Errorf("err should be nil but got: %v", err)
+	}
+	if expected := "abc"; string(bs) != expected {
+		t.Errorf("file contents should be %q but got %q", expected, string(bs))
 	}
 }
 
