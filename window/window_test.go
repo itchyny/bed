@@ -1427,9 +1427,7 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	}
 	waitCh <- struct{}{}
 
-	for range 1 {
-		<-redrawCh
-	}
+	<-redrawCh
 	s, _ = window.state(width, height)
 	if expected := "Hxywzello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
