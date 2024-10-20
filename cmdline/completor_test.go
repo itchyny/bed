@@ -116,7 +116,7 @@ func TestCompletorCompleteCommand(t *testing.T) {
 func TestCompletorCompleteFilepath(t *testing.T) {
 	c := newCompletor(&mockFilesystem{}, nil)
 	cmdline := c.complete("new", true)
-	if expected := "new Gopkg.toml"; cmdline != expected {
+	if expected := "new CHANGELOG.md"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
 	if expected := "new"; c.target != expected {
@@ -164,7 +164,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	cmdline = c.complete(cmdline, true)
-	if expected := "new Gopkg.toml"; cmdline != expected {
+	if expected := "new CHANGELOG.md"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
 	if c.index != 0 {
@@ -190,8 +190,8 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = c.complete("w Gopkg.to", true)
-	if expected := "w Gopkg.toml"; cmdline != expected {
+	cmdline = c.complete("w change", true)
+	if expected := "w CHANGELOG.md"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
 	if expected := ""; c.target != expected {
@@ -227,7 +227,7 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 
 	c.clear()
 	cmdline = c.complete("edit", true)
-	if expected := "edit Gopkg.toml"; cmdline != expected {
+	if expected := "edit CHANGELOG.md"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
 	if expected := "edit"; c.target != expected {

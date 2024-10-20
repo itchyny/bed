@@ -48,10 +48,10 @@ func createFileInfoList(infos []*mockFileInfo) []os.FileInfo {
 func (f *mockFile) Readdir(_ int) ([]os.FileInfo, error) {
 	if f.path == "." {
 		return createFileInfoList([]*mockFileInfo{
+			{"CHANGELOG.md", false},
 			{"README.md", false},
 			{"Makefile", false},
 			{".gitignore", false},
-			{"Gopkg.toml", false},
 			{"editor", true},
 			{"cmdline", true},
 			{"buffer", true},
