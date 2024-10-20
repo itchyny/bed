@@ -190,8 +190,20 @@ func TestCompletorCompleteFilepath(t *testing.T) {
 	}
 
 	c.clear()
-	cmdline = c.complete("new Gopkg.to", true)
-	if expected := "new Gopkg.toml"; cmdline != expected {
+	cmdline = c.complete("w Gopkg.to", true)
+	if expected := "w Gopkg.toml"; cmdline != expected {
+		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
+	}
+	if expected := ""; c.target != expected {
+		t.Errorf("completion target should be %q but got %q", expected, c.target)
+	}
+	if c.index != 0 {
+		t.Errorf("completion index should be %d but got %d", 0, c.index)
+	}
+
+	c.clear()
+	cmdline = c.complete("wq .", true)
+	if expected := "wq .gitignore"; cmdline != expected {
 		t.Errorf("cmdline should be %q but got %q", expected, cmdline)
 	}
 	if expected := ""; c.target != expected {

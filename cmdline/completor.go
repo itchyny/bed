@@ -36,7 +36,7 @@ func (c *completor) complete(cmdline string, forward bool) string {
 		prefix = cmdline
 	}
 	switch cmd.eventType {
-	case event.Edit, event.New, event.Vnew, event.Write:
+	case event.Edit, event.New, event.Vnew, event.Write, event.WriteQuit:
 		return c.completeFilepath(cmdline, prefix, arg, forward, false)
 	case event.Chdir:
 		return c.completeFilepath(cmdline, prefix, arg, forward, true)
