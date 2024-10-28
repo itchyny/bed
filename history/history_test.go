@@ -34,6 +34,9 @@ func TestHistoryUndo(t *testing.T) {
 
 	buf := make([]byte, 8)
 	b, index, offset, cursor, tick = history.Undo()
+	if b == nil {
+		t.Fatalf("history.Undo should return buffer but got nil")
+	}
 	_, err := b.Read(buf)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)
@@ -56,6 +59,9 @@ func TestHistoryUndo(t *testing.T) {
 
 	buf = make([]byte, 8)
 	b, offset, cursor, tick = history.Redo()
+	if b == nil {
+		t.Fatalf("history.Redo should return buffer but got nil")
+	}
 	_, err = b.Read(buf)
 	if err != nil {
 		t.Errorf("err should be nil but got: %v", err)

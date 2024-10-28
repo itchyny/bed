@@ -765,7 +765,7 @@ func TestEditorShowBinary(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if expected := "01001000"; editor.err.Error() != expected {
+	if expected := "01001000"; editor.err == nil || editor.err.Error() != expected {
 		t.Errorf("err should be %q but got: %v", expected, editor.err)
 	}
 	if editor.errtyp != state.MessageInfo {
@@ -796,7 +796,7 @@ func TestEditorShowDecimal(t *testing.T) {
 	if err := editor.Run(); err != nil {
 		t.Errorf("err should be nil but got: %v", err)
 	}
-	if expected := "72"; editor.err.Error() != expected {
+	if expected := "72"; editor.err == nil || editor.err.Error() != expected {
 		t.Errorf("err should be %q but got: %v", expected, editor.err)
 	}
 	if editor.errtyp != state.MessageInfo {

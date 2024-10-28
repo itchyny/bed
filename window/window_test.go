@@ -142,31 +142,46 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 	window.setSize(width, height)
 
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorDown(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorDown(1)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width) * 2; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorUp(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorDown(10)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width) * 11; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -178,31 +193,46 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorRight(mode.Normal, 3)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width)*11 + 3; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorRight(mode.Normal, 20)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width)*12 - 1; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorLeft(3)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width)*12 - 4; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorLeft(20)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width) * 11; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorPrev(154)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(22); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -211,7 +241,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorNext(mode.Normal, 200)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(222); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -220,7 +253,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorNext(mode.Normal, 2000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1299); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -229,7 +265,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorHead(1)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1296); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -238,7 +277,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorEnd(1)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1299); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -248,7 +290,10 @@ func TestWindowCursorMotions(t *testing.T) {
 
 	window.cursorUp(20)
 	window.cursorEnd(1)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(991); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -257,7 +302,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorEnd(11)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1151); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -266,7 +314,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorDown(30)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1299); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -275,7 +326,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorPrev(2000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -284,7 +338,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorDown(2000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(width) * 81; s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -293,7 +350,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorRight(mode.Normal, 1000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1299); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -302,7 +362,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorUp(2000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(3); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -311,7 +374,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowTop(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -320,7 +386,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowTop(7)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(96); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -329,7 +398,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowTop(20)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(144); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -338,7 +410,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowMiddle()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(64); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -347,7 +422,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowBottom(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(144); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -356,7 +434,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowBottom(7)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(48); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -365,7 +446,10 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.windowBottom(20)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -374,61 +458,91 @@ func TestWindowCursorMotions(t *testing.T) {
 	}
 
 	window.cursorGotoPos(event.Absolute{Offset: 0}, "goto")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Absolute{Offset: 50}, "goto")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(50); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Absolute{Offset: 100}, "goto")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(100); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Relative{Offset: -10}, "goto")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(90); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Absolute{Offset: 30}, "%")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(390); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Relative{Offset: 30}, "%")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(780); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.End{Offset: -30}, "%")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(909); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Absolute{Offset: 30}, "go[to]")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(480); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.Relative{Offset: 30}, "go[to]")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(960); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.cursorGotoPos(event.End{Offset: -30}, "go[to]")
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(819); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -443,13 +557,19 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 	window.setSize(width, height)
 
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.pageDown()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(128); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -458,7 +578,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.pageDownHalf()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(208); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -467,7 +590,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollDown(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(224); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -476,7 +602,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollUp(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(224); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -485,7 +614,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollDown(30)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(688); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -494,7 +626,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollUp(30)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(352); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -503,7 +638,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.pageUpHalf()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(272); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -512,7 +650,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.pageUp()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -521,7 +662,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.pageEnd()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(1296); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -530,7 +674,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.pageTop()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -540,7 +687,10 @@ func TestWindowScreenMotions(t *testing.T) {
 
 	window.cursorNext(mode.Normal, 5)
 	window.scrollTop(5)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(85); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -550,7 +700,10 @@ func TestWindowScreenMotions(t *testing.T) {
 
 	window.cursorDown(4)
 	window.scrollTop(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(149); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -559,7 +712,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollTopHead(10)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(160); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -569,7 +725,10 @@ func TestWindowScreenMotions(t *testing.T) {
 
 	window.cursorNext(mode.Normal, 5)
 	window.scrollMiddle(12)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(197); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -578,7 +737,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollMiddleHead(15)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(240); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -588,7 +750,10 @@ func TestWindowScreenMotions(t *testing.T) {
 
 	window.cursorNext(mode.Normal, 5)
 	window.scrollBottom(12)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(197); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -598,7 +763,10 @@ func TestWindowScreenMotions(t *testing.T) {
 
 	window.cursorDown(8)
 	window.scrollBottom(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(325); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -607,7 +775,10 @@ func TestWindowScreenMotions(t *testing.T) {
 	}
 
 	window.scrollBottomHead(10)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(160); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -619,12 +790,18 @@ func TestWindowScreenMotions(t *testing.T) {
 func TestWindowDeleteBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
 	window.deleteBytes(0)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, orld!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -633,7 +810,10 @@ func TestWindowDeleteBytes(t *testing.T) {
 	}
 
 	window.deleteBytes(3)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, d!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -642,7 +822,10 @@ func TestWindowDeleteBytes(t *testing.T) {
 	}
 
 	window.deleteBytes(3)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, \x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -653,7 +836,10 @@ func TestWindowDeleteBytes(t *testing.T) {
 	window.deleteByte()
 	window.deleteByte()
 	window.deleteByte()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hell\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -666,7 +852,10 @@ func TestWindowDeleteBytes(t *testing.T) {
 	window.deleteBytes(0)
 	window.deleteBytes(0)
 	window.deleteBytes(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -681,12 +870,18 @@ func TestWindowDeleteBytes(t *testing.T) {
 func TestWindowDeletePrevBytes(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
 	window.deletePrevBytes(0)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hell, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -695,7 +890,10 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 	}
 
 	window.deletePrevBytes(3)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "H, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -704,7 +902,10 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 	}
 
 	window.deletePrevBytes(3)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := ", world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -716,48 +917,72 @@ func TestWindowDeletePrevBytes(t *testing.T) {
 func TestWindowIncrementDecrement(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.increment(0)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Iello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
 
 	window.increment(1000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "1ello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
 
 	window.increment(math.MaxInt64)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "0ello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
 
 	window.decrement(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "/ello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
 
 	window.decrement(1000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Gello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
 
 	window.decrement(math.MaxInt64)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
 
 	window.cursorNext(mode.Normal, 7)
 	window.increment(1000)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, _orld!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -766,10 +991,16 @@ func TestWindowIncrementDecrement(t *testing.T) {
 func TestWindowIncrementDecrementEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := 0; s.Size != expected {
 		t.Errorf("s.Size should be %d but got %d", expected, s.Size)
 	}
@@ -778,7 +1009,10 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 	}
 
 	window.increment(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "\x01\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -789,11 +1023,17 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 		t.Errorf("s.Length should be %d but got %d", expected, s.Length)
 	}
 
-	window, _ = newWindow(r, "test", "test", nil, nil)
+	window, err = newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.decrement(0)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "\xff\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -808,14 +1048,20 @@ func TestWindowIncrementDecrementEmpty(t *testing.T) {
 func TestWindowInsertByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 1
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
 	window.startInsert()
 
 	window.insertByte(mode.Insert, 0x04)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := true; s.Pending != expected {
 		t.Errorf("s.Pending should be %v but got %v", expected, s.Pending)
 	}
@@ -824,7 +1070,10 @@ func TestWindowInsertByte(t *testing.T) {
 	}
 
 	window.insertByte(mode.Insert, 0x0a)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, Jworld!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -846,7 +1095,10 @@ func TestWindowInsertByte(t *testing.T) {
 	window.insertByte(mode.Insert, 0x0c)
 	window.insertByte(mode.Insert, 0x04)
 	window.insertByte(mode.Insert, 0x0d)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "M\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -867,13 +1119,19 @@ func TestWindowInsertByte(t *testing.T) {
 func TestWindowInsertEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.startInsert()
 	window.insertByte(mode.Insert, 0x04)
 	window.insertByte(mode.Insert, 0x0a)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "J\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -888,7 +1146,10 @@ func TestWindowInsertEmpty(t *testing.T) {
 	}
 
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "J\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -903,19 +1164,28 @@ func TestWindowInsertEmpty(t *testing.T) {
 func TestWindowInsertHead(t *testing.T) {
 	r := strings.NewReader(strings.Repeat("Hello, world!", 2))
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.pageEnd()
 	window.startInsertHead()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(16); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.insertByte(mode.Insert, 0x03)
 	window.insertByte(mode.Insert, 0x0a)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, world!Hel:lo, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -936,11 +1206,17 @@ func TestWindowInsertHead(t *testing.T) {
 func TestWindowInsertHeadEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.startInsertHead()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := false; s.Pending != expected {
 		t.Errorf("s.Pending should be %v but got %v", expected, s.Pending)
 	}
@@ -957,7 +1233,10 @@ func TestWindowInsertHeadEmpty(t *testing.T) {
 	window.insertByte(mode.Insert, 0x04)
 	window.insertByte(mode.Insert, 0x0a)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "J\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -972,12 +1251,18 @@ func TestWindowInsertHeadEmpty(t *testing.T) {
 func TestWindowAppend(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
 	window.startAppend()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(8); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -985,7 +1270,10 @@ func TestWindowAppend(t *testing.T) {
 	window.insertByte(mode.Insert, 0x03)
 	window.insertByte(mode.Insert, 0x0a)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, w:orld!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1001,7 +1289,10 @@ func TestWindowAppend(t *testing.T) {
 	window.insertByte(mode.Insert, 0x03)
 	window.insertByte(mode.Insert, 0x0A)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, w:orld!:\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1016,12 +1307,18 @@ func TestWindowAppend(t *testing.T) {
 func TestWindowAppendEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.startAppend()
 	window.exitInsert()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Length != expected {
 		t.Errorf("s.Length should be %d but got %d", expected, s.Length)
 	}
@@ -1033,7 +1330,10 @@ func TestWindowAppendEmpty(t *testing.T) {
 	window.insertByte(mode.Insert, 0x03)
 	window.insertByte(mode.Insert, 0x0a)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := ":\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1048,7 +1348,10 @@ func TestWindowAppendEmpty(t *testing.T) {
 	window.insertByte(mode.Insert, 0x03)
 	window.insertByte(mode.Insert, 0x0b)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := ":;\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1063,19 +1366,28 @@ func TestWindowAppendEmpty(t *testing.T) {
 func TestWindowReplaceByte(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 7)
 	window.startReplaceByte()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(7); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.insertByte(mode.Replace, 0x03)
 	window.insertByte(mode.Replace, 0x0a)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, :orld!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1090,18 +1402,27 @@ func TestWindowReplaceByte(t *testing.T) {
 func TestWindowReplaceByteEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.startReplaceByte()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.insertByte(mode.Replace, 0x03)
 	window.insertByte(mode.Replace, 0x0a)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := ":\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1116,19 +1437,28 @@ func TestWindowReplaceByteEmpty(t *testing.T) {
 func TestWindowReplace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 10)
 	window.startReplace()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(10); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
 
 	window.insertByte(mode.Replace, 0x03)
 	window.insertByte(mode.Replace, 0x0a)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, wor:d!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1148,7 +1478,10 @@ func TestWindowReplace(t *testing.T) {
 	window.insertByte(mode.Replace, 0x03)
 	window.insertByte(mode.Replace, 0x0e)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, wor:;<=>\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1163,11 +1496,17 @@ func TestWindowReplace(t *testing.T) {
 func TestWindowReplaceEmpty(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.startReplace()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := int64(0); s.Cursor != expected {
 		t.Errorf("s.Cursor should be %d but got %d", expected, s.Cursor)
 	}
@@ -1177,7 +1516,10 @@ func TestWindowReplaceEmpty(t *testing.T) {
 	window.insertByte(mode.Replace, 0x03)
 	window.insertByte(mode.Replace, 0x0b)
 	window.exitInsert()
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := ":;\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1192,7 +1534,10 @@ func TestWindowReplaceEmpty(t *testing.T) {
 func TestWindowInsertByte2(t *testing.T) {
 	r := strings.NewReader("")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.startInsert()
@@ -1213,7 +1558,10 @@ func TestWindowInsertByte2(t *testing.T) {
 	window.insertByte(mode.Insert, 0x0e)
 	window.insertByte(mode.Insert, 0x0f)
 	window.exitInsert()
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "\x01\x23\x45\x67\x89\xab\xcd\xef\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1222,13 +1570,19 @@ func TestWindowInsertByte2(t *testing.T) {
 func TestWindowBackspace(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
 	window.startInsert()
 	window.backspace(mode.Insert)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hell, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1237,7 +1591,10 @@ func TestWindowBackspace(t *testing.T) {
 	window.backspace(mode.Insert)
 	window.backspace(mode.Insert)
 	window.backspace(mode.Insert)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := ", world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1246,13 +1603,19 @@ func TestWindowBackspace(t *testing.T) {
 func TestWindowBackspacePending(t *testing.T) {
 	r := strings.NewReader("Hello, world!")
 	width, height := 16, 10
-	window, _ := newWindow(r, "test", "test", nil, nil)
+	window, err := newWindow(r, "test", "test", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	window.cursorNext(mode.Normal, 5)
 	window.startInsert()
 	window.insertByte(mode.Insert, 0x03)
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := true; s.Pending != expected {
 		t.Errorf("s.Pending should be %v but got %v", expected, s.Pending)
 	}
@@ -1261,7 +1624,10 @@ func TestWindowBackspacePending(t *testing.T) {
 	}
 
 	window.backspace(mode.Insert)
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1276,7 +1642,10 @@ func TestWindowBackspacePending(t *testing.T) {
 func TestWindowEventRune(t *testing.T) {
 	width, height := 16, 10
 	redrawCh := make(chan struct{})
-	window, _ := newWindow(strings.NewReader(""), "test", "test", nil, redrawCh)
+	window, err := newWindow(strings.NewReader(""), "test", "test", nil, redrawCh)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	str := "48723fffab"
@@ -1291,7 +1660,10 @@ func TestWindowEventRune(t *testing.T) {
 	for range str {
 		<-redrawCh
 	}
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "\x48\x72\x3f\xff\xab\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1301,7 +1673,10 @@ func TestWindowEventRune(t *testing.T) {
 func TestWindowEventRuneText(t *testing.T) {
 	width, height := 16, 10
 	redrawCh := make(chan struct{})
-	window, _ := newWindow(strings.NewReader(""), "test", "test", nil, redrawCh)
+	window, err := newWindow(strings.NewReader(""), "test", "test", nil, redrawCh)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	str := "Hello, World!\nこんにちは、世界！\n鰰は魚の一種"
@@ -1318,7 +1693,10 @@ func TestWindowEventRuneText(t *testing.T) {
 	for range str {
 		<-redrawCh
 	}
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := str + "\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1328,7 +1706,10 @@ func TestWindowEventRuneText(t *testing.T) {
 func TestWindowEventUndoRedo(t *testing.T) {
 	width, height := 16, 10
 	redrawCh, waitCh := make(chan struct{}), make(chan struct{})
-	window, _ := newWindow(strings.NewReader("Hello, world!"), "test", "test", nil, redrawCh)
+	window, err := newWindow(strings.NewReader("Hello, world!"), "test", "test", nil, redrawCh)
+	if err != nil {
+		t.Fatal(err)
+	}
 	window.setSize(width, height)
 
 	go func() {
@@ -1370,7 +1751,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	for range 3 {
 		<-redrawCh
 	}
-	s, _ := window.state(width, height)
+	s, err := window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1382,7 +1766,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	for range 4 {
 		<-redrawCh
 	}
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hxyzello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1394,7 +1781,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	for range 6 {
 		<-redrawCh
 	}
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hxyxzyzello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1406,7 +1796,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	for range 3 {
 		<-redrawCh
 	}
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hxywzello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1418,7 +1811,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	for range 2 {
 		<-redrawCh
 	}
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hxyzello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}
@@ -1428,7 +1824,10 @@ func TestWindowEventUndoRedo(t *testing.T) {
 	waitCh <- struct{}{}
 
 	<-redrawCh
-	s, _ = window.state(width, height)
+	s, err = window.state(width, height)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expected := "Hxywzello, world!\x00"; !strings.HasPrefix(string(s.Bytes), expected) {
 		t.Errorf("s.Bytes should start with %q but got %q", expected, string(s.Bytes))
 	}

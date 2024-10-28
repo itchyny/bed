@@ -51,9 +51,12 @@ func TestManagerOpenEmpty(t *testing.T) {
 		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, windowIndex, err := wm.State()
-	ws := windowStates[0]
-	if windowIndex != 0 {
-		t.Errorf("window index should be %d but got %d", 0, windowIndex)
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
+	}
+	ws, ok := windowStates[windowIndex]
+	if !ok {
+		t.Fatalf("windowStates should contain %d but got: %v", windowIndex, windowStates)
 	}
 	if expected := ""; ws.Name != expected {
 		t.Errorf("name should be %q but got %q", expected, ws.Name)
@@ -91,9 +94,12 @@ func TestManagerOpenStates(t *testing.T) {
 		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, windowIndex, err := wm.State()
-	ws := windowStates[0]
-	if windowIndex != 0 {
-		t.Errorf("window index should be %d but got %d", 0, windowIndex)
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
+	}
+	ws, ok := windowStates[windowIndex]
+	if !ok {
+		t.Fatalf("windowStates should contain %d but got: %v", windowIndex, windowStates)
 	}
 	if expected := filepath.Base(f.Name()); ws.Name != expected {
 		t.Errorf("name should be %q but got %q", expected, ws.Name)
@@ -148,9 +154,12 @@ func TestManagerOpenNonExistsWrite(t *testing.T) {
 	wm.Emit(event.Event{Type: event.ExitInsert})
 	wm.Emit(event.Event{Type: event.WriteQuit})
 	windowStates, _, windowIndex, err := wm.State()
-	ws := windowStates[0]
-	if windowIndex != 0 {
-		t.Errorf("window index should be %d but got %d", 0, windowIndex)
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
+	}
+	ws, ok := windowStates[windowIndex]
+	if !ok {
+		t.Fatalf("windowStates should contain %d but got: %v", windowIndex, windowStates)
 	}
 	if expected := filepath.Base(fname); ws.Name != expected {
 		t.Errorf("name should be %q but got %q", expected, ws.Name)
@@ -192,8 +201,11 @@ func TestManagerOpenExpandBacktick(t *testing.T) {
 	if err := wm.Open(cmd); err != nil {
 		t.Fatalf("err should be nil but got: %v", err)
 	}
-	windowStates, _, _, err := wm.State()
-	ws := windowStates[0]
+	windowStates, _, windowIndex, err := wm.State()
+	ws, ok := windowStates[windowIndex]
+	if !ok {
+		t.Fatalf("windowStates should contain %d but got: %v", windowIndex, windowStates)
+	}
 	if ws.Name != name {
 		t.Errorf("name should be %q but got %q", name, ws.Name)
 	}
@@ -238,9 +250,12 @@ func TestManagerOpenExpandHomedir(t *testing.T) {
 			t.Fatalf("err should be nil but got: %v", err)
 		}
 		windowStates, _, windowIndex, err := wm.State()
-		ws := windowStates[i]
 		if windowIndex != i {
-			t.Errorf("window index should be %d but got %d", i, windowIndex)
+			t.Errorf("windowIndex should be %d but got %d", i, windowIndex)
+		}
+		ws, ok := windowStates[windowIndex]
+		if !ok {
+			t.Fatalf("windowStates should contain %d but got: %v", windowIndex, windowStates)
 		}
 		if expected := filepath.Base(f.Name()); ws.Name != expected {
 			t.Errorf("name should be %q but got %q", expected, ws.Name)
@@ -353,9 +368,12 @@ func TestManagerRead(t *testing.T) {
 		t.Fatalf("err should be nil but got: %v", err)
 	}
 	windowStates, _, windowIndex, err := wm.State()
-	ws := windowStates[0]
-	if windowIndex != 0 {
-		t.Errorf("window index should be %d but got %d", 0, windowIndex)
+	if expected := 0; windowIndex != expected {
+		t.Errorf("windowIndex should be %d but got %d", expected, windowIndex)
+	}
+	ws, ok := windowStates[windowIndex]
+	if !ok {
+		t.Fatalf("windowStates should contain %d but got: %v", windowIndex, windowStates)
 	}
 	if ws.Name != "" {
 		t.Errorf("name should be %q but got %q", "", ws.Name)
@@ -640,8 +658,12 @@ func TestManagerCopyCutPaste(t *testing.T) {
 		if !strings.HasPrefix(string(p), "lo, wo") {
 			t.Errorf("buffer string should be %q but got: %q", "", string(p))
 		}
-		windowStates, _, _, _ := wm.State()
-		ws := windowStates[0]
+		windowStates, _, windowIndex, _ := wm.State()
+		ws, ok := windowStates[windowIndex]
+		if !ok {
+			t.Errorf("windowStates should contain %d but got: %v", windowIndex, windowStates)
+			return
+		}
 		if ws.Length != int64(7) {
 			t.Errorf("Length should be %d but got %d", int64(7), ws.Length)
 		}
