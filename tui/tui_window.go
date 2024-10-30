@@ -167,9 +167,8 @@ func (ui *tuiWindow) drawFooter(s *state.WindowState, offsetStyleWidth int) {
 	b := s.Bytes[int(s.Cursor-s.Offset)]
 	left := fmt.Sprintf(" %s%s%s : 0x%02x : '%s'",
 		prettyMode(s.Mode), cmp.Or(s.Name, "[No name]"), modified, b, prettyRune(b))
-	right := fmt.Sprintf("%d/%d : 0x%0*x/0x%0*x : %.2f%% ",
-		s.Cursor, s.Length, offsetStyleWidth, s.Cursor, offsetStyleWidth, s.Length,
-		float64(s.Cursor*100)/float64(max(s.Length, 1)))
+	right := fmt.Sprintf("%[1]d/%[2]d : 0x%0[3]*[1]x/0x%0[3]*[2]x : %.2[4]f%% ",
+		s.Cursor, s.Length, offsetStyleWidth, float64(s.Cursor*100)/float64(max(s.Length, 1)))
 	line := fmt.Sprintf("%s  %*s", left, max(ui.region.width-len(left)-2, 0), right)
 	ui.getTextDrawer().setTop(ui.region.height-1).setString(line, tcell.StyleDefault.Reverse(true))
 }

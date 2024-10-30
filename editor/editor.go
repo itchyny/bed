@@ -195,12 +195,12 @@ func (e *Editor) emit(ev event.Event) (redraw, finish bool, err error) {
 			if l, err := e.buffer.Len(); err != nil {
 				e.err, e.errtyp = err, state.MessageError
 			} else {
-				e.err, e.errtyp = fmt.Errorf("%d (0x%x) bytes %s", l, l, ev.Arg), state.MessageInfo
+				e.err, e.errtyp = fmt.Errorf("%[1]d (0x%[1]x) bytes %[2]s", l, ev.Arg), state.MessageInfo
 			}
 		}
 		redraw = true
 	case event.Pasted:
-		e.err, e.errtyp = fmt.Errorf("%d (0x%x) bytes pasted", ev.Count, ev.Count), state.MessageInfo
+		e.err, e.errtyp = fmt.Errorf("%[1]d (0x%[1]x) bytes pasted", ev.Count), state.MessageInfo
 		redraw = true
 	default:
 		switch ev.Type {
