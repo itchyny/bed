@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"bytes"
 	"strings"
 	"sync"
 
@@ -125,47 +126,61 @@ func (ui *Tui) drawVerticalSplit(region region) {
 }
 
 func (ui *Tui) drawCmdline(s state.State) {
+	var cmdline string
+	style := tcell.StyleDefault
 	width, height := ui.Size()
-	if s.Error != nil {
-		style := tcell.StyleDefault.Foreground(tcell.ColorRed)
+	switch {
+	case s.Error != nil:
+		cmdline = s.Error.Error()
 		if s.ErrorType == state.MessageInfo {
 			style = style.Foreground(tcell.ColorYellow)
+		} else {
+			style = style.Foreground(tcell.ColorRed)
 		}
-		ui.setLine(height-1, 0, s.Error.Error(), style)
-	} else if s.Mode == mode.Cmdline || s.PrevMode == mode.Cmdline && len(s.Cmdline) > 0 {
-		ui.setLine(height-1, 0, ":"+string(s.Cmdline), tcell.StyleDefault)
-		if s.Mode == mode.Cmdline {
-			ui.drawCompletionResults(s, width, height)
-			ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
+	case s.Mode == mode.Cmdline:
+		if len(s.CompletionResults) > 0 {
+			ui.drawCompletionResults(s.CompletionResults, s.CompletionIndex, width, height)
 		}
-	} else if s.SearchMode != '\x00' {
-		ui.setLine(height-1, 0, string(s.SearchMode)+string(s.Cmdline), tcell.StyleDefault)
-		if s.Mode == mode.Search {
-			ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
-		}
+		ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
+		fallthrough
+	case s.PrevMode == mode.Cmdline && len(s.Cmdline) > 0:
+		cmdline = ":" + string(s.Cmdline)
+	case s.Mode == mode.Search:
+		ui.screen.ShowCursor(1+runewidth.StringWidth(string(s.Cmdline[:s.CmdlineCursor])), height-1)
+		fallthrough
+	case s.SearchMode != '\x00':
+		cmdline = string(s.SearchMode) + string(s.Cmdline)
+	default:
+		return
 	}
+	ui.setLine(height-1, 0, cmdline, style)
 }
 
-func (ui *Tui) drawCompletionResults(s state.State, width, height int) {
-	if len(s.CompletionResults) > 0 {
-		var line string
-		var pos, lineWidth int
-		for i, result := range s.CompletionResults {
-			w := runewidth.StringWidth(result)
-			if lineWidth+w+2 > width && i <= s.CompletionIndex {
-				line, lineWidth = "", 0
+func (ui *Tui) drawCompletionResults(results []string, index, width, height int) {
+	var line bytes.Buffer
+	var left, right int
+	for i, result := range results {
+		size := runewidth.StringWidth(result) + 2
+		if i <= index {
+			left, right = right, right+size
+			if right > width {
+				line.Reset()
+				left, right = 0, size
 			}
-			if s.CompletionIndex == i {
-				pos = lineWidth
-			}
-			line += " " + result + " "
-			lineWidth += w + 2
+		} else if right < width {
+			right += size
+		} else {
+			break
 		}
-		ui.setLine(height-2, 0, line+strings.Repeat(" ", width), tcell.StyleDefault.Reverse(true))
-		if s.CompletionIndex >= 0 {
-			ui.setLine(height-2, pos, " "+s.CompletionResults[s.CompletionIndex]+" ",
-				tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
-		}
+		line.WriteString(" ")
+		line.WriteString(result)
+		line.WriteString(" ")
+	}
+	line.WriteString(strings.Repeat(" ", max(width-right, 0)))
+	ui.setLine(height-2, 0, line.String(), tcell.StyleDefault.Reverse(true))
+	if index >= 0 {
+		ui.setLine(height-2, left, " "+results[index]+" ",
+			tcell.StyleDefault.Foreground(tcell.ColorGrey).Reverse(true))
 	}
 }
 
