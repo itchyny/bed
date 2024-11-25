@@ -709,7 +709,7 @@ func (w *window) jumpTo() {
 	if offset <= 0 || w.length <= offset {
 		return
 	}
-	w.stack = append(w.stack, position{w.cursor, w.offset})
+	w.stack = append(w.stack, position{cursor: w.cursor, offset: w.offset})
 	w.cursor = offset
 	w.offset = max(offset-offset%w.width-max(w.height/3, 0)*w.width, 0)
 }
@@ -718,8 +718,9 @@ func (w *window) jumpBack() {
 	if len(w.stack) == 0 {
 		return
 	}
-	w.cursor = w.stack[len(w.stack)-1].cursor
-	w.offset = w.stack[len(w.stack)-1].offset
+	if pos := w.stack[len(w.stack)-1]; pos.cursor < w.length {
+		w.cursor, w.offset = pos.cursor, pos.offset
+	}
 	w.stack = w.stack[:len(w.stack)-1]
 }
 
