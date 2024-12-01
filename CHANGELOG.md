@@ -1,4 +1,8 @@
 # Changelog
+## [v0.2.8](https://github.com/itchyny/bed/compare/v0.2.7..v0.2.8) (2024-12-01)
+* Refactor drawing command line and completion candidates.
+* Fix jump back action not to crash when the buffer is edited.
+
 ## [v0.2.7](https://github.com/itchyny/bed/compare/v0.2.6..v0.2.7) (2024-10-20)
 * Support environment variable expansion in the command line.
 * Implement `:cd`, `:chdir`, `:pwd` commands to change the working directory.
