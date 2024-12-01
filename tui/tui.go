@@ -46,10 +46,13 @@ func (ui *Tui) Init(eventCh chan<- event.Event) (err error) {
 func (ui *Tui) Run(kms map[mode.Mode]*key.Manager) {
 	for {
 		e := ui.screen.PollEvent()
-		// Be careful with data races here.
 		switch ev := e.(type) {
 		case *tcell.EventKey:
-			if e := kms[ui.getMode()].Press(eventToKey(ev)); e.Type != event.Nop {
+			var e event.Event
+			if km, ok := kms[ui.getMode()]; ok {
+				e = km.Press(eventToKey(ev))
+			}
+			if e.Type != event.Nop {
 				ui.eventCh <- e
 			} else {
 				ui.eventCh <- event.Event{Type: event.Rune, Rune: ev.Rune()}
