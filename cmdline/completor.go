@@ -48,6 +48,9 @@ func (c *completor) complete(cmdline string, forward bool) string {
 }
 
 func (c *completor) completeNext(prefix string, forward bool) string {
+	if len(c.results) == 0 {
+		return c.target
+	}
 	if forward {
 		c.index = (c.index+2)%(len(c.results)+1) - 1
 	} else {
@@ -164,7 +167,7 @@ func (c *completor) listFileNames(arg string, dirOnly bool) (string, []string) {
 		}
 		isDir := fileInfo.IsDir()
 		if !isDir && fileInfo.Mode()&os.ModeSymlink != 0 {
-			fileInfo, err = c.fs.Stat(filepath.Join(dir, name))
+			fileInfo, err := c.fs.Stat(filepath.Join(dir, name))
 			if err != nil {
 				continue
 			}
