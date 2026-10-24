@@ -1,5 +1,7 @@
 package layout
 
+import "maps"
+
 // Layout represents the window layout.
 type Layout interface {
 	isLayout()
@@ -182,9 +184,7 @@ func (Horizontal) isLayout() {}
 // Collect returns all the Window.
 func (l Horizontal) Collect() map[int]Window {
 	m := l.Top.Collect()
-	for i, l := range l.Bottom.Collect() {
-		m[i] = l
-	}
+	maps.Copy(m, l.Bottom.Collect())
 	return m
 }
 
@@ -347,9 +347,7 @@ func (Vertical) isLayout() {}
 // Collect returns all the Window.
 func (l Vertical) Collect() map[int]Window {
 	m := l.Left.Collect()
-	for i, l := range l.Right.Collect() {
-		m[i] = l
-	}
+	maps.Copy(m, l.Right.Collect())
 	return m
 }
 
