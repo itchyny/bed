@@ -136,7 +136,7 @@ func TestTuiEmpty(t *testing.T) {
 	if x != 10 || y != 1 {
 		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 10, 1, x, y)
 	}
-	if visible != true {
+	if !visible {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
 	if err := ui.Close(); err != nil {
@@ -188,7 +188,7 @@ func TestTuiScrollBar(t *testing.T) {
 	if x != 10 || y != 1 {
 		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 10, 1, x, y)
 	}
-	if visible != true {
+	if !visible {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
 	if err := ui.Close(); err != nil {
@@ -252,7 +252,7 @@ func TestTuiHorizontalSplit(t *testing.T) {
 	if x != 10 || y != 10 {
 		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 10, 10, x, y)
 	}
-	if visible != true {
+	if !visible {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
 	if err := ui.Close(); err != nil {
@@ -314,7 +314,7 @@ func TestTuiVerticalSplit(t *testing.T) {
 	if x != 66 || y != 1 {
 		t.Errorf("cursor position should be (%d, %d) but got (%d, %d)", 66, 1, x, y)
 	}
-	if visible != true {
+	if !visible {
 		t.Errorf("cursor should be visible but got %v", visible)
 	}
 	if err := ui.Close(); err != nil {
