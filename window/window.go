@@ -222,7 +222,7 @@ func (w *window) emit(e event.Event) {
 		w.undo(e.Count)
 	case event.Redo:
 		if e.Mode != mode.Normal {
-			panic("event.Undo should be emitted under normal mode")
+			panic("event.Redo should be emitted under normal mode")
 		}
 		w.redo(e.Count)
 	case event.Copy:
