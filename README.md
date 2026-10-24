@@ -1,6 +1,5 @@
 # bed
-[![CI Status](https://github.com/itchyny/bed/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/itchyny/bed/actions?query=branch:main)
-[![Go Report Card](https://goreportcard.com/badge/github.com/itchyny/bed)](https://goreportcard.com/report/github.com/itchyny/bed)
+[![CI Status](https://github.com/itchyny/bed/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/itchyny/bed/actions/workflows/ci.yaml?query=branch:main)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/itchyny/bed/blob/main/LICENSE)
 [![release](https://img.shields.io/github/release/itchyny/bed/all.svg)](https://github.com/itchyny/bed/releases)
 [![pkg.go.dev](https://pkg.go.dev/badge/github.com/itchyny/bed)](https://pkg.go.dev/github.com/itchyny/bed)
@@ -72,7 +71,7 @@ This binary editor is influenced by the Vim editor.
   - `/`, `?`, `n`, `N`, `<C-c>` (abort)
 
 ## Bug Tracker
-Report bug at [Issues・itchyny/bed - GitHub](https://github.com/itchyny/bed/issues).
+Report bugs at [Issues - itchyny/bed - GitHub](https://github.com/itchyny/bed/issues).
 
 ## Author
 itchyny (<https://github.com/itchyny>)
