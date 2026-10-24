@@ -1,4 +1,7 @@
 # Changelog
+## [v0.2.9](https://github.com/itchyny/bed/compare/v0.2.8..v0.2.9) (2026-10-24)
+* Require Go 1.26.
+
 ## [v0.2.8](https://github.com/itchyny/bed/compare/v0.2.7..v0.2.8) (2024-12-01)
 * Refactor drawing command line and completion candidates.
 * Fix jump back action not to crash when the buffer is edited.
