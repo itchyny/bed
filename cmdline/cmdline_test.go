@@ -328,7 +328,7 @@ func TestCmdlineQuit(t *testing.T) {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 		if e.Bang {
-			t.Errorf("cmdline should emit quit event without bang")
+			t.Error("cmdline should emit quit event without bang")
 		}
 	}
 }
@@ -357,7 +357,7 @@ func TestCmdlineForceQuit(t *testing.T) {
 			t.Errorf("cmdline should emit quit event with %q", cmd.cmd)
 		}
 		if !e.Bang {
-			t.Errorf("cmdline should emit quit event with bang")
+			t.Error("cmdline should emit quit event with bang")
 		}
 	}
 }
