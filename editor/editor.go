@@ -64,9 +64,7 @@ func (e *Editor) Init() error {
 func (e *Editor) listen() error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, 1)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-e.redrawCh:
@@ -75,10 +73,8 @@ func (e *Editor) listen() error {
 				return
 			}
 		}
-	}()
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	})
+	wg.Go(func() {
 		for {
 			select {
 			case ev := <-e.wmEventCh:
@@ -92,10 +88,8 @@ func (e *Editor) listen() error {
 				return
 			}
 		}
-	}()
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	})
+	wg.Go(func() {
 		for {
 			select {
 			case ev := <-e.cmdEventCh:
@@ -116,7 +110,7 @@ func (e *Editor) listen() error {
 				return
 			}
 		}
-	}()
+	})
 	wg.Wait()
 	select {
 	case err := <-errCh:
