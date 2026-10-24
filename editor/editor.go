@@ -202,12 +202,8 @@ func (e *Editor) emit(ev event.Event) (redraw, finish bool, err error) {
 			e.mode, e.prevMode = mode.Insert, e.mode
 		case event.StartReplaceByte, event.StartReplace:
 			e.mode, e.prevMode = mode.Replace, e.mode
-		case event.ExitInsert:
-			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.StartVisual:
 			e.mode, e.prevMode = mode.Visual, e.mode
-		case event.ExitVisual:
-			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.StartCmdlineCommand:
 			if e.mode == mode.Visual {
 				ev.Arg = "'<,'>"
@@ -224,7 +220,7 @@ func (e *Editor) emit(ev event.Event) (redraw, finish bool, err error) {
 			e.mode, e.prevMode = mode.Search, e.mode
 			e.err = nil
 			e.searchMode = '?'
-		case event.ExitCmdline:
+		case event.ExitCmdline, event.ExitInsert, event.ExitVisual:
 			e.mode, e.prevMode = mode.Normal, e.mode
 		case event.ExecuteCmdline:
 			m := mode.Normal
@@ -234,9 +230,7 @@ func (e *Editor) emit(ev event.Event) (redraw, finish bool, err error) {
 			e.mode, e.prevMode = m, e.mode
 		case event.ExecuteSearch:
 			e.searchTarget, e.searchMode = ev.Arg, ev.Rune
-		case event.NextSearch:
-			ev.Arg, ev.Rune, e.err = e.searchTarget, e.searchMode, nil
-		case event.PreviousSearch:
+		case event.NextSearch, event.PreviousSearch:
 			ev.Arg, ev.Rune, e.err = e.searchTarget, e.searchMode, nil
 		case event.Paste, event.PastePrev:
 			if e.buffer == nil {

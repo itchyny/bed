@@ -231,9 +231,7 @@ func (w *window) emit(e event.Event) {
 		newEvent = event.Event{Type: event.Copied, Buffer: w.cut(), Arg: "deleted"}
 	case event.Paste, event.PastePrev:
 		newEvent = event.Event{Type: event.Pasted, Count: w.paste(e)}
-	case event.ExecuteSearch:
-		w.search(e.Arg, e.Rune == '/')
-	case event.NextSearch:
+	case event.ExecuteSearch, event.NextSearch:
 		w.search(e.Arg, e.Rune == '/')
 	case event.PreviousSearch:
 		w.search(e.Arg, e.Rune != '/')

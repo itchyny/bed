@@ -48,8 +48,6 @@ func (c *Cmdline) Run() {
 			c.start('/', "")
 		case event.StartCmdlineSearchBackward:
 			c.start('?', "")
-		case event.ExitCmdline:
-			c.clear()
 		case event.CursorUp:
 			c.cursorUp()
 		case event.CursorDown:
@@ -70,7 +68,7 @@ func (c *Cmdline) Run() {
 			c.deleteWord()
 		case event.ClearToHeadCmdline:
 			c.clearToHead()
-		case event.ClearCmdline:
+		case event.ClearCmdline, event.ExitCmdline:
 			c.clear()
 		case event.Rune:
 			c.insert(e.Rune)
