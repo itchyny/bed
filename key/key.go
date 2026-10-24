@@ -2,6 +2,7 @@ package key
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/itchyny/bed/event"
 )
@@ -65,16 +66,16 @@ func (km *Manager) Press(k Key) event.Event {
 		keys := km.keys[i:]
 		var count int64
 		if km.count {
-			numStr := ""
+			var numStr strings.Builder
 			for j, k := range keys {
 				if len(k) == 1 && ('1' <= k[0] && k[0] <= '9' || k[0] == '0' && j > 0) {
-					numStr += string(k)
+					numStr.WriteString(string(k))
 				} else {
 					break
 				}
 			}
-			keys = keys[len(numStr):]
-			count, _ = strconv.ParseInt(numStr, 10, 64)
+			keys = keys[numStr.Len():]
+			count, _ = strconv.ParseInt(numStr.String(), 10, 64)
 		}
 		for _, ke := range km.events {
 			switch ke.cmp(keys) {
